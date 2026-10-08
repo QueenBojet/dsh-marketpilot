@@ -1,0 +1,8 @@
+node_modules/
+lib/
+coverage/
+.marketpilot/
+marketpilot-private/
+private-fixtures/
+*.secret.*
+*.local.*

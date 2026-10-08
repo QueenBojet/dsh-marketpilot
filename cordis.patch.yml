@@ -1,0 +1,5 @@
+- insert:
+    - id: marketpilot
+      name: dsh-marketpilot
+      config:
+        maxDocumentBytes: 2097152

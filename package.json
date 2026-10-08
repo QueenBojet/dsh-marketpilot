@@ -1,0 +1,81 @@
+{
+  "name": "dsh-marketpilot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    }
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "description": "MarketPilot research, human review and proposal workflows for DeepSeek Harness",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/QueenBojet/dsh-marketpilot.git"
+  },
+  "scripts": {
+    "prepare:harness-types": "node scripts/build-harness-types.mjs",
+    "prepare:harness-runtime": "node scripts/build-harness-runtime.mjs",
+    "marketpilot:demo": "node --import ./scripts/demo-resolution.mjs scripts/demo.mjs",
+    "marketpilot:demo:smoke": "node --import ./scripts/demo-resolution.mjs scripts/demo.mjs --test-human",
+    "marketpilot:demo:reset": "node scripts/reset-demo.mjs",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.build.json && node scripts/copy-prompts.mjs"
+  },
+  "dependencies": {
+    "zod": "4.4.3"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "4.0.5-alpha.1",
+    "@deepseek-ai/schemastery": "3.18.5-alpha.1",
+    "@deepseek-ai/dsh-fs": "0.2.1-alpha.1",
+    "@deepseek-ai/dsh-storage-domain": "0.2.1-alpha.1",
+    "@deepseek-ai/dsh-subagent": "0.2.1-alpha.1",
+    "@deepseek-ai/dsh-tools": "0.2.1-alpha.1",
+    "@deepseek-ai/dsh-user-questions": "0.2.1-alpha.1",
+    "@deepseek-ai/dsh-web": "0.2.1-alpha.1"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "link:../deepseek-harness/vendor/cordis",
+    "@deepseek-ai/cordis-plugin-include": "link:../deepseek-harness/vendor/include",
+    "@deepseek-ai/cordis-plugin-loader": "link:../deepseek-harness/vendor/loader",
+    "@deepseek-ai/dsh-agent": "link:../deepseek-harness/packages/core/agent",
+    "@deepseek-ai/dsh-fs": "link:../deepseek-harness/packages/fs/fs",
+    "@deepseek-ai/dsh-fs-local": "link:../deepseek-harness/packages/fs/fs-local",
+    "@deepseek-ai/dsh-llm": "link:../deepseek-harness/packages/llm/llm",
+    "@deepseek-ai/dsh-storage": "link:../deepseek-harness/packages/storage/storage",
+    "@deepseek-ai/dsh-storage-domain": "link:../deepseek-harness/packages/storage/storage-domain",
+    "@deepseek-ai/dsh-storage-json": "link:../deepseek-harness/packages/storage/storage-json",
+    "@deepseek-ai/dsh-storage-sqlite": "link:../deepseek-harness/packages/storage/storage-sqlite",
+    "@deepseek-ai/dsh-subagent": "link:../deepseek-harness/packages/subagent/subagent",
+    "@deepseek-ai/dsh-system-prompt": "link:../deepseek-harness/packages/core/system-prompt",
+    "@deepseek-ai/dsh-tools": "link:../deepseek-harness/packages/core/tools",
+    "@deepseek-ai/dsh-user-questions": "link:../deepseek-harness/packages/interaction/user-questions",
+    "@deepseek-ai/dsh-web": "link:../deepseek-harness/packages/web/web",
+    "@deepseek-ai/schemastery": "link:../deepseek-harness/vendor/schemastery",
+    "@types/babel__code-frame": "^7.27.0",
+    "@types/js-yaml": "4.0.9",
+    "@types/node": "^24.0.0",
+    "@types/picomatch": "^4.0.3",
+    "@types/semver": "7.7.1",
+    "commander": "15.0.0",
+    "esbuild": "^0.28.2",
+    "js-yaml": "4.2.0",
+    "typescript": "6.0.3",
+    "vitest": "4.1.8"
+  }
+}

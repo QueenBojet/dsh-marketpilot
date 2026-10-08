@@ -1,0 +1,9 @@
+{
+  "requiredTopics": ["24 h", "水面漏油", "水下", "多源融合", "事件留存", "海工环境"],
+  "unknownTopics": ["最小检漏率", "误报率", "认证"],
+  "candidateTechnologies": ["雷达", "红外", "可见光", "声纳", "UV", "温度"],
+  "minimumAlternatives": 2,
+  "maximumAlternatives": 3,
+  "requiresHumanDecision": true,
+  "parameterWithoutEvidenceStatus": "unknown"
+}
