@@ -20,6 +20,24 @@ export const sectionOutput = z.strictObject({
 })
 export type SolutionSection = z.infer<typeof sectionOutput>
 
+/**
+ * Model-boundary variants: id fields accept short handles (R1/E1/D1), which
+ * the workflow resolves back to real UUIDs before the strict schemas above
+ * re-validate them. Inventing a handle leaves it unresolved and fails the
+ * strict parse, preserving the fail-fast guarantee.
+ */
+const handle = z.string().min(1)
+export const alternativesModelOutput = z.strictObject({ alternatives: z.array(z.strictObject({
+  name: text, summary: text, components: z.array(text).min(1), strengths: z.array(text), limitations: z.array(text),
+  risks: z.array(text), unknowns: z.array(text), evidenceIds: z.array(handle),
+  requirementCoverage: z.array(z.strictObject({ requirementId: handle, coverage: z.enum(['full', 'partial', 'none', 'unknown']) })),
+})).min(2).max(3) })
+export const sectionModelOutput = z.strictObject({
+  decisionId: handle, title: z.enum(sectionTitles),
+  claims: z.array(z.strictObject({ text, kind: z.enum(['narrative', 'parameter']),
+    status: z.enum(['confirmed', 'suggested', 'unknown']), requirementIds: z.array(handle), evidenceIds: z.array(handle) })).min(1),
+})
+
 /** Evidence and requirement references are checked against the frozen business context. */
 export function validateSection(section: SolutionSection, state: ProjectState) {
   ensure(section.decisionId === state.project.activeDecisionId, 'DECISION_MISMATCH', '生成内容引用了非当前人工 Decision。')

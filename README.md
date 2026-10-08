@@ -1,10 +1,19 @@
 # MarketPilot
 
-继续开发请先阅读工作区的[项目说明与续开发指南](../README.md)，其中记录交接基线、未完成验收和下一步顺序。本文件侧重插件安装、运行与使用；以下测试结果来自 2026-10-04 的验证记录。
+继续开发请先阅读[项目说明与续开发指南](docs/README.workspace.md)，其中记录交接基线、未完成验收和下一步顺序；仓库核查与分阶段验证见[实施记录](docs/IMPLEMENTATION_NOTES.md)。本文件侧重插件安装、运行与使用；以下测试结果来自 2026-10-08 的验证记录。
 
 DeepSeek Harness 的独立业务插件：需求基线 → 证据台账 → 竞品/候选路线 → 人工 Decision → 技术方案 → 投标符合性矩阵。业务代码位于本包，不修改 Harness 核心或 agent loop。
 
-本地业务闭环已打通：官方 Cordis Loader 读取 bundle patch、加载构建后的插件，使用官方 SQLite、guarded Tools、Human Gate 和 Markdown Artifact。79 个测试、strict typecheck、build 通过，CALM 离线演示可重复执行。完整 Web 启动、真实模型输出质量与联网搜索仍未实测；离线替身和模拟人工确认不代表这些验收通过。
+本地业务闭环已打通：官方 Cordis Loader 读取 bundle patch、加载构建后的插件，使用官方 SQLite、guarded Tools、Human Gate 和 Markdown Artifact。86 个测试、strict typecheck、build 通过，CALM 离线演示可重复执行，且完整 Golden Case 已通过工作台 HTTP 点击路径（含 HTTP 应答人工门）在进程内验证；真实 GLM-5.3（zai Provider，max effort）已在线验收需求抽取。生成层使用短句柄（R#/E#/D1）降低真实模型抄错 UUID 的失败率。联网搜索与 GUI 全流程截图留证仍待完成；离线替身和模拟人工确认不代表这些验收通过。
+
+## 0. 项目工作台（Web UI）
+
+本包自带 Web 客户端插件（`dsh.client`）与受控 HTTP API，提供分步点击式 Workflow：
+
+- 宿主半边：`src/harness/routes.ts` 在 `webServer` 上挂载 `/marketpilot/api/*`（same-origin、1 MiB 请求体上限、仅 `marketpilot_*` 工具白名单）；`src/harness/workbench.ts` 为每次点击创建 guarded Tool 执行与专用 headless Agent，人工问题经作用域 `user-questions/request` 监听转发到 UI。
+- 浏览器半边：`src/client/`（react、右侧边栏 Tab）。`pnpm build` 经 tsdown 产出 `client/client.js`（`__ModuleLoader__` 契约，react 外置）。
+- 使用：构建后重启 DSH Desktop，选中会话，在右侧边栏打开「MarketPilot 工作台」。无会话时右侧边栏不可见（上游设计）。
+- 已验证：路由与人工门全链路单测 + 完整 CALM 场景的工作台点击路径回归（见 `tests/workbench-routes.spec.ts`）；GUI 点击路径待重启后实测。
 
 ## 1. 安装与验证
 
@@ -121,4 +130,4 @@ UNKNOWN 分类变更只能通过 Evidence.verify，保留原分类、声明与�
 
 WorkflowRun 记录 start/end、步骤、错误、durationMs、humanWaitMs、modelCalls、toolCalls。modelCalls 是 adapter 请求次数（含本层重试），不是 provider 内部 HTTP 数。toolCalls 是成功返回并关联该 Run 的前台 Tool 次数，不包括无 Run 的 CRUD、失败 Tool 或模型内部工具。Run Summary 耗时是各 Run 已记录耗时之和；离线替身的毫秒数不能代表真实模型速度或人工增效。
 
-仓库核查、API、阶段结果和环境缺口见 [IMPLEMENTATION_NOTES](../docs/IMPLEMENTATION_NOTES.md)。
+仓库核查、API、阶段结果和环境缺口见 [IMPLEMENTATION_NOTES](docs/IMPLEMENTATION_NOTES.md)。

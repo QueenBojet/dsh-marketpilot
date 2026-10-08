@@ -9,15 +9,25 @@
     ".": {
       "types": "./lib/index.d.ts",
       "default": "./lib/index.js"
-    }
+    },
+    "./client": "./client/client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
   },
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-locale"
+      ]
     }
   },
   "files": [
     "lib",
+    "client",
     "cordis.patch.yml",
     "README.md"
   ],
@@ -34,7 +44,8 @@
     "marketpilot:demo:reset": "node scripts/reset-demo.mjs",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "build": "tsc -p tsconfig.build.json && node scripts/copy-prompts.mjs"
+    "build:client": "tsdown",
+    "build": "tsc -p tsconfig.build.json && node scripts/copy-prompts.mjs && tsdown"
   },
   "dependencies": {
     "zod": "4.4.3"
@@ -71,10 +82,13 @@
     "@types/js-yaml": "4.0.9",
     "@types/node": "^24.0.0",
     "@types/picomatch": "^4.0.3",
+    "@types/react": "~18.3.1",
     "@types/semver": "7.7.1",
     "commander": "15.0.0",
     "esbuild": "^0.28.2",
     "js-yaml": "4.2.0",
+    "react": "~18.3.1",
+    "tsdown": "^0.22.14",
     "typescript": "6.0.3",
     "vitest": "4.1.8"
   }

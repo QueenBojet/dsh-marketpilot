@@ -99,6 +99,32 @@ it('accepts verified parameter evidence and refuses stale or cancelled results a
   expect(s.artifacts.list(p.id).filter(a => a.type === 'solution')).toHaveLength(1)
 })
 
+it('accepts short handles from the model and resolves them back to real ids', async () => {
+  const { services: s, project: p } = await setup()
+  const requirementId = await confirmedRequirement(s, p.id)
+  const handled = { alternatives: ['多源融合', '分阶段实施'].map(name => ({ ...alternative, name,
+    evidenceIds: [], requirementCoverage: [{ requirementId: 'R1', coverage: 'partial' }] })) }
+  const prompts: string[] = []
+  const recording: ModelStructuredOutputAdapter = { async generate({ prompt, schema }) {
+    prompts.push(prompt)
+    return schema.parse(prompts.length === 1 ? handled : outline)
+  } }
+  expect((await new AlternativeWorkflow(s, recording).start(p.id, signal())).status).toBe('completed')
+  expect(prompts[0]).toContain('"R1"')
+  expect(s.alternatives.list(p.id).every(a => Object.keys(a.requirementCoverage).includes(requirementId))).toBe(true)
+  const routes = s.alternatives.list(p.id)
+  const decision = await s.decisions.confirm(p.id, { alternativeId: routes[0]!.id, decision: '采用第一候选路线',
+    rationale: '人工确认。', evidenceIds: [], requirementIds: [requirementId] })
+  const sections = sectionTitles.map(title => ({ title, decisionId: 'D1', claims: [{ text: '建议完成现场基线采集和人工复核。',
+    kind: 'narrative', status: 'suggested', requirementIds: ['R1'], evidenceIds: [] }] }))
+  const queue: unknown[] = [outline, ...sections]
+  const sectionModel: ModelStructuredOutputAdapter = { async generate({ schema }) { return schema.parse(queue.shift()) } }
+  expect((await new SolutionWorkflow(s, sectionModel).start(p.id, signal())).status).toBe('completed')
+  const artifact = s.artifacts.list(p.id).find(a => a.type === 'solution')!
+  expect(artifact.content).toContain(decision.id)
+  expect(artifact.content).toContain(requirementId)
+})
+
 it('projects generation schemas through the actual Harness output schema validator', () => {
   for (const schema of [alternativesOutput, outlineOutput, sectionOutput]) expect(() => harnessOutputSchema(schema)).not.toThrow()
   expect(() => alternativesOutput.parse({ ...candidates(randomUUID()), selected: true })).toThrow()
