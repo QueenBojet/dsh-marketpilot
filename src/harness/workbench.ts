@@ -40,6 +40,8 @@ export interface WorkbenchExecutionView {
   readonly tool: string
   readonly status: 'running' | 'waiting_human' | 'completed' | 'failed' | 'cancelled'
   readonly startedAt: string
+  readonly projectId?: string
+  readonly runId?: string
   readonly question: WorkbenchQuestion | null
   readonly value?: unknown
   readonly error?: string
@@ -49,6 +51,8 @@ interface WorkbenchExecution {
   readonly callId: ToolCallId
   readonly tool: string
   readonly startedAt: string
+  readonly projectId?: string
+  runId?: string
   readonly controller: AbortController
   status: WorkbenchExecutionView['status']
   question: WorkbenchQuestion | null
@@ -56,6 +60,22 @@ interface WorkbenchExecution {
   error?: string
   settle?: ((answer: { selected: string; custom?: string }) => void) | undefined
   rejectQuestion?: ((reason: unknown) => void) | undefined
+}
+
+/** Extract a workflow-run id from a completed tool value ({summary,data} envelope or bare run). */
+function runIdOf(tool: string, value: unknown): string | undefined {
+  if (typeof value !== 'object' || value === null) return undefined
+  const envelope = value as { data?: unknown }
+  const data = typeof envelope.data === 'object' && envelope.data !== null ? envelope.data : undefined
+  const candidates = [data, value]
+  for (const node of candidates) {
+    if (typeof node !== 'object' || node === null) continue
+    const record = node as { id?: unknown; run?: { id?: unknown } }
+    if (typeof record.id === 'string' && typeof (node as { steps?: unknown }).steps === 'object') return record.id
+    if (typeof record.run === 'object' && record.run !== null && typeof record.run.id === 'string') return record.run.id
+  }
+  void tool
+  return undefined
 }
 
 const MAX_RETAINED_EXECUTIONS = 50
@@ -90,6 +110,11 @@ export class WorkbenchManager {
     return this.ctx.tools.schemas().map(schema => schema.name).filter(name => name.startsWith('marketpilot_'))
   }
 
+  /** Whether this manager started (and still tracks) the given execution. */
+  owns(callId: string): boolean {
+    return this.executions.has(callId)
+  }
+
   /**
    * Start one guarded tool execution and return immediately; poll
    * {@link view} for the question, the result, or the failure.
@@ -102,8 +127,12 @@ export class WorkbenchManager {
     const services = this.ctx.get('marketpilot')
     ensure(services !== undefined, 'WORKBENCH_NOT_READY', 'MarketPilot 服务尚未就绪。')
     const callId = randomUUID() as ToolCallId
+    const projectId = typeof (args as { projectId?: unknown } | null)?.projectId === 'string'
+      ? (args as { projectId: string }).projectId
+      : undefined
     const record: WorkbenchExecution = {
       callId, tool: name, startedAt: new Date().toISOString(),
+      ...projectId === undefined ? {} : { projectId },
       controller: new AbortController(), status: 'running', question: null,
     }
     this.retain(record)
@@ -164,6 +193,8 @@ export class WorkbenchManager {
       } else {
         record.status = 'completed'
         record.value = result.value
+        const runId = runIdOf(name, result.value)
+        if (runId !== undefined) record.runId = runId
       }
     } catch (error) {
       record.question = null
@@ -226,10 +257,28 @@ export class WorkbenchManager {
     if (record === undefined) return undefined
     return {
       callId: record.callId, tool: record.tool, status: record.status, startedAt: record.startedAt,
+      ...record.projectId === undefined ? {} : { projectId: record.projectId },
+      ...record.runId === undefined ? {} : { runId: record.runId },
       question: record.question,
       ...record.value === undefined ? {} : { value: record.value },
       ...record.error === undefined ? {} : { error: record.error },
     }
+  }
+
+  /** Execution index: active first (oldest first), then recently settled, optionally per project. */
+  list(projectId?: string): WorkbenchExecutionView[] {
+    const rows = [...this.executions.values()]
+      .filter(record => projectId === undefined || record.projectId === projectId)
+      .map(record => this.view(record.callId))
+      .filter((view): view is WorkbenchExecutionView => view !== undefined)
+    const rank = (view: WorkbenchExecutionView): number =>
+      view.status === 'running' || view.status === 'waiting_human' ? 0 : 1
+    return rows
+      .map((view, index) => ({ view, index }))
+      .sort((left, right) => rank(left.view) - rank(right.view)
+        || left.view.startedAt.localeCompare(right.view.startedAt)
+        || left.index - right.index)
+      .map(entry => entry.view)
   }
 
   /** Keep a bounded tail of settled executions for late polling. */

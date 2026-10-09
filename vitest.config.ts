@@ -24,5 +24,5 @@ export default defineConfig({
       replacement: fileURLToPath(new URL(paths[0]!, source)),
     })),
   },
-  test: { include: ['tests/**/*.spec.ts'], environment: 'node' },
+  test: { include: ['tests/**/*.spec.ts', 'tests/**/*.spec.tsx'], environment: 'node' },
 })

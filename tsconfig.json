@@ -10,6 +10,7 @@
     "skipLibCheck": true,
     "rewriteRelativeImportExtensions": true,
     "types": ["node"],
+    "jsx": "react-jsx",
     "paths": {
       "@deepseek-ai/cordis": ["../deepseek-harness/vendor/cordis/lib/types/index.d.ts"],
       "@deepseek-ai/cosmokit": ["../deepseek-harness/vendor/cosmokit/lib/types/index.d.ts"],
@@ -18,7 +19,9 @@
       "@deepseek-ai/dsh-storage-domain": ["../deepseek-harness/packages/storage/storage-domain/lib/types/index.d.ts"],
       "@deepseek-ai/dsh-storage-json": ["../deepseek-harness/packages/storage/storage-json/lib/types/index.d.ts"],
       "@deepseek-ai/dsh-storage-sqlite": ["../deepseek-harness/packages/storage/storage-sqlite/lib/types/index.d.ts"],
-      "@deepseek-ai/dsh-atomic-write": ["../deepseek-harness/packages/util/atomic-write/lib/types/index.d.ts"]
+      "@deepseek-ai/dsh-atomic-write": ["../deepseek-harness/packages/util/atomic-write/lib/types/index.d.ts"],
+      "@deepseek-ai/dsh-client-store": ["../deepseek-harness/packages/client/store/lib/types/index.d.ts"],
+      "@deepseek-ai/dsh-client-ui-primitives": ["../deepseek-harness/packages/client/ui-primitives/lib/types/index.d.ts"]
     }
   },
   "include": ["src", "tests", "fixtures/**/*.ts", "vitest.config.ts"]

@@ -33,6 +33,9 @@ export class MarketPilotService extends Service {
 
   constructor(ctx: Context, private readonly config: Config) { super(ctx, 'marketpilot') }
 
+  /** The configured per-document byte ceiling, for the upload route's validation. */
+  get maxDocumentBytes(): number { return this.config.maxDocumentBytes }
+
   protected async [Service.init]() {
     this.repository = await HarnessProjectRepository.open(this.ctx.storageDomain)
     this.services = createServices(this.repository)

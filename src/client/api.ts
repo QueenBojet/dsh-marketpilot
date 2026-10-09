@@ -1,7 +1,16 @@
 /** Typed same-origin client for the MarketPilot workbench HTTP API. */
 
 /** One project row as the list route returns it. */
-export interface ProjectRow { id: string; name: string; status: string; customer?: string; industry?: string; scenario?: string; updatedAt: string }
+export interface ProjectRow {
+  id: string
+  name: string
+  status: string
+  customer?: string
+  industry?: string
+  scenario?: string
+  activeDecisionId?: string
+  updatedAt: string
+}
 
 /** One requirement record. */
 export interface RequirementRow { id: string; originalText: string; normalizedText: string; type: string; priority: string; status: string }
@@ -9,7 +18,7 @@ export interface RequirementRow { id: string; originalText: string; normalizedTe
 /** One evidence record. */
 export interface EvidenceRow { id: string; kind: string; status: string; title: string; statement: string }
 
-/** One source document. */
+/** One source document (full record, detail route only). */
 export interface DocumentRow { id: string; name: string; kind: string }
 
 /** One candidate route. */
@@ -21,11 +30,73 @@ export interface DecisionRow { id: string; rationale: string; createdAt: string 
 /** One tender clause record. */
 export interface TenderItemRow { id: string; originalText: string; normalizedRequirement: string; status: string }
 
-/** One generated artifact. */
-export interface ArtifactRow { id: string; name: string; status: string; content?: string }
+/**
+ * One generated artifact. The review state is `reviewStatus`
+ * ('draft' | 'approved') — the backend field name, not `status`.
+ */
+export interface ArtifactRow { id: string; name: string; reviewStatus: string; type?: string; content?: string }
+
+/** Artifact list metadata (no content payload). */
+export interface ArtifactMetaRow {
+  id: string
+  name: string
+  type: string
+  format: string
+  reviewStatus: string
+  workflowRunId?: string
+  createdAt: string
+  updatedAt: string
+}
+
+/** One full artifact record (content included). */
+export interface ArtifactFullRow extends ArtifactMetaRow { content: string }
 
 /** One workflow run record. */
 export interface WorkflowRunRow { id: string; type: string; status: string; currentStep: string; updatedAt: string; error?: string }
+
+/** One workflow-run timeline snapshot from the runs route. */
+export interface WorkflowRunView {
+  id: string
+  type: string
+  status: string
+  currentStep: string
+  steps: { step: string; at: string }[]
+  startedAt: string
+  updatedAt: string
+  error?: string
+  durationMs?: number
+  modelCalls?: number
+  output?: { requirementIds?: string[]; unknownIds?: string[]; artifactId?: string } | null
+}
+
+/** Document metadata from the documents route (no text payload). */
+export interface DocumentMeta { id: string; name: string; kind: string; importedAt: string; bytes: number; hasText: boolean }
+
+/** Requirement projection from the requirements route. */
+export interface RequirementItem {
+  id: string
+  shortId: string
+  originalText: string
+  normalizedText: string
+  type: string
+  priority: string
+  status: string
+  sourceDocumentId: string
+  sourceDocumentName?: string
+  sourceLocator?: string
+  clarificationQuestion?: string
+  risk?: string
+  updatedAt: string
+}
+
+/** Requirements page envelope from the requirements route. */
+export interface RequirementsPage {
+  total: number
+  page: number
+  pageSize: number
+  counts: Record<string, number>
+  requirements: RequirementItem[]
+}
 
 /** The complete workbench detail of one project. */
 export interface ProjectDetail {
@@ -33,6 +104,8 @@ export interface ProjectDetail {
   documents: DocumentRow[]
   requirements: RequirementRow[]
   evidence: EvidenceRow[]
+  competitors?: unknown[]
+  policies?: unknown[]
   alternatives: AlternativeRow[]
   decisions: DecisionRow[]
   tenderItems: TenderItemRow[]
@@ -45,9 +118,110 @@ export interface ExecutionView {
   callId: string
   tool: string
   status: 'running' | 'waiting_human' | 'completed' | 'failed' | 'cancelled'
+  startedAt: string
+  projectId?: string
+  runId?: string
   question: { header: string; question: string; detail: string; options: string[] } | null
   value?: { summary?: string; data?: unknown }
   error?: string
+}
+
+/** Options for the requirements list route. */
+export interface RequirementsQuery { status?: string; q?: string; page?: number; pageSize?: number }
+
+/** One competitor row (competitor matrix projection). */
+export interface CompetitorItem {
+  id: string
+  company: string
+  product?: string
+  technology?: string
+  targetScenario?: string
+  performance: Record<string, string | number | boolean | null>
+  interfaces: string[]
+  certifications: string[]
+  cases: string[]
+  strengths: string[]
+  limitations: string[]
+  evidenceIds: string[]
+  updatedAt: string
+}
+
+/** One policy/standard row. */
+export interface PolicyItem {
+  id: string
+  title: string
+  issuer?: string
+  documentNumber?: string
+  version?: string
+  scope?: string
+  mandatoryLevel: string
+  keyRequirements: string[]
+  impact?: string
+  gap?: string
+  evidenceIds: string[]
+  updatedAt: string
+}
+
+/** One evidence-ledger row (list projection). */
+export interface EvidenceItem {
+  id: string
+  kind: string
+  status: string
+  title: string
+  statement: string
+  sourceType: string
+  sourceName?: string
+  sourceDocumentId?: string
+  sourceLocator?: string
+  sourceUrl?: string
+  confidence?: number
+  supportingEvidenceIds: string[]
+  relatedRequirementIds: string[]
+  relatedCompetitorIds: string[]
+  updatedAt: string
+}
+
+/** Evidence page envelope with status/kind tallies. */
+export interface EvidencePage {
+  total: number
+  page: number
+  pageSize: number
+  counts: Record<string, number>
+  evidence: EvidenceItem[]
+}
+
+/** One candidate route with requirement coverage. */
+export interface AlternativeItem {
+  id: string
+  name: string
+  summary: string
+  components: string[]
+  strengths: string[]
+  limitations: string[]
+  risks: string[]
+  unknowns: string[]
+  requirementCoverage: Record<string, string>
+  evidenceIds: string[]
+  status: string
+  updatedAt: string
+}
+
+/** One tender clause with response draft and compliance status. */
+export interface TenderItemProjection {
+  id: string
+  clauseId?: string
+  originalText: string
+  normalizedRequirement: string
+  sourceDocumentId?: string
+  sourceLocator?: string
+  claimKinds: string[]
+  responseDraft?: string
+  status: string
+  requirementIds: string[]
+  evidenceIds: string[]
+  risk?: string
+  action?: string
+  updatedAt: string
 }
 
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
@@ -67,6 +241,49 @@ export const api = {
   projects: () => request<{ projects: ProjectRow[] }>('GET', '/marketpilot/api/projects'),
   project: (id: string) => request<ProjectDetail>('GET', `/marketpilot/api/projects/${id}`),
   summary: (id: string) => request<Record<string, unknown>>('GET', `/marketpilot/api/summary/${id}`),
+  documents: (projectId: string) => request<{ documents: DocumentMeta[] }>('GET', `/marketpilot/api/projects/${projectId}/documents`),
+  upload: async (projectId: string, name: string, kind: string, text: string): Promise<{ document: DocumentMeta }> => {
+    const response = await fetch(`/marketpilot/api/projects/${projectId}/documents/upload?name=${encodeURIComponent(name)}&kind=${encodeURIComponent(kind)}`, {
+      method: 'POST', headers: { 'content-type': 'text/plain; charset=utf-8' }, body: text,
+    })
+    const payload = await response.json().catch(() => null) as ({ document: DocumentMeta } & { error?: string }) | null
+    if (payload === null) throw new Error('上传无响应。')
+    if (!response.ok) throw new Error(payload.error ?? `上传失败（${String(response.status)}）。`)
+    return payload
+  },
+  requirements: (projectId: string, query: RequirementsQuery = {}) => {
+    const params = new URLSearchParams()
+    if (query.status !== undefined && query.status !== 'all') params.set('status', query.status)
+    if (query.q !== undefined && query.q !== '') params.set('q', query.q)
+    if (query.page !== undefined) params.set('page', String(query.page))
+    if (query.pageSize !== undefined) params.set('pageSize', String(query.pageSize))
+    const suffix = params.size === 0 ? '' : `?${params.toString()}`
+    return request<RequirementsPage>('GET', `/marketpilot/api/projects/${projectId}/requirements${suffix}`)
+  },
+  runs: (projectId: string, options: { type?: string; active?: boolean } = {}) => {
+    const params = new URLSearchParams()
+    if (options.type !== undefined) params.set('type', options.type)
+    if (options.active === true) params.set('active', '1')
+    const suffix = params.size === 0 ? '' : `?${params.toString()}`
+    return request<{ runs: WorkflowRunView[] }>('GET', `/marketpilot/api/projects/${projectId}/runs${suffix}`)
+  },
+  requestArtifacts: (projectId: string) => request<{ artifacts: ArtifactMetaRow[] }>('GET', `/marketpilot/api/projects/${projectId}/artifacts`),
+  artifact: (projectId: string, artifactId: string) => request<{ artifact: ArtifactFullRow }>('GET', `/marketpilot/api/projects/${projectId}/artifacts/${artifactId}`),
+  competitors: (projectId: string) => request<{ competitors: CompetitorItem[] }>('GET', `/marketpilot/api/projects/${projectId}/competitors`),
+  policies: (projectId: string) => request<{ policies: PolicyItem[] }>('GET', `/marketpilot/api/projects/${projectId}/policies`),
+  evidence: (projectId: string, query: { status?: string; kind?: string; q?: string; pageSize?: number } = {}) => {
+    const params = new URLSearchParams()
+    if (query.status !== undefined && query.status !== 'all') params.set('status', query.status)
+    if (query.kind !== undefined && query.kind !== 'all') params.set('kind', query.kind)
+    if (query.q !== undefined && query.q !== '') params.set('q', query.q)
+    if (query.pageSize !== undefined) params.set('pageSize', String(query.pageSize))
+    const suffix = params.size === 0 ? '' : `?${params.toString()}`
+    return request<EvidencePage>('GET', `/marketpilot/api/projects/${projectId}/evidence${suffix}`)
+  },
+  alternatives: (projectId: string) => request<{ alternatives: AlternativeItem[] }>('GET', `/marketpilot/api/projects/${projectId}/alternatives`),
+  tenderItems: (projectId: string) => request<{ tenderItems: TenderItemProjection[] }>('GET', `/marketpilot/api/projects/${projectId}/tender-items`),
+  executions: (projectId?: string) => request<{ executions: ExecutionView[] }>('GET',
+    `/marketpilot/api/executions${projectId === undefined ? '' : `?projectId=${encodeURIComponent(projectId)}`}`),
   start: (name: string, args: Record<string, unknown>) => request<{ callId: string }>('POST', '/marketpilot/api/tools', { name, args }),
   execution: (callId: string) => request<ExecutionView>('GET', `/marketpilot/api/executions/${callId}`),
   answer: (callId: string, selected: string, custom?: string) => request<{ answered: boolean }>('POST', `/marketpilot/api/executions/${callId}/answer`, { selected, custom }),

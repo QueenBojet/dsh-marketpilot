@@ -29,5 +29,9 @@ export async function apply(ctx: Context, config: Config) {
   ctx.plugin(researchSearchPlugin)
   // Click-driven workbench: mounts HTTP routes only where a webServer exists.
   const workbench = new WorkbenchManager(ctx)
+  // The human-gate adapter consults this to route workbench-owned questions
+  // through the root waterfall (parked on the execution) instead of the
+  // headless agent's session UI, where nobody would answer them.
+  ctx.effect(() => ctx.reflect.provide('marketpilotWorkbench', workbench))
   mountWorkbenchRoutes(ctx, workbench)
 }

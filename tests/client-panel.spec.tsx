@@ -1,0 +1,176 @@
+// @vitest-environment jsdom
+/** Panel render tests: pages render real API payloads and drive the navigation store. */
+import { act, useSyncExternalStore, type ComponentProps, type ReactNode } from 'react'
+import { createRoot, type Root } from 'react-dom/client'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+vi.mock('@deepseek-ai/dsh-client-ui-primitives', () => ({
+  Button: (props: ComponentProps<'button'>) => <button {...props} />,
+  Input: (props: ComponentProps<'input'>) => <input {...props} />,
+  Tag: (props: { tone?: string; className?: string; children?: ReactNode }) => (
+    <span data-tone={props.tone} className={props.className}>{props.children}</span>
+  ),
+  StateDot: () => <span data-testid="mp-stub-statedot" />,
+  IconListPenOutlineRegular: () => <svg aria-hidden="true" />,
+}))
+
+import { MarketPilotPanel } from '../src/client/MarketPilotPanel.tsx'
+import { StatusTag } from '../src/client/components/StatusTag.tsx'
+import { marketpilotLocales } from '../src/client/locales.ts'
+import { createMarketPilotStore, type MarketPilotActions } from '../src/client/stores.ts'
+
+const t = (key: keyof typeof marketpilotLocales.zh) => marketpilotLocales.zh[key]
+
+interface JsonLike { ok: boolean; status: number; json(): Promise<unknown> }
+
+function jsonResponse(payload: unknown): JsonLike {
+  return { ok: true, status: 200, json: async () => payload }
+}
+
+const projectsPayload = {
+  projects: [
+    { id: 'p1', name: 'CALM 单点系泊监测', status: 'requirements_ready', industry: '船舶', scenario: '漏油监测', updatedAt: '2026-10-09T01:00:00.000Z' },
+    { id: 'p2', name: 'GLM 结构化验证', status: 'draft', updatedAt: '2026-10-08T02:00:00.000Z' },
+  ],
+}
+
+const detailPayload = {
+  project: projectsPayload.projects[0],
+  context: {},
+  documents: [{ id: 'd1' }, { id: 'd2' }],
+  requirements: [
+    { id: 'r1', status: 'confirmed' },
+    { id: 'r2', status: 'unknown' },
+  ],
+  evidence: [{ id: 'e1' }],
+  competitors: [],
+  policies: [],
+  alternatives: [{ id: 'a1' }],
+  decisions: [],
+  tenderItems: [],
+  artifacts: [{ id: 'art1' }],
+  workflowRuns: [],
+}
+
+let fetchMock: ReturnType<typeof vi.fn>
+let container: HTMLElement | undefined
+let root: Root | undefined
+
+beforeEach(() => {
+  ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
+  fetchMock = vi.fn()
+  ;(globalThis as { fetch: unknown }).fetch = fetchMock
+})
+
+afterEach(() => {
+  act(() => { root?.unmount() })
+  container?.remove()
+  container = undefined
+  root = undefined
+  vi.restoreAllMocks()
+})
+
+function render(node: React.ReactNode): HTMLElement {
+  container = document.createElement('div')
+  document.body.append(container)
+  const created = createRoot(container)
+  root = created
+  act(() => { created.render(node) })
+  return container
+}
+
+async function flush(): Promise<void> {
+  await act(async () => {})
+}
+
+function text(): string {
+  return container?.textContent ?? ''
+}
+
+function makePanelProps(): { useStore: Parameters<typeof MarketPilotPanel>[0]['useStore']; actions: MarketPilotActions } {
+  const instance = createMarketPilotStore().create()
+  return {
+    // A reactive stand-in for the renderer's selector hook: same subscribe +
+    // snapshot contract, so store updates re-render the panel under test.
+    useStore: selector => useSyncExternalStore(
+      listener => instance.subscribe(listener),
+      () => selector(instance.getSnapshot()),
+    ),
+    actions: instance.actions,
+  }
+}
+
+describe('MarketPilot main panel', () => {
+  it('renders the home page with real project rows and counts', async () => {
+    fetchMock.mockResolvedValue(jsonResponse(projectsPayload))
+    render(<MarketPilotPanel t={t} {...makePanelProps()} />)
+    await flush()
+    expect(text()).toContain('CALM 单点系泊监测')
+    expect(text()).toContain('GLM 结构化验证')
+    expect(text()).toContain(marketpilotLocales.zh.recentProjects)
+    // The project count card shows the real list length, never a fabricated number.
+    expect(fetchMock).toHaveBeenCalledWith('/marketpilot/api/projects', { method: 'GET' })
+  })
+
+  it('renders the empty state when no projects exist', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ projects: [] }))
+    render(<MarketPilotPanel t={t} {...makePanelProps()} />)
+    await flush()
+    expect(text()).toContain(marketpilotLocales.zh.emptyTitle)
+    expect(text()).toContain(marketpilotLocales.zh.emptyBody)
+  })
+
+  it('renders the error state with a retry action when loading fails', async () => {
+    fetchMock.mockRejectedValue(new Error('网络中断'))
+    render(<MarketPilotPanel t={t} {...makePanelProps()} />)
+    await flush()
+    expect(text()).toContain(marketpilotLocales.zh.loadError)
+    expect(text()).toContain('网络中断')
+  })
+
+  it('navigates home → projects → project overview → planned section', async () => {
+    fetchMock.mockImplementation(async (input: unknown) => {
+      const url = String(input)
+      if (url === '/marketpilot/api/projects') return jsonResponse(projectsPayload)
+      if (url === '/marketpilot/api/projects/p1') return jsonResponse(detailPayload)
+      throw new Error(`unexpected fetch: ${url}`)
+    })
+    const props = makePanelProps()
+    render(<MarketPilotPanel t={t} {...props} />)
+    await flush()
+    act(() => {
+      const nav = [...container!.querySelectorAll('button')].find(b => b.textContent === marketpilotLocales.zh.navProjects)
+      nav!.click()
+    })
+    await flush()
+    expect(container!.querySelector('input[placeholder="项目名称（必填）"]')).not.toBeNull()
+    act(() => {
+      const link = [...container!.querySelectorAll('button')].find(b => b.textContent === 'CALM 单点系泊监测')
+      link!.click()
+    })
+    await flush()
+    expect(fetchMock).toHaveBeenCalledWith('/marketpilot/api/projects/p1', { method: 'GET' })
+    expect(text()).toContain('CALM 单点系泊监测')
+    expect(text()).toContain(marketpilotLocales.zh.nextStepLabel)
+    act(() => {
+      const section = [...container!.querySelectorAll('button')].find(b => b.textContent === marketpilotLocales.zh.sectionRequirements)
+      section!.click()
+    })
+    await flush()
+    // Phase 2: the requirements section is a real page (uploader + review table).
+    expect(text()).toContain(marketpilotLocales.zh.reqTitle)
+    expect(text()).toContain(marketpilotLocales.zh.docsDrop)
+  })
+})
+
+describe('StatusTag', () => {
+  it('maps known statuses to localized labels with tones', () => {
+    render(<StatusTag t={t} kind="project" value="requirements_ready" />)
+    expect(container?.querySelector('span[data-tone="info"]')?.textContent).toBe(marketpilotLocales.zh['projectStatus.requirements_ready'])
+  })
+
+  it('falls back to the raw code for unknown values', () => {
+    render(<StatusTag t={t} kind="run" value="weird_state" />)
+    expect(container?.querySelector('span[data-tone="outline"]')?.textContent).toBe('weird_state')
+  })
+})

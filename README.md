@@ -1,19 +1,40 @@
 # MarketPilot
 
-继续开发请先阅读[项目说明与续开发指南](docs/README.workspace.md)，其中记录交接基线、未完成验收和下一步顺序；仓库核查与分阶段验证见[实施记录](docs/IMPLEMENTATION_NOTES.md)。本文件侧重插件安装、运行与使用；以下测试结果来自 2026-10-08 的验证记录。
+继续开发请先阅读[项目说明与续开发指南](docs/README.workspace.md)，其中记录交接基线、未完成验收和下一步顺序；仓库核查与分阶段验证见[实施记录](docs/IMPLEMENTATION_NOTES.md)，UI V3 重构见[实施日志](docs/UI_V3_IMPLEMENTATION_LOG.md)。本文件侧重插件安装、运行与使用；以下测试结果来自 2026-10-09 的验证记录。
 
 DeepSeek Harness 的独立业务插件：需求基线 → 证据台账 → 竞品/候选路线 → 人工 Decision → 技术方案 → 投标符合性矩阵。业务代码位于本包，不修改 Harness 核心或 agent loop。
 
-本地业务闭环已打通：官方 Cordis Loader 读取 bundle patch、加载构建后的插件，使用官方 SQLite、guarded Tools、Human Gate 和 Markdown Artifact。86 个测试、strict typecheck、build 通过，CALM 离线演示可重复执行，且完整 Golden Case 已通过工作台 HTTP 点击路径（含 HTTP 应答人工门）在进程内验证；真实 GLM-5.3（zai Provider，max effort）已在线验收需求抽取。生成层使用短句柄（R#/E#/D1）降低真实模型抄错 UUID 的失败率。联网搜索与 GUI 全流程截图留证仍待完成；离线替身和模拟人工确认不代表这些验收通过。
+本地业务闭环已打通：官方 Cordis Loader 读取 bundle patch、加载构建后的插件，使用官方 SQLite、guarded Tools、Human Gate 和 Markdown Artifact。120 个测试、strict typecheck、build 通过，CALM 离线演示可重复执行，且完整 Golden Case 已通过工作台 HTTP 点击路径（含 HTTP 应答人工门）在进程内验证；真实 GLM-5.3（zai Provider，max effort）已在线验收**全链路**——需求提取→人工确认→候选路线生成→人工 Decision→方案生成→投标条款抽取与符合性审查（V3 主面板 CDP + flash 双通道核验）。生成层使用短句柄（R#/E#/D1）降低真实模型抄错 UUID 的失败率。联网搜索与 GUI 全流程截图留证仍待完成；离线替身和模拟人工确认不代表这些验收通过。
 
-## 0. 项目工作台（Web UI）
+## 0. 项目工作台（Web UI V3 主面板）
 
-本包自带 Web 客户端插件（`dsh.client`）与受控 HTTP API，提供分步点击式 Workflow：
+本包自带 Web 客户端插件（`dsh.client`）与受控 HTTP API。**V3.0 起 MarketPilot 是全宽主工作区**：左侧边栏「MarketPilot 智策」图标 → `main` keyed 槽的 `marketpilot` 面板。**八个分区全部真实页面化**：项目概览（六阶段条 + 统计卡）→ 01 资料与需求（上传/提取/确认/表格/抽屉）→ 02 情报研究（竞品/政策）→ 03 证据审查（核验 Gate）→ 04 技术路线（候选/覆盖矩阵/Decision）→ 05 方案生成（Markdown 安全预览）→ 06 投标检查（条款/审查）→ 项目成果（reviewStatus + MarkdownText）→ 任务中心（跨项目执行索引 + 步骤时间线）。
 
-- 宿主半边：`src/harness/routes.ts` 在 `webServer` 上挂载 `/marketpilot/api/*`（same-origin、1 MiB 请求体上限、仅 `marketpilot_*` 工具白名单）；`src/harness/workbench.ts` 为每次点击创建 guarded Tool 执行与专用 headless Agent，人工问题经作用域 `user-questions/request` 监听转发到 UI。
-- 浏览器半边：`src/client/`（react、右侧边栏 Tab）。`pnpm build` 经 tsdown 产出 `client/client.js`（`__ModuleLoader__` 契约，react 外置）。
-- 使用：构建后重启 DSH Desktop，选中会话，在右侧边栏打开「MarketPilot 工作台」。无会话时右侧边栏不可见（上游设计）。
-- 已验证：路由与人工门全链路单测 + 完整 CALM 场景的工作台点击路径回归（见 `tests/workbench-routes.spec.ts`）；GUI 点击路径待重启后实测。
+### 加载与打开
+
+```powershell
+cd E:\PythonProjects\Work_Platform\marketpilot
+pnpm build          # 产出 lib/ + client/client.js
+# 完全退出 DSH Desktop（托盘右键）→ 重新启动
+# 点击左侧边栏「MarketPilot 智策」图标进入主面板
+```
+
+- 宿主半边：`src/harness/routes.ts` 在 `webServer` 上挂载 `/marketpilot/api/*`（same-origin、跨域 403、仅 loopback 监听；上传按 `maxDocumentBytes` 限流；五域投影路由不含正文，内容仅在详情路由）；`src/harness/workbench.ts` 为每次点击创建 guarded Tool 执行（执行记录含 projectId/runId），人工问题经根瀑布停靠（Phase 2 修复：无头 Agent 的会话转发层不截获工作台门问题）。
+- 浏览器半边：`src/client/`（react、TSX、`--dsw-*` 主题 token、ui-primitives、模块级执行注册表——页面切换不打断后台任务、刷新后从服务端领养在途执行）。`pnpm build` 经 tsdown 产出 `client/client.js`（`__ModuleLoader__` 契约；运行时仅依赖冻结模块表内包）。
+- 右侧边栏旧 Tab 已降级为跳转按钮。
+
+### 安全边界
+
+- **单用户本地使用**：DSH Desktop 仅监听 `127.0.0.1`，Web GUI 有进程令牌鉴权；`/marketpilot/api` 做同源校验（跨域 403）。当前版本不支持对外网监听或多租户；远程部署前须补齐认证与授权。
+- 项目/执行/运行 ID 绑定：所有工具调用带 projectId；确认/导出校验 runId 归属；跨项目 runId 拒绝（有测试覆盖）。
+- 重启中断：前端显示"任务中断需重试"，不虚称审批可恢复。
+
+### 验收与演示
+
+- 正式验收文档：[docs/UI_V3_GUI_ACCEPTANCE.md](docs/UI_V3_GUI_ACCEPTANCE.md)（九项截图 + 真实 GLM 耗时 + 安全审计 + 人工门记录）。
+- 比赛演示脚本：[docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md)（含备用方案与关键数据）。
+- 实施日志：[docs/UI_V3_IMPLEMENTATION_LOG.md](docs/UI_V3_IMPLEMENTATION_LOG.md)（V3.0 四阶段完整记录 + 3 个真实缺陷修复）。
+- 测试覆盖：路由与人工门全链路（`tests/workbench-routes.spec.ts`）；上传/投影/runId 绑定/跨项目拒绝（`tests/phase2-routes.spec.ts`）；五域投影（`tests/phase4-routes.spec.ts`）；页面渲染 ×5（`tests/phase2-client.spec.tsx` + `tests/phase3-client.spec.tsx` + `tests/phase4-client.spec.tsx`）；模块表纯度（`tests/client-bundle.spec.ts`）；CALM Golden Case E2E（`tests/calm-e2e.spec.ts`）。
 
 ## 1. 安装与验证
 

@@ -1,0 +1,132 @@
+/**
+ * React bindings over the shared execution registry plus the Phase 2 data
+ * hooks (documents, requirements, active run timeline). Components stay
+ * props-driven; these hooks own only fetch/poll plumbing.
+ */
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
+import { api, type ArtifactFullRow, type ArtifactMetaRow, type DocumentMeta, type RequirementsPage, type RequirementsQuery, type WorkflowRunView } from '../api.ts'
+import { executionStore, type TrackedExecution } from './executionStore.ts'
+
+/** All tracked executions, newest first; in-flight host executions started
+ * elsewhere (another browser, or before a reload) are adopted on mount so
+ * page switches and reloads never lose the task. */
+export function useExecutions(projectId?: string): readonly TrackedExecution[] {
+  const all = useSyncExternalStore(executionStore.subscribe, executionStore.getSnapshot, executionStore.getSnapshot)
+  useEffect(() => {
+    if (projectId === undefined) return
+    let cancelled = false
+    api.executions(projectId)
+      .then(result => { if (!cancelled) for (const view of result.executions) executionStore.adopt(view) })
+      .catch(() => { /* the index is an enhancement, not a prerequisite */ })
+    return () => { cancelled = true }
+  }, [projectId])
+  const filtered = projectId === undefined ? all : all.filter(execution => execution.projectId === projectId)
+  return [...filtered].sort((left, right) => right.startedAt.localeCompare(left.startedAt))
+}
+
+/** Document metadata list with manual refresh. */
+export function useDocuments(projectId: string) {
+  const [documents, setDocuments] = useState<DocumentMeta[] | null>(null)
+  const [error, setError] = useState('')
+  const refresh = useCallback(() => {
+    api.documents(projectId)
+      .then(result => { setDocuments(result.documents); setError('') })
+      .catch(e => { setError(e instanceof Error && e.message !== '' ? e.message : String(e)) })
+  }, [projectId])
+  useEffect(() => refresh(), [refresh])
+  return { documents, error, refresh, loading: documents === null && error === '' }
+}
+
+/** Requirements projection with server-side filter/search. */
+export function useRequirements(projectId: string, query: RequirementsQuery) {
+  const [page, setPage] = useState<RequirementsPage | null>(null)
+  const [error, setError] = useState('')
+  const refresh = useCallback(() => {
+    api.requirements(projectId, query)
+      .then(result => { setPage(result); setError('') })
+      .catch(e => { setError(e instanceof Error && e.message !== '' ? e.message : String(e)) })
+  }, [projectId, query.status, query.q, query.page, query.pageSize])
+  useEffect(() => refresh(), [refresh])
+  return { page, error, refresh, loading: page === null && error === '' }
+}
+
+/**
+ * The active workflow run of one type, polled only while an execution of the
+ * same project is in flight; null when none exists.
+ */
+export function useActiveRun(projectId: string, type: string, active: boolean): WorkflowRunView | null {
+  const [run, setRun] = useState<WorkflowRunView | null>(null)
+  useEffect(() => {
+    if (!active) {
+      setRun(null)
+      return
+    }
+    let stopped = false
+    const tick = (): void => {
+      api.runs(projectId, { type, active: true })
+        .then(result => { if (!stopped) setRun(result.runs[0] ?? null) })
+        .catch(() => { if (!stopped) setRun(null) })
+    }
+    tick()
+    const timer = window.setInterval(tick, 3000)
+    return () => { stopped = true; window.clearInterval(timer) }
+  }, [projectId, type, active])
+  return run
+}
+
+/** Elapsed milliseconds since an ISO start, recomputed on a light interval. */
+export function useElapsed(startedAt: string, active: boolean): number {
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    if (!active) return
+    const timer = window.setInterval(() => { setNow(Date.now()) }, 1000)
+    return () => { window.clearInterval(timer) }
+  }, [active])
+  return Math.max(0, now - Date.parse(startedAt))
+}
+
+/** Artifact list metadata (content arrives only through useArtifact). */
+export function useArtifacts(projectId: string) {
+  const [artifacts, setArtifacts] = useState<ArtifactMetaRow[] | null>(null)
+  const [error, setError] = useState('')
+  const refresh = useCallback(() => {
+    api.requestArtifacts(projectId)
+      .then(result => { setArtifacts(result.artifacts); setError('') })
+      .catch(e => { setError(e instanceof Error && e.message !== '' ? e.message : String(e)) })
+  }, [projectId])
+  useEffect(() => { refresh() }, [refresh])
+  return { artifacts, error, refresh, loading: artifacts === null && error === '' }
+}
+
+/** One artifact's full record, fetched on demand for the reader view. */
+export function useArtifact(projectId: string, artifactId: string | null) {
+  const [artifact, setArtifact] = useState<ArtifactFullRow | null>(null)
+  const [error, setError] = useState('')
+  useEffect(() => {
+    if (artifactId === null) {
+      setArtifact(null)
+      setError('')
+      return
+    }
+    let cancelled = false
+    setArtifact(null)
+    setError('')
+    api.artifact(projectId, artifactId)
+      .then(result => { if (!cancelled) setArtifact(result.artifact) })
+      .catch(e => { if (!cancelled) setError(e instanceof Error && e.message !== '' ? e.message : String(e)) })
+    return () => { cancelled = true }
+  }, [projectId, artifactId])
+  return { artifact, error, loading: artifact === null && error === '' }
+}
+
+/** Recent workflow-run snapshots for one project (phase-state derivation). */
+export function useProjectRuns(projectId: string) {
+  const [runs, setRuns] = useState<readonly WorkflowRunView[] | null>(null)
+  const refresh = useCallback(() => {
+    api.runs(projectId)
+      .then(result => { setRuns(result.runs) })
+      .catch(() => { setRuns([]) })
+  }, [projectId])
+  useEffect(() => { refresh() }, [refresh])
+  return { runs, refresh }
+}
