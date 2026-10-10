@@ -4,6 +4,7 @@ import type { Domain, DomainFacility } from '@deepseek-ai/dsh-storage-domain'
 import { ensure } from '../domain/common.ts'
 import { stateSchema } from '../domain/state.ts'
 import type { ProjectState } from '../domain/state.ts'
+import { applyShortCodeBook } from '../domain/shortcodes.ts'
 import type { ProjectRepository } from './repository.ts'
 
 export const marketpilotDomain = defineDomain({
@@ -42,6 +43,11 @@ export class HarnessProjectRepository implements ProjectRepository {
       const draft = structuredClone(current)
       change(draft)
       ensure(draft.project.id === id, 'IMMUTABLE_ID', '不能修改项目 ID。')
+      // Pin short codes for any record created by this change. A no-op write
+      // (no new records) leaves the draft untouched — otherwise every
+      // read-modify cycle would grow the book and bump the revision forever.
+      const book = { seq: { ...draft.codeBook?.seq }, codes: { ...draft.codeBook?.codes } }
+      if (applyShortCodeBook(draft, book)) draft.codeBook = book
       draft.revision = current.revision + 1
       return stateSchema.parse(draft)
     })

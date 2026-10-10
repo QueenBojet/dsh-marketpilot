@@ -38,6 +38,8 @@ export class ProjectService {
   }
   get(id: string) { return this.ctx.repository.get(id)?.project ?? null }
   list() { return this.ctx.repository.list().map(s => s.project) }
+  /** The persisted short-code book (null on projects not yet written since adoption). */
+  codeBook(id: string) { return this.ctx.state(id).codeBook ?? null }
   async update(id: string, input: unknown) {
     const patch = projectInput.partial().parse(input)
     return (await this.ctx.repository.update(id, s => { Object.assign(s.project, patch, { updatedAt: this.ctx.now() }) })).project

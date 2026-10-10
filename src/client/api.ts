@@ -1,4 +1,5 @@
 /** Typed same-origin client for the MarketPilot workbench HTTP API. */
+import type { ShortCodeBook } from '../domain/shortcodes.ts'
 
 /** One project row as the list route returns it. */
 export interface ProjectRow {
@@ -54,13 +55,18 @@ export interface ArtifactFullRow extends ArtifactMetaRow { content: string }
 /** One workflow run record. */
 export interface WorkflowRunRow { id: string; type: string; status: string; currentStep: string; updatedAt: string; error?: string }
 
-/** One persisted run with its owning project — the task-center history rows. */
+/**
+ * One persisted run with its owning project — the task-center history rows.
+ * `supersededWait` marks a waiting record a newer same-type run has replaced:
+ * it stays visible as history but never counts as an actionable approval.
+ */
 export interface HistoryRunRow extends WorkflowRunRow {
   projectId: string
   projectName: string
   startedAt: string
   steps: { step: string; at: string }[]
   durationMs?: number
+  supersededWait?: boolean
 }
 
 /** One workflow-run timeline snapshot from the runs route. */
@@ -75,6 +81,7 @@ export interface WorkflowRunView {
   error?: string
   durationMs?: number
   modelCalls?: number
+  supersededWait?: boolean
   output?: { requirementIds?: string[]; unknownIds?: string[]; artifactId?: string } | null
 }
 
@@ -120,6 +127,8 @@ export interface ProjectDetail {
   tenderItems: TenderItemRow[]
   artifacts: ArtifactRow[]
   workflowRuns: WorkflowRunRow[]
+  /** Persisted short-code assignments (absent on legacy projects). */
+  codeBook?: ShortCodeBook
 }
 
 /** Polling projection of one click-driven execution. */
@@ -269,6 +278,9 @@ export const api = {
     const suffix = params.size === 0 ? '' : `?${params.toString()}`
     return request<RequirementsPage>('GET', `/marketpilot/api/projects/${projectId}/requirements${suffix}`)
   },
+  /** One requirement by id, independent of any list filter/pagination. */
+  requirement: (projectId: string, requirementId: string) =>
+    request<{ requirement: RequirementItem }>('GET', `/marketpilot/api/projects/${projectId}/requirements/${requirementId}`),
   runs: (projectId: string, options: { type?: string; active?: boolean } = {}) => {
     const params = new URLSearchParams()
     if (options.type !== undefined) params.set('type', options.type)
@@ -291,6 +303,9 @@ export const api = {
     const suffix = params.size === 0 ? '' : `?${params.toString()}`
     return request<EvidencePage>('GET', `/marketpilot/api/projects/${projectId}/evidence${suffix}`)
   },
+  /** One evidence record by id, independent of any ledger filter/page. */
+  evidenceOne: (projectId: string, evidenceId: string) =>
+    request<{ evidence: EvidenceItem }>('GET', `/marketpilot/api/projects/${projectId}/evidence/${evidenceId}`),
   alternatives: (projectId: string) => request<{ alternatives: AlternativeItem[] }>('GET', `/marketpilot/api/projects/${projectId}/alternatives`),
   tenderItems: (projectId: string) => request<{ tenderItems: TenderItemProjection[] }>('GET', `/marketpilot/api/projects/${projectId}/tender-items`),
   executions: (projectId?: string) => request<{ executions: ExecutionView[] }>('GET',

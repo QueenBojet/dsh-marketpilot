@@ -5,7 +5,7 @@
  * extraction batch, never a "first waiting run" guess.
  */
 import { useEffect, useMemo, useState } from 'react'
-import type { RequirementItem } from '../api.ts'
+import { api, type RequirementItem } from '../api.ts'
 import { DocumentUploader } from '../components/DocumentUploader.tsx'
 import { HumanReviewDialog } from '../components/HumanReviewDialog.tsx'
 import { RequirementTable } from '../components/RequirementTable.tsx'
@@ -116,13 +116,26 @@ export function RequirementsPage({ t, projectId, focus }: {
   const progressVisible = busy || extractExecution?.lost === true || waitingRun !== null
 
   // A cross-module jump (e.g. from the evidence drawer) opens the referenced
-  // requirement's source drawer once its row is loaded.
+  // requirement's source drawer even when the table's current filter, search,
+  // or pagination excludes it: the exact record is fetched by id as a fallback.
   const focusId = focus?.kind === 'requirement' ? focus.id : undefined
+  const [remoteRequirement, setRemoteRequirement] = useState<RequirementItem | null>(null)
+  const [jumpMissed, setJumpMissed] = useState(false)
+  useEffect(() => {
+    if (focusId === undefined) return
+    let cancelled = false
+    setJumpMissed(false)
+    api.requirement(projectId, focusId)
+      .then(result => { if (!cancelled) setRemoteRequirement(result.requirement) })
+      .catch(() => { if (!cancelled) { setRemoteRequirement(null); setJumpMissed(true) } })
+    return () => { cancelled = true }
+  }, [focusId, projectId])
   useEffect(() => {
     if (focusId === undefined) return
     const row = (requirements.page?.requirements ?? []).find(item => item.id === focusId)
     if (row !== undefined) setDrawer(row)
-  }, [focusId, requirements.page])
+    else if (remoteRequirement?.id === focusId) setDrawer(remoteRequirement)
+  }, [focusId, requirements.page, remoteRequirement])
 
   return (
     <div>
@@ -203,6 +216,7 @@ export function RequirementsPage({ t, projectId, focus }: {
       </div>
       {notice === '' ? null : <p className="mp-caption" role="status">{notice}</p>}
       {error === '' ? null : <p className="mp-errorText" role="alert">{error}</p>}
+      {jumpMissed ? <p className="mp-errorText" role="alert">{t('jumpMissing')}</p> : null}
       {requirements.error !== '' ? <p className="mp-errorText" role="alert">{requirements.error}</p> : null}
       {requirements.loading ? <p className="mp-caption">{t('loading')}</p>
         : (

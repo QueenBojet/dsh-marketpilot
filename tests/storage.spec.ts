@@ -58,6 +58,31 @@ describe.each(['sqlite', 'json'] as const)('%s durable storage', medium => {
     try { expect(reopened.repository.get(p.id)?.requirements).toHaveLength(1) }
     finally { await reopened.close() }
   })
+  it('pins a persisted code book without growing it on no-op writes', async () => {
+    const { services: s, repository, project: p } = await setup(medium)
+    await s.requirements.addMany(p.id, [requirement])
+    const book = repository.get(p.id)?.codeBook
+    expect(book?.codes).toHaveProperty([s.requirements.list(p.id)[0]!.id], 'REQ-01')
+    const revision = repository.get(p.id)!.revision
+    // A write that adds no records must not touch the book or reorder codes.
+    await s.projects.update(p.id, { description: 'no new records' })
+    expect(repository.get(p.id)!.codeBook).toEqual(book)
+    expect(repository.get(p.id)!.revision).toBe(revision + 1)
+  })
+  it('never renumbers a code after a sibling record is deleted', async () => {
+    const { services: s, repository, project: p, advance } = await setup(medium)
+    const [first] = await s.requirements.addMany(p.id, [requirement])
+    advance(1000)
+    const [second] = await s.requirements.addMany(p.id, [{ ...requirement, normalizedText: '第二条需求' }])
+    const codeOfSecond = repository.get(p.id)!.codeBook?.codes[second!.id]
+    expect(codeOfSecond).toBe('REQ-02')
+    await s.requirements.delete(p.id, first!.id)
+    // The survivor keeps REQ-02; a new record continues at REQ-03.
+    expect(repository.get(p.id)!.codeBook?.codes[second!.id]).toBe('REQ-02')
+    advance(1000)
+    const [third] = await s.requirements.addMany(p.id, [{ ...requirement, normalizedText: '第三条需求' }])
+    expect(repository.get(p.id)!.codeBook?.codes[third!.id]).toBe('REQ-03')
+  })
 })
 
 it('rejects corrupt JSON data on reopen instead of silently resetting the store', async () => {

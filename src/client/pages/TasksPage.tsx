@@ -62,13 +62,14 @@ export function TasksPage({ t, actions }: { t: MarketPilotText; actions: MarketP
     refreshHistory()
   }, [settledMarker, seenSettled, refreshHistory])
 
-  const rank = (status: string): number => (status === 'running' || status === 'waiting_human' ? 0 : 1)
+  const rank = (status: string, supersededWait?: boolean): number =>
+    status === 'running' || (status === 'waiting_human' && supersededWait !== true) ? 0 : 1
   const ordered = [...executions].sort((left, right) =>
     rank(left.status) - rank(right.status) || right.startedAt.localeCompare(left.startedAt))
   const liveRunIds = new Set(executions.map(execution => execution.runId).filter((id): id is string => id !== undefined))
   const historyRows = (history ?? [])
     .filter(run => !liveRunIds.has(run.id))
-    .sort((left, right) => rank(left.status) - rank(right.status)
+    .sort((left, right) => rank(left.status, left.supersededWait) - rank(right.status, right.supersededWait)
       || right.startedAt.localeCompare(left.startedAt))
   if (projects === null && ordered.length > 0) return <LoadingState t={t} />
   return (

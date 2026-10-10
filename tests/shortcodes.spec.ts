@@ -1,6 +1,6 @@
 /** Short-code index: deterministic codes, display replacement, trace appendix. */
 import { describe, expect, it } from 'vitest'
-import { buildShortCodeIndex, renderCodeAppendix, shortFragment, UUID_PATTERN } from '../src/domain/shortcodes.ts'
+import { applyShortCodeBook, buildShortCodeIndex, renderCodeAppendix, shortFragment, UUID_PATTERN } from '../src/domain/shortcodes.ts'
 
 const reqA = { id: '11111111-1111-4111-8111-111111111111', normalizedText: '系统连续监测', createdAt: '2026-10-01T00:00:00.000Z' }
 const reqB = { id: '22222222-2222-4222-8222-222222222222', normalizedText: '数据留存 90 天', createdAt: '2026-10-02T00:00:00.000Z' }
@@ -79,5 +79,44 @@ describe('renderCodeAppendix', () => {
 
   it('renders nothing for an empty project', () => {
     expect(renderCodeAppendix(buildShortCodeIndex({}))).toBe('')
+  })
+})
+
+describe('persisted code book (V3.2.1 stability)', () => {
+  it('pins assigned codes over the derivation', () => {
+    const index = buildShortCodeIndex({
+      requirements: [reqB, reqA],
+      codeBook: { seq: { requirement: 9 }, codes: { [reqA.id]: 'REQ-09' } },
+    })
+    expect(index.codeOf(reqA.id)).toBe('REQ-09')
+    // Unpinned records still derive, skipping numbers the book froze.
+    expect(index.codeOf(reqB.id)).toBe('REQ-01')
+  })
+
+  it('keeps codes stable when a sibling record is deleted', () => {
+    const book = { seq: { requirement: 2 }, codes: { [reqA.id]: 'REQ-01', [reqB.id]: 'REQ-02' } }
+    // reqA is deleted; reqB must keep REQ-02 instead of shifting to REQ-01.
+    expect(buildShortCodeIndex({ requirements: [reqB], codeBook: book }).codeOf(reqB.id)).toBe('REQ-02')
+  })
+
+  it('hands out fresh numbers after the family high-water mark', () => {
+    const created = { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', normalizedText: '新增需求', createdAt: '2026-10-03T00:00:00.000Z' }
+    const book = { seq: { requirement: 2 }, codes: { [reqB.id]: 'REQ-02' } }
+    const changed = applyShortCodeBook({ requirements: [reqB, created] }, book)
+    expect(changed).toBe(true)
+    expect(book.codes[created.id]).toBe('REQ-03')
+    expect(book.seq.requirement).toBe(3)
+    // A second pass is a no-op — reads never grow the book.
+    expect(applyShortCodeBook({ requirements: [reqB, created] }, book)).toBe(false)
+  })
+
+  it('reproduces the derived numbering when a legacy project is first written', () => {
+    const book: { seq: Record<string, number>; codes: Record<string, string> } = { seq: {}, codes: {} }
+    applyShortCodeBook({ requirements: [reqB, reqA] }, book)
+    expect(book.codes[reqA.id]).toBe('REQ-01')
+    expect(book.codes[reqB.id]).toBe('REQ-02')
+    const index = buildShortCodeIndex({ requirements: [reqA, reqB], codeBook: book })
+    expect(index.codeOf(reqA.id)).toBe('REQ-01')
+    expect(index.codeOf(reqB.id)).toBe('REQ-02')
   })
 })

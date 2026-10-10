@@ -10,12 +10,24 @@ import { tenderSchema } from './tender.ts'
 import { artifactSchema } from './artifact.ts'
 import { workflowSchema } from './workflow.ts'
 
+/**
+ * Persisted short-code assignments (`REQ-01`-style display codes → record
+ * ids). Optional: legacy projects keep deriving codes until their next write
+ * pins the exact same numbering, after which codes never shift again.
+ */
+export const shortCodeBookSchema = z.strictObject({
+  seq: z.record(z.string(), z.number().int().nonnegative()),
+  codes: z.record(z.string(), z.string()),
+})
+export type ShortCodeBookState = z.infer<typeof shortCodeBookSchema>
+
 export const stateSchema = z.strictObject({
   project: projectSchema, revision: z.number().int().nonnegative(),
   documents: z.array(documentSchema), requirements: z.array(requirementSchema),
   evidence: z.array(evidenceSchema), competitors: z.array(competitorSchema), policies: z.array(policySchema),
   alternatives: z.array(alternativeSchema), decisions: z.array(decisionSchema),
   tenderItems: z.array(tenderSchema), artifacts: z.array(artifactSchema), workflowRuns: z.array(workflowSchema),
+  codeBook: shortCodeBookSchema.optional(),
 }).superRefine((s, ctx) => {
   const fail = (message: string) => ctx.addIssue({ code: 'custom', message })
   const collections = { documents: s.documents, requirements: s.requirements, evidence: s.evidence,
@@ -63,7 +75,8 @@ export const stateSchema = z.strictObject({
 })
 
 export type ProjectState = z.infer<typeof stateSchema>
-export type Collection = Exclude<keyof ProjectState, 'project' | 'revision'>
+/** Record collections only — `project`/`revision` are headers, `codeBook` is the code map. */
+export type Collection = Exclude<keyof ProjectState, 'project' | 'revision' | 'codeBook'>
 export type RecordOf<K extends Collection> = ProjectState[K][number]
 
 /** Forward-only project status order; `archived` is terminal. */

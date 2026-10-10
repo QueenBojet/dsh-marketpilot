@@ -13,6 +13,20 @@ export type ShortCodeKind =
   | 'requirement' | 'evidence' | 'alternative' | 'decision'
   | 'tenderItem' | 'document' | 'artifact'
 
+/** The persisted half of the short-code mapping (see {@link applyShortCodeBook}).
+ * Stored on the project state as an optional `codeBook`; absent on legacy
+ * projects, which keep the derived mapping until their next write. */
+export interface ShortCodeBook {
+  /** Next sequence number per family — deletions never reuse a number. */
+  readonly seq: Readonly<Record<string, number>>
+  /** Frozen `record id → code` assignments, assigned once at creation. */
+  readonly codes: Readonly<Record<string, string>>
+}
+
+export function emptyShortCodeBook(): ShortCodeBook {
+  return { seq: {}, codes: {} }
+}
+
 const PREFIX: Record<ShortCodeKind, string> = {
   requirement: 'REQ', evidence: 'EVD', alternative: 'ALT', decision: 'DEC',
   tenderItem: 'TND', document: 'DOC', artifact: 'ART',
@@ -23,8 +37,10 @@ const KIND_LABEL: Record<ShortCodeKind, string> = {
   tenderItem: '招标条款', document: '资料', artifact: '成果',
 }
 
-/** The structural input: any projection of these collections qualifies. */
+/** The structural input: any projection of these collections qualifies.
+ * `codeBook` (optional) pins previously assigned codes over the derivation. */
 export interface ShortCodeCollections {
+  codeBook?: ShortCodeBook | undefined
   requirements?: readonly { id: string; normalizedText?: string | undefined; createdAt?: string | undefined; updatedAt?: string | undefined }[] | undefined
   evidence?: readonly { id: string; title?: string | undefined; statement?: string | undefined; createdAt?: string | undefined; updatedAt?: string | undefined }[] | undefined
   alternatives?: readonly { id: string; name?: string | undefined; createdAt?: string | undefined; updatedAt?: string | undefined }[] | undefined
@@ -70,9 +86,13 @@ interface Seed { kind: ShortCodeKind; id: string; time: string; label: string }
 /**
  * Build the deterministic index. Within a family, ordering is by record
  * creation time, tie-broken by id — so the same persisted state always
- * produces the same codes, on the server and in any browser.
+ * produces the same codes, on the server and in any browser. When a
+ * {@link ShortCodeBook} is supplied, its frozen assignments win over the
+ * derivation, so codes survive deletions of sibling records unchanged.
  */
 export function buildShortCodeIndex(collections: ShortCodeCollections): ShortCodeIndex {
+  const book = collections.codeBook
+  const frozen = new Set<string>(book === undefined ? [] : Object.values(book.codes))
   const seeds: Seed[] = []
   const push = <R extends { id: string }>(kind: ShortCodeKind, rows: readonly R[] | undefined,
     labelOf: (row: R) => string, timeOf: (row: R) => string): void => {
@@ -98,11 +118,25 @@ export function buildShortCodeIndex(collections: ShortCodeCollections): ShortCod
       || left.index - right.index)
   for (const { seed } of ordered) {
     if (byId.has(seed.id)) continue
-    const next = (counters.get(seed.kind) ?? 0) + 1
+    const pinned = book?.codes[seed.id]
+    if (typeof pinned === 'string' && pinned !== '') {
+      byId.set(seed.id, {
+        code: pinned, kind: seed.kind, kindLabel: KIND_LABEL[seed.kind],
+        label: clampLabel(seed.label === '' ? '—' : seed.label), id: seed.id,
+      })
+      continue
+    }
+    let next = (counters.get(seed.kind) ?? 0) + 1
+    let code = `${PREFIX[seed.kind]}-${String(next).padStart(2, '0')}`
+    // Skip numbers frozen for other (possibly deleted) records.
+    while (frozen.has(code)) {
+      next += 1
+      code = `${PREFIX[seed.kind]}-${String(next).padStart(2, '0')}`
+    }
     counters.set(seed.kind, next)
+    frozen.add(code)
     byId.set(seed.id, {
-      code: `${PREFIX[seed.kind]}-${String(next).padStart(2, '0')}`,
-      kind: seed.kind, kindLabel: KIND_LABEL[seed.kind],
+      code, kind: seed.kind, kindLabel: KIND_LABEL[seed.kind],
       label: clampLabel(seed.label === '' ? '—' : seed.label), id: seed.id,
     })
   }
@@ -122,6 +156,50 @@ export function buildShortCodeIndex(collections: ShortCodeCollections): ShortCod
       })
     },
   }
+}
+
+/**
+ * Repository-side persistence step: give every record still missing a code
+ * its frozen family number, in the exact (createdAt, id) order the derived
+ * index uses — so a legacy project's first write pins precisely the codes it
+ * has always displayed. Assignments are never reused or renumbered: deleting
+ * a record retires its code, and later records continue after the family's
+ * high-water mark. Mutates `book`; returns whether anything changed (so a
+ * no-op read does not bump the project revision).
+ */
+export function applyShortCodeBook(collections: ShortCodeCollections, book: { seq: Record<string, number>; codes: Record<string, string> }): boolean {
+  const seeds: Seed[] = []
+  const push = <R extends { id: string }>(kind: ShortCodeKind, rows: readonly R[] | undefined,
+    timeOf: (row: R) => string): void => {
+    for (const row of rows ?? []) {
+      if (typeof row.id !== 'string' || row.id === '') continue
+      seeds.push({ kind, id: row.id, time: timeOf(row) ?? '', label: '' })
+    }
+  }
+  push('requirement', collections.requirements, row => row.createdAt ?? row.updatedAt ?? '')
+  push('evidence', collections.evidence, row => row.createdAt ?? row.updatedAt ?? '')
+  push('alternative', collections.alternatives, row => row.createdAt ?? row.updatedAt ?? '')
+  push('decision', collections.decisions, row => row.createdAt ?? row.updatedAt ?? '')
+  push('tenderItem', collections.tenderItems, row => row.createdAt ?? row.updatedAt ?? '')
+  push('document', collections.documents, row => row.importedAt ?? row.createdAt ?? '')
+  push('artifact', collections.artifacts, row => row.createdAt ?? row.updatedAt ?? '')
+
+  const taken = new Set(Object.values(book.codes))
+  let changed = false
+  for (const seed of seeds.sort((left, right) => left.time.localeCompare(right.time) || left.id.localeCompare(right.id))) {
+    if (book.codes[seed.id] !== undefined) continue
+    let next = (book.seq[seed.kind] ?? 0) + 1
+    let code = `${PREFIX[seed.kind]}-${String(next).padStart(2, '0')}`
+    while (taken.has(code)) {
+      next += 1
+      code = `${PREFIX[seed.kind]}-${String(next).padStart(2, '0')}`
+    }
+    book.codes[seed.id] = code
+    book.seq[seed.kind] = next
+    taken.add(code)
+    changed = true
+  }
+  return changed
 }
 
 /**

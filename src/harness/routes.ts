@@ -6,6 +6,8 @@ import type { MarketPilotService } from './service.ts'
 import { WorkbenchManager } from './workbench.ts'
 import { ensure, MarketPilotError } from '../domain/common.ts'
 import { buildShortCodeIndex } from '../domain/shortcodes.ts'
+import type { ShortCodeBook } from '../domain/shortcodes.ts'
+import { markSupersededWaits } from '../domain/runs.ts'
 
 const API_PREFIX = '/marketpilot/api'
 const MAX_BODY_BYTES = 1024 * 1024
@@ -66,7 +68,7 @@ async function readRawBody(request: IncomingMessage, limitBytes: number): Promis
 /** The service-family surface the read routes project. */
 interface MarketPilotServices {
   readonly services: {
-    projects: { get(id: string): unknown; list(): unknown[]; getContext(id: string): unknown }
+    projects: { get(id: string): unknown; list(): unknown[]; getContext(id: string): unknown; codeBook(id: string): unknown }
     documents: { list(projectId: string): unknown[]; add(projectId: string, input: unknown): Promise<unknown> }
     requirements: { list(projectId: string): unknown[] }
     evidence: { list(projectId: string): unknown[] }
@@ -152,6 +154,7 @@ function projectDetail(marketpilot: MarketPilotServices, projectId: string): Rec
   return {
     project: s.projects.get(projectId),
     context: s.projects.getContext(projectId),
+    codeBook: s.projects.codeBook(projectId),
     documents: s.documents.list(projectId),
     requirements: s.requirements.list(projectId),
     evidence: s.evidence.list(projectId),
@@ -162,6 +165,29 @@ function projectDetail(marketpilot: MarketPilotServices, projectId: string): Rec
     tenderItems: s.tender.list(projectId),
     artifacts: s.artifacts.list(projectId),
     workflowRuns: s.workflows.list(projectId),
+  }
+}
+
+/** The project's persisted short-code book, or undefined on legacy data. */
+function projectCodeBook(marketpilot: MarketPilotServices, projectId: string): ShortCodeBook | undefined {
+  const book = marketpilot.services.projects.codeBook(projectId)
+  return book === null || book === undefined ? undefined : book as ShortCodeBook
+}
+
+/** Evidence list projection shared by the ledger page and the detail route. */
+function evidenceProjection(row: EvidenceRecordRow): Record<string, unknown> {
+  return {
+    id: row.id, kind: row.kind, status: row.status, title: row.title, statement: row.statement,
+    sourceType: row.sourceType,
+    ...row.sourceName === undefined ? {} : { sourceName: row.sourceName },
+    ...row.sourceDocumentId === undefined ? {} : { sourceDocumentId: row.sourceDocumentId },
+    ...row.sourceLocator === undefined ? {} : { sourceLocator: row.sourceLocator },
+    ...row.sourceUrl === undefined ? {} : { sourceUrl: row.sourceUrl },
+    ...row.confidence === undefined ? {} : { confidence: row.confidence },
+    supportingEvidenceIds: row.supportingEvidenceIds,
+    relatedRequirementIds: row.relatedRequirementIds,
+    relatedCompetitorIds: row.relatedCompetitorIds,
+    updatedAt: row.updatedAt,
   }
 }
 
@@ -289,7 +315,7 @@ export function mountWorkbenchRoutes(ctx: Context, workbench: WorkbenchManager):
             const all = marketpilot.services.requirements.list(projectId) as RequirementRow[]
             const nameOf = new Map((marketpilot.services.documents.list(projectId) as DocumentRow[])
               .map(row => [row.id, row.name] as const))
-            const reqCodes = buildShortCodeIndex({ requirements: all })
+            const reqCodes = buildShortCodeIndex({ requirements: all, codeBook: projectCodeBook(marketpilot, projectId) })
             const status = parsedUrl.searchParams.get('status')
             const query = (parsedUrl.searchParams.get('q') ?? '').trim().toLowerCase()
             const filtered = all
@@ -307,13 +333,15 @@ export function mountWorkbenchRoutes(ctx: Context, workbench: WorkbenchManager):
             })
           }
           // GET /runs?limit= → persisted runs across projects (task-center history
-          // that survives host restarts), newest first.
+          // that survives host restarts), newest first. Superseded waits (a newer
+          // run of the same type exists) are flagged so the UI reports them as
+          // leftover interruption records instead of live approvals.
           if (method === 'GET' && segments.length === 1 && segments[0] === 'runs') {
             const limit = Math.min(Math.max(Number(parsedUrl.searchParams.get('limit') ?? 40) || 40, 1), 100)
             const projects = marketpilot.services.projects.list() as { id: string; name: string }[]
             const rows: ProjectRunRow[] = []
             for (const project of projects) {
-              const runs = marketpilot.services.workflows.list(project.id) as WorkflowRunRow[]
+              const runs = markSupersededWaits(marketpilot.services.workflows.list(project.id) as WorkflowRunRow[])
               for (const run of runs.slice(-20)) {
                 rows.push({ ...run, projectId: project.id, projectName: project.name })
               }
@@ -325,13 +353,26 @@ export function mountWorkbenchRoutes(ctx: Context, workbench: WorkbenchManager):
           // GET /projects/:id/runs?type=&active=1 → workflow-run timeline snapshots.
           if (method === 'GET' && segments.length === 3 && segments[0] === 'projects' && segments[2] === 'runs') {
             const projectId = segments[1]!
-            let runs = marketpilot.services.workflows.list(projectId) as WorkflowRunRow[]
+            let runs = markSupersededWaits(marketpilot.services.workflows.list(projectId) as WorkflowRunRow[])
             const type = parsedUrl.searchParams.get('type')
             if (type !== null) runs = runs.filter(run => run.type === type)
             if (parsedUrl.searchParams.get('active') === '1') {
               runs = runs.filter(run => run.status === 'running' || run.status === 'waiting_human')
             }
             return sendJson(response, 200, { runs: runs.slice(-20).reverse() })
+          }
+          // GET /projects/:id/requirements/:requirementId → one projection row, so a
+          // cross-module jump still opens its drawer when the target is excluded by
+          // the page's current filter, search, or pagination.
+          if (method === 'GET' && segments.length === 4 && segments[0] === 'projects' && segments[2] === 'requirements') {
+            const projectId = segments[1]!
+            const all = marketpilot.services.requirements.list(projectId) as RequirementRow[]
+            const row = all.find(candidate => candidate.id === segments[3])
+            if (row === undefined) return sendJson(response, 404, { error: '需求记录不存在。', code: 'REQUIREMENT_NOT_FOUND' })
+            const nameOf = new Map((marketpilot.services.documents.list(projectId) as DocumentRow[])
+              .map(doc => [doc.id, doc.name] as const))
+            const reqCodes = buildShortCodeIndex({ requirements: all, codeBook: projectCodeBook(marketpilot, projectId) })
+            return sendJson(response, 200, { requirement: requirementProjection(row, nameOf.get(row.sourceDocumentId), id => reqCodes.codeOf(id)) })
           }
           // GET /projects/:id/artifacts → list projection (no content payload).
           if (method === 'GET' && segments.length === 3 && segments[0] === 'projects' && segments[2] === 'artifacts') {
@@ -379,20 +420,18 @@ export function mountWorkbenchRoutes(ctx: Context, workbench: WorkbenchManager):
             }
             return sendJson(response, 200, {
               total: filtered.length, page, pageSize, counts,
-              evidence: filtered.slice(start, start + pageSize).map(row => ({
-                id: row.id, kind: row.kind, status: row.status, title: row.title, statement: row.statement,
-                sourceType: row.sourceType,
-                ...row.sourceName === undefined ? {} : { sourceName: row.sourceName },
-                ...row.sourceDocumentId === undefined ? {} : { sourceDocumentId: row.sourceDocumentId },
-                ...row.sourceLocator === undefined ? {} : { sourceLocator: row.sourceLocator },
-                ...row.sourceUrl === undefined ? {} : { sourceUrl: row.sourceUrl },
-                ...row.confidence === undefined ? {} : { confidence: row.confidence },
-                supportingEvidenceIds: row.supportingEvidenceIds,
-                relatedRequirementIds: row.relatedRequirementIds,
-                relatedCompetitorIds: row.relatedCompetitorIds,
-                updatedAt: row.updatedAt,
-              })),
+              evidence: filtered.slice(start, start + pageSize).map(evidenceProjection),
             })
+          }
+          // GET /projects/:id/evidence/:evidenceId → one ledger row, so a
+          // cross-module jump still opens its drawer when the ledger's current
+          // status/kind filter or page excludes the target record.
+          if (method === 'GET' && segments.length === 4 && segments[0] === 'projects' && segments[2] === 'evidence') {
+            const projectId = segments[1]!
+            const row = (marketpilot.services.evidence.list(projectId) as EvidenceRecordRow[])
+              .find(candidate => candidate.id === segments[3])
+            if (row === undefined) return sendJson(response, 404, { error: '证据记录不存在。', code: 'EVIDENCE_NOT_FOUND' })
+            return sendJson(response, 200, { evidence: evidenceProjection(row) })
           }
           // GET /projects/:id/alternatives → candidates with requirement coverage.
           if (method === 'GET' && segments.length === 3 && segments[0] === 'projects' && segments[2] === 'alternatives') {

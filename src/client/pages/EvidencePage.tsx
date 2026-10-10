@@ -4,7 +4,7 @@
  * to fact by this page — verification is always an explicit human action.
  */
 import { useEffect, useState } from 'react'
-import type { EvidenceItem } from '../api.ts'
+import { api, type EvidenceItem } from '../api.ts'
 import { Tag } from '@deepseek-ai/dsh-client-ui-primitives'
 import { CodeMapPanel } from '../components/CodeMapPanel.tsx'
 import { EmptyState, ErrorState, LoadingState } from '../components/States.tsx'
@@ -56,12 +56,27 @@ export function EvidencePage({ t, projectId, actions, focus }: {
   const codeOf = (id: string): string => codeIndex?.codeOf(id) ?? id.slice(0, 8)
   const workflow = useToolWorkflow(projectId, ['marketpilot_evidence_verify'], 'evidence_review', t, ledger.refresh)
   // A cross-module jump (e.g. from the tender drawer) opens the referenced
-  // record's drawer directly; closing it again keeps it closed.
+  // record's drawer directly; closing it again keeps it closed. When the
+  // ledger's current status/kind filter or page excludes the target, the
+  // exact record is fetched by id so the jump still lands.
   const focusId = focus?.kind === 'evidence' ? focus.id : undefined
+  const [remoteEvidence, setRemoteEvidence] = useState<EvidenceItem | null>(null)
+  const [jumpMissed, setJumpMissed] = useState(false)
   useEffect(() => {
     if (focusId !== undefined) setOpenId(focusId)
-  }, [focusId])
-  const open = ledger.page?.evidence.find(row => row.id === openId) ?? null
+    if (focusId === undefined) {
+      setRemoteEvidence(null)
+      setJumpMissed(false)
+      return
+    }
+    let cancelled = false
+    api.evidenceOne(projectId, focusId)
+      .then(result => { if (!cancelled) { setRemoteEvidence(result.evidence); setJumpMissed(false) } })
+      .catch(() => { if (!cancelled) { setRemoteEvidence(null); setJumpMissed(true) } })
+    return () => { cancelled = true }
+  }, [focusId, projectId])
+  const pageRow = ledger.page?.evidence.find(row => row.id === openId) ?? null
+  const open = pageRow ?? (openId !== null ? remoteEvidence : null)
   const closeDrawer = (): void => {
     setOpenId(null)
     setVerifying(false)
@@ -118,7 +133,8 @@ export function EvidencePage({ t, projectId, actions, focus }: {
         onCancel={() => { void workflow.cancel() }}
       />
       {ledger.error !== '' ? <ErrorState t={t} message={ledger.error} onRetry={ledger.refresh} />
-        : ledger.loading ? <LoadingState t={t} />
+        : jumpMissed && open === null ? <p className="mp-errorText" role="alert">{t('jumpMissing')}</p>
+          : ledger.loading ? <LoadingState t={t} />
           : ledger.page === null || ledger.page.total === 0 ? (
             <EmptyState title={t('reqEmptyTitle')} body={t('reqEmptyBody')} />
           ) : (

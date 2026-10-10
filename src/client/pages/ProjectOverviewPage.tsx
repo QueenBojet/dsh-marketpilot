@@ -67,7 +67,12 @@ export function ProjectOverviewPage({ t, actions, view }: {
   // crash the page on `.length`.
   const rows = (value: unknown): unknown[] => Array.isArray(value) ? value : []
   const requirements = rows(detail.requirements) as ProjectDetail['requirements']
-  const waiting = (runsQuery.runs ?? []).filter(run => run.status === 'waiting_human').length
+  // Only recoverable waits count as 待办: superseded waiting records (a newer
+  // run of the same type exists) are leftover interruption history.
+  const pendingWaits = (runsQuery.runs ?? [])
+    .filter(run => run.status === 'waiting_human' && run.supersededWait !== true)
+  const waiting = pendingWaits.length
+  const latestWait = pendingWaits[pendingWaits.length - 1]
   const counts = {
     documents: rows(detail.documents).length,
     confirmed: requirements.filter(r => r.status === 'confirmed').length,
@@ -86,7 +91,12 @@ export function ProjectOverviewPage({ t, actions, view }: {
         <div className="mp-workspace">
           {view.section === 'overview' ? (
             <>
-              <NextActionCard t={t} status={project.status} waiting={waiting} onGo={setSection} />
+              <NextActionCard
+                t={t} status={project.status} waiting={waiting}
+                waitingType={latestWait?.type}
+                activeDecisionId={project.activeDecisionId}
+                onGo={setSection}
+              />
               <div className="mp-overviewGrid">
                 <div className="mp-card"><div className="mp-cardValue">{`${String(counts.confirmed)} / ${String(counts.requirements)}`}</div><div className="mp-cardLabel">{t('countRequirements')}</div></div>
                 <div className="mp-card"><div className="mp-cardValue">{String(requirements.filter(r => r.status === 'unknown').length)}</div><div className="mp-cardLabel">{t('countUnknown')}</div></div>

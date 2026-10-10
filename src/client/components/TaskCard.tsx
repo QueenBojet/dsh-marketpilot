@@ -148,24 +148,30 @@ export function RunHistoryCard({ t, run, onOpenProject }: {
   onOpenProject: (projectId: string) => void
 }) {
   const [expanded, setExpanded] = useState(false)
+  // A waiting record a newer same-type run replaced is leftover interruption
+  // history: keep it visible, but never present it as a live approval.
+  const staleWait = run.status === 'waiting_human' && run.supersededWait === true
   return (
     <div className="mp-taskCard" data-status={run.status}>
       <div className="mp-taskHead">
         <StateDot state={run.status === 'completed' ? 'done'
           : run.status === 'failed' ? 'error'
-            : run.status === 'waiting_human' ? 'warning'
-              : run.status === 'cancelled' ? 'idle' : 'ongoing'} />
+            : staleWait ? 'idle'
+              : run.status === 'waiting_human' ? 'warning'
+                : run.status === 'cancelled' ? 'idle' : 'ongoing'} />
         <span className="mp-cellMain">{runTypeLabel(t, run.type)}</span>
         <span className="mp-caption">{run.projectName}</span>
         <span className="mp-toolbarSpacer" />
         <span className="mp-caption">{formatTime(run.startedAt)}</span>
       </div>
       <div className="mp-taskMeta">
-        <Tag tone={run.status === 'completed' ? 'success'
-          : run.status === 'failed' ? 'danger'
-            : run.status === 'waiting_human' ? 'warning' : 'neutral'}>
-          {t(`runStatus.${run.status}` as MarketPilotTextKey)}
+        <Tag tone={staleWait ? 'quiet'
+          : run.status === 'completed' ? 'success'
+            : run.status === 'failed' ? 'danger'
+              : run.status === 'waiting_human' ? 'warning' : 'neutral'}>
+          {staleWait ? t('runStatus.superseded_wait') : t(`runStatus.${run.status}` as MarketPilotTextKey)}
         </Tag>
+        {staleWait ? <span className="mp-caption">{t('supersededWaitHint')}</span> : null}
         {run.durationMs !== undefined ? (
           <span className="mp-caption">{`${t('elapsedLabel')} ${formatDuration(run.durationMs)}`}</span>
         ) : null}

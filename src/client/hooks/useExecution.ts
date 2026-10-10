@@ -133,7 +133,9 @@ export function useProjectRuns(projectId: string) {
 
 /**
  * Home statistics over real data only: the global in-flight execution count
- * and each project's waiting-for-human runs. No synthetic values — a failed
+ * and each project's recoverable waiting-for-human runs. Waiting records a
+ * newer same-type run has replaced (superseded) are leftover interruption
+ * history, never counted as actionable todos. No synthetic values — a failed
  * lookup yields `null` so the page can show 暂无数据 instead of a fake 0.
  * @param projects - the loaded project rows (stats load once per id set).
  */
@@ -151,12 +153,14 @@ export function useHomeStats(projects: readonly ProjectRow[] | null) {
           ...projectIds.map(id => api.runs(id, { active: true }).catch(() => null)),
         ] as const)
         if (cancelled) return
-        // Attribute waiting runs to their requesting project by request order.
+        // Attribute recoverable waiting runs to their requesting project by
+        // request order; superseded waits stay out of the todo count.
         const waitingByProject: Record<string, number> = {}
         let waitingTotal = 0
         runLists.forEach((result, index) => {
           if (result === null || projectIds[index] === undefined) return
-          const count = result.runs.filter(run => run.status === 'waiting_human').length
+          const count = result.runs
+            .filter(run => run.status === 'waiting_human' && run.supersededWait !== true).length
           if (count > 0) {
             waitingByProject[projectIds[index]!] = count
             waitingTotal += count

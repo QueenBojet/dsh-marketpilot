@@ -34,6 +34,7 @@ pnpm build          # 产出 lib/ + client/client.js
 - 正式验收文档：[docs/UI_V3_GUI_ACCEPTANCE.md](docs/UI_V3_GUI_ACCEPTANCE.md)（九项截图 + 真实 GLM 耗时 + 安全审计 + 人工门记录）。
 - 比赛演示脚本：[docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md)（含备用方案与关键数据）。
 - 实施日志：[docs/UI_V3_IMPLEMENTATION_LOG.md](docs/UI_V3_IMPLEMENTATION_LOG.md)（V3.0 四阶段完整记录 + 3 个真实缺陷修复）。
+- V3.2.1 定向质量收口：[docs/UI_V3_2_1_CLOSEOUT.md](docs/UI_V3_2_1_CLOSEOUT.md)（遗留等待与待办统计、短编号持久化 codeBook、筛选外跳转回退、验收脚本精确断言、GLM-5.3 在线/离线边界与剩余能力缺口评估）。
 - 测试覆盖：路由与人工门全链路（`tests/workbench-routes.spec.ts`）；上传/投影/runId 绑定/跨项目拒绝（`tests/phase2-routes.spec.ts`）；五域投影（`tests/phase4-routes.spec.ts`）；页面渲染 ×5（`tests/phase2-client.spec.tsx` + `tests/phase3-client.spec.tsx` + `tests/phase4-client.spec.tsx`）；模块表纯度（`tests/client-bundle.spec.ts`）；CALM Golden Case E2E（`tests/calm-e2e.spec.ts`）。
 
 ## 1. 安装与验证

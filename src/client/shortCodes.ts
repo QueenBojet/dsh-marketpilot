@@ -1,8 +1,9 @@
 /**
- * Client bridge to the shared short-code index: the same deterministic
- * mapping the server renderers use, built from the workbench detail payload.
- * Readers apply `replace` for display only — artifact records keep their
- * original content, and all persisted references stay full UUIDs.
+ * Client bridge to the shared short-code index: the same mapping the server
+ * renderers use, built from the workbench detail payload. The persisted
+ * codeBook (when present) pins assignments so codes stay identical after
+ * deletions; readers apply `replace` for display only — artifact records
+ * keep their original content, and all persisted references stay full UUIDs.
  */
 import { useMemo } from 'react'
 import { buildShortCodeIndex, type ShortCodeIndex } from '../domain/shortcodes.ts'
@@ -13,6 +14,7 @@ import { useProjectDetail } from './hooks/useProjects.ts'
 export function projectShortCodeIndex(detail: ProjectDetail): ShortCodeIndex {
   const rows = (value: unknown): unknown[] => Array.isArray(value) ? value : []
   return buildShortCodeIndex({
+    codeBook: detail.codeBook,
     requirements: rows(detail.requirements) as ProjectDetail['requirements'],
     evidence: rows(detail.evidence) as ProjectDetail['evidence'],
     alternatives: rows(detail.alternatives) as ProjectDetail['alternatives'],
