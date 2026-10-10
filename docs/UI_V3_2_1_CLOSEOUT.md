@@ -57,21 +57,23 @@
 
 ## 3. 测试与构建（2026-10-10）
 
-- `pnpm typecheck` ✅ · `pnpm test` ✅ **177 / 177**（V3.2 基线 159 + 新增 18）
-- 新增回归：codeBook 冻结/删除稳定/续号/旧数据首写复现派生编号（shortcodes、storage×2）；单记录路由 200/404 与 supersededWait 打标（phase4-routes）；NextActionCard 目标定位、RunHistoryCard 遗留标签、首页遗留不计待办、需求/证据页筛选外跳转回退（v321-closeout，9 例）
+- `pnpm typecheck` ✅ · `pnpm test` ✅ **178 / 178**（V3.2 基线 159 + 新增 19）
+- 新增回归：codeBook 冻结/删除稳定/续号/旧数据首写复现派生编号/**JSON-null 等价缺席**（shortcodes、storage×2）；单记录路由 200/404 与 supersededWait 打标（phase4-routes）；NextActionCard 目标定位、RunHistoryCard 遗留标签、首页遗留不计待办、需求/证据页筛选外跳转回退（v321-closeout，9 例）
 - `pnpm build` ✅（client 270.9 kB，无新依赖）· `marketpilot:demo:smoke` ✅（12 模型调用、5 成果，codeBook 落库核验通过）
-- 真实 GUI + GLM 在线验收：待宿主重启加载新构建后执行（见 §6）。
+- **真实 GUI 验收 ✅**（V3.2.1 构建，`cdp-v321.mjs`，pageErrors: 0，见 §4）。
+- **在线 GUI 抓获并修复 1 个真实回归**：遗留项目详情投影 `codeBook: null`，`buildShortCodeIndex` 只防了 `undefined`，`null.codes` 抛错导致整个 `main` 槽卸载 —— 旧项目工作区完全打不开。修复（null 归一 + 类型放宽 + 回归测试）后重跑 GUI 全绿。单测未能抓住的原因：jsdom fixture 缺键（undefined）而非显式 `null` —— 线上 JSON 语义 ≠ 测试夹具语义的教训。
 
-## 4. 截图清单（docs/gui-acceptance/v3.2.1/，宿主重启后补充）
+## 4. 截图清单（docs/gui-acceptance/v3.2.1/，2026-10-10 实测）
 
-| 文件 | 内容 |
+| 文件 | 内容与关键事实 |
 | --- | --- |
-| v321-01-home-1440.png | 首页：真实待办计数（遗留等待不计入） |
-| v321-02-tasks-1440.png | 任务中心：遗留等待标签 + 沉底排序 |
-| v321-03-tender-jump-landing-1440.png | 投标抽屉 EVD 跳转落点（aria-current 精确断言） |
-| v321-04-requirements-codes-1440.png | 需求表 REQ 编码 + 冻结编号 |
-| v321-05-solution-reader-1440.png | 方案阅读器（在线新生成方案的摘要块/编号/附录） |
-| v321-06-home-1024.png / v321-07-home-dark.png | 1024 与深色回归 |
+| v321-01-home-1440.png | 首页：`8 项目 / 4 待审核事项 / 0 进行中`；「需要处理」4 行均为真实可恢复等待（`待人工审核 · 1`），无遗留计入 |
+| v321-02-tasks-1440.png | 任务中心：4 张`等待审核`卡可恢复（回项目处理/展开步骤），已完成运行沉底；本机无被重跑取代的遗留等待（supersededCards: 0 —— 判定逻辑由单测覆盖） |
+| v321-03-tender-jump-landing-1440.png | 投标抽屉 EVD-16 跳转 → 03 证据审查，抽屉含来源定位与编号对照；`sectionActive: "03 证据审查"`（aria-current）与 `stageBusinessState: "05 方案生成"`（业务徽标）分离记录 —— V3.2 phase-2 勘误落实 |
+| v321-04-requirements-codes-1440.png | 需求表 19/19 全部 REQ-xx 编码（allCoded: true） |
+| v321-05-solution-reader-1440.png | V3.2 存量方案阅读器：无裸 UUID；无摘要块/附录属预期（存量模板，显示层可读）—— 新模板事实由在线 GLM 验收出具 |
+| v321-06-home-1024.png / v321-07-home-dark.png | 1024 与深色回归；主题恢复浅色 ✅ |
+| v321-facts.json | 上述全部 DOM 断言原始值（pageErrors: 0） |
 
 ## 5. 剩余业务能力缺口（收口评估）
 
@@ -105,5 +107,5 @@
 | 项 | 状态 |
 | --- | --- |
 | 代码 + 回归 + 构建 + 离线冒烟 | ✅ 2026-10-10 |
-| 真实 GUI（宿主加载 V3.2.1 构建） | ⏳ 需重启 DSH Desktop 后执行 `cdp-v321.mjs` |
-| GLM-5.3 Max 在线方案验收 | ⏳ 需桌面 profile（zai/glm-5.3, max）在线执行 `cdp-v321-glm.mjs` |
+| 真实 GUI（宿主加载 V3.2.1 构建，含 null-codeBook 热修复） | ✅ 2026-10-10 `cdp-v321.mjs`（7 截图 + facts，0 页面错误） |
+| GLM-5.3 Max 在线方案验收 | ✅ 2026-10-10 `cdp-v321-glm.mjs`（V3P2 自验收项目，真实 zai/glm-5.3 max，见 `docs/gui-acceptance/v3.2.1/v321-glm-facts.json`） |

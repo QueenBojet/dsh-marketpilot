@@ -1,7 +1,7 @@
 import type { Alternative } from '../domain/decision.ts'
 import type { ProjectState } from '../domain/state.ts'
 import type { SolutionSection } from '../domain/generation.ts'
-import { buildShortCodeIndex, renderCodeAppendix, type ShortCodeIndex } from '../domain/shortcodes.ts'
+import { buildShortCodeIndex, renderCodeAppendix, reviewerLabel, type ShortCodeIndex } from '../domain/shortcodes.ts'
 
 /** The shared code index for one project snapshot; formal prose never shows a raw UUID. */
 export function projectCodeIndex(state: ProjectState): ShortCodeIndex {
@@ -31,13 +31,14 @@ export function renderSolution(s: ProjectState, sections: SolutionSection[]): st
   const labels = { confirmed: '证据支持', suggested: '建议，待验证', unknown: 'UNKNOWN，待确认' }
   const sourceOf = (e: typeof s.evidence[number]): string => {
     const locator = e.sourceDocumentId !== undefined ? `资料 ${code(index, e.sourceDocumentId)}` : undefined
-    return [locator ?? e.sourceUrl ?? e.sourceName ?? '未提供', e.sourceLocator].filter(Boolean).join(' ')
+    // Persisted sourceName may embed the gate reviewer identity — mask it too.
+    return [locator ?? e.sourceUrl ?? (e.sourceName === undefined ? undefined : reviewerLabel(e.sourceName)) ?? '未提供', e.sourceLocator].filter(Boolean).join(' ')
   }
   const coveredIds = requirements.filter(r => sections.some(section => section.claims.some(c => c.requirementIds.includes(r.id))))
   return [`# ${s.project.name}：技术方案（草稿）`, '',
     '> 本文件为方案草稿，正式导出须经人工审核；所有编号可在文末「附录：编号对照」回溯到具体记录。', '',
     '## 方案摘要', '',
-    `- 人工 Decision：${code(index, decision.id)}（审核人：${decision.confirmedBy}）`,
+    `- 人工 Decision：${code(index, decision.id)}（审核人：${reviewerLabel(decision.confirmedBy)}）`,
     `- 选定路线：${route.name}（${code(index, route.id)}）`,
     `- 覆盖确认需求：${String(coveredIds.length)} / ${String(requirements.length)} 项`,
     `- 未决 UNKNOWN：${String(unknowns.length)} 项（见「设计边界与待确认条件」）`, '',

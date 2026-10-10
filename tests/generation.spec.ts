@@ -4,6 +4,7 @@ import { setup, confirmedRequirement, alternative, evidence } from './helpers.ts
 import type { ModelStructuredOutputAdapter } from '../src/adapters/contracts.ts'
 import { AlternativeWorkflow, SolutionWorkflow } from '../src/workflows/generation.ts'
 import { alternativesOutput, sectionTitles, sectionOutput, outlineOutput } from '../src/domain/generation.ts'
+import { reviewerLabel } from '../src/domain/shortcodes.ts'
 import { harnessOutputSchema } from '../src/adapters/harness-model.ts'
 
 const signal = () => new AbortController().signal
@@ -62,6 +63,16 @@ it('resumes after a human Decision and renders UNKNOWN, source trace and suggest
   expect(artifact.content).toContain('DEC-01')
   expect(artifact.content).not.toContain(decision.id)
   expect(artifact.content).toContain(decision.id.slice(0, 8))
+  // No canonical UUID may survive anywhere in the body; the appendix keeps
+  // only 8-char trace fragments.
+  const body = artifact.content.slice(0, artifact.content.indexOf('附录：编号对照'))
+  expect(body).not.toMatch(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)
+  // Production gate identities are `Harness human (callId-uuid)`; the shared
+  // reviewer formatter keeps an 8-char fragment instead of the raw UUID
+  // (live GLM acceptance caught the raw form in the 方案摘要 block).
+  expect(reviewerLabel('Harness human (0f0e1d2c-3b4a-4c5d-8e9f-0a1b2c3d4e5f)')).toBe('Harness human (#0f0e1d2c)')
+  expect(reviewerLabel('test-engineer')).toBe('test-engineer')
+  expect(artifact.content).toContain('审核人：test-engineer')
   expect(artifact.content).toContain('UNKNOWN / 待确认条件')
   expect(artifact.content).toContain('最小检漏率与误报率待确认')
   expect(artifact.content).toContain('建议，待验证')

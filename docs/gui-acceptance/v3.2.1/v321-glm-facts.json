@@ -1,0 +1,73 @@
+{
+  "mode": "online-glm53-max",
+  "boundary": {
+    "online": "本次验收使用真实 GLM-5.3（max）经工作台工具路径生成；验证摘要块、短编号与引用一致性。",
+    "offline": "离线 Fixture 与冒烟（离线模型替身 + 显式模拟人工）只证明管线行为与持久化，不证明模型输出质量。",
+    "legacy": "历史存量方案保持 V3.2 模板（无摘要块），显示层负责其可读性；本次仅验证新生成方案。"
+  },
+  "project": {
+    "id": "c55a8910-ca03-4645-8b9a-7dd3005603a5",
+    "name": "V3P2 自验收 04:46",
+    "statusBefore": "decision_confirmed"
+  },
+  "execution": {
+    "status": "completed",
+    "startedAt": "2026-10-10T14:14:16.254Z",
+    "finishedAt": "2026-10-10T14:25:14.945Z",
+    "runId": "2a6413da-4931-4a87-bf8f-256ce3e88471",
+    "error": null
+  },
+  "template": {
+    "titleIsDraft": true,
+    "hasDisclaimer": true,
+    "hasSummaryBlock": true,
+    "summaryDecisionCoded": true,
+    "summaryRouteNamed": true,
+    "coverageLine": {
+      "covered": 8,
+      "total": 8
+    },
+    "unknownLine": 8
+  },
+  "codes": {
+    "bodyCodes": [
+      "DEC-01",
+      "ALT-03",
+      "REQ-11",
+      "REQ-14",
+      "REQ-08",
+      "REQ-06",
+      "REQ-10",
+      "REQ-09",
+      "REQ-13",
+      "REQ-12",
+      "EVD-03",
+      "EVD-08",
+      "EVD-02",
+      "EVD-04",
+      "EVD-01",
+      "EVD-07",
+      "EVD-05",
+      "EVD-06",
+      "DOC-01",
+      "EVD-09"
+    ],
+    "appendixCount": 36,
+    "appendixCodesUnique": true,
+    "everyBodyCodeInAppendix": true,
+    "everyAppendixFragmentReal": true,
+    "rawUuidInBody": true
+  },
+  "truth": {
+    "decisionPersisted": true,
+    "routeNameMatches": true,
+    "coverageMatchesConfirmed": true,
+    "unknownMatchesLedger": true,
+    "confirmedTotal": 8,
+    "unknownTotal": 8
+  },
+  "artifacts": {
+    "solutionsBefore": 1,
+    "solutionsAfter": 2
+  }
+}

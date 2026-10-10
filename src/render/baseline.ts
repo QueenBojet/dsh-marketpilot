@@ -1,5 +1,5 @@
 import type { ProjectState } from '../domain/state.ts'
-import { buildShortCodeIndex, renderCodeAppendix } from '../domain/shortcodes.ts'
+import { buildShortCodeIndex, renderCodeAppendix, reviewerLabel } from '../domain/shortcodes.ts'
 
 function cell(value: string | undefined) { return (value ?? '—').replaceAll('|', '\\|').replaceAll('\n', '<br>') }
 
@@ -17,7 +17,7 @@ export function renderBaseline(state: ProjectState, requirementIds: string[]): s
     ...(unknowns.length ? unknowns.map(e => `- [${code(e.id)}] ${e.title}：${e.statement}（来源 ${e.sourceDocumentId === undefined ? '未提供' : code(e.sourceDocumentId)} ${e.sourceLocator ?? ''}）`) : ['本批次没有提取到 UNKNOWN；这不代表所有现场条件均已明确。']),
     '', '## 需求原文与审核记录', '',
     ...selected.flatMap(r => [`### ${code(r.id)} ${cell(r.normalizedText)}`, '', r.originalText, '',
-      `状态：${r.status}；审核人：${r.confirmation?.reviewer ?? '待人工处理'}；澄清：${r.clarificationQuestion ?? '—'}`, '']),
+      `状态：${r.status}；审核人：${r.confirmation?.reviewer === undefined ? '待人工处理' : reviewerLabel(r.confirmation.reviewer)}；澄清：${r.clarificationQuestion ?? '—'}`, '']),
     renderCodeAppendix(index),
   ].join('\n')
 }

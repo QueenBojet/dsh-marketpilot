@@ -1,0 +1,49 @@
+{
+  "checks": {
+    "home": {
+      "statValues": [
+        "8",
+        "4",
+        "0"
+      ],
+      "attentionRows": [
+        "CALM 正式演示（现场确认用）待人工审核 · 1",
+        "GLM-5.3 结构化输出验证待人工审核 · 1",
+        "GUI 验收（真实 GLM-5.3）待人工审核 · 1",
+        "V3P3 自验收 06:18待人工审核 · 1"
+      ],
+      "liveRows": [],
+      "continueCard": "V3P2 自验收 04:46"
+    },
+    "tasks": {
+      "supersededCards": 0,
+      "liveWaitingCards": 4
+    },
+    "tenderJump": true,
+    "tenderJumpLanding": {
+      "sectionActive": "03 证据审查",
+      "stageBusinessState": "05 方案生成",
+      "drawerOpen": true,
+      "drawerCode": "EVD-16"
+    },
+    "requirementCodes": {
+      "count": 19,
+      "allCoded": true,
+      "sample": [
+        "REQ-03",
+        "REQ-06",
+        "REQ-04"
+      ]
+    },
+    "solutionHead": {
+      "hasSummary": false,
+      "hasDecisionCode": true,
+      "hasRouteCode": true,
+      "hasCoverage": false,
+      "hasAppendix": false,
+      "rawUuid": false
+    }
+  },
+  "lightRestored": true,
+  "pageErrors": 0
+}

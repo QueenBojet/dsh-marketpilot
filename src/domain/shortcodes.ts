@@ -82,6 +82,11 @@ function clampLabel(label: string, max = 42): string {
   return trimmed.length <= max ? trimmed : `${trimmed.slice(0, max - 1)}…`
 }
 
+/** Reviewer identities arrive as `name (uuid)`; keep a trace fragment, never a raw UUID. */
+export function reviewerLabel(reviewer: string): string {
+  return reviewer.replace(UUID_PATTERN, match => `#${match.slice(0, 8)}`)
+}
+
 interface Seed { kind: ShortCodeKind; id: string; time: string; label: string }
 
 /**

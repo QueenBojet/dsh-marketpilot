@@ -12,6 +12,7 @@ import { WorkflowSurface } from '../components/WorkflowSurface.tsx'
 import { useDrawerKeys } from '../hooks/useDrawerKeys.ts'
 import { useEvidencePage, useToolWorkflow } from '../hooks/usePhase4.ts'
 import { useCodeIndex } from '../shortCodes.ts'
+import { reviewerLabel } from '../../domain/shortcodes.ts'
 import type { ProjectFocus } from '../stores.ts'
 import type { MarketPilotActions } from '../stores.ts'
 import type { MarketPilotText, MarketPilotTextKey } from '../locales.ts'
@@ -156,7 +157,7 @@ export function EvidencePage({ t, projectId, actions, focus }: {
                       <tr key={item.id}>
                         <td><Tag tone={item.kind === 'UNKNOWN' ? 'warning' : 'neutral'}>{t(`evidenceKind.${item.kind}` as MarketPilotTextKey)}</Tag></td>
                         <td className="mp-cellMain">{item.statement}</td>
-                        <td className="mp-muted">{item.sourceName ?? item.sourceType}</td>
+                        <td className="mp-muted">{item.sourceName === undefined ? item.sourceType : reviewerLabel(item.sourceName)}</td>
                         <td><Tag tone={chip.tone}>{chip.label}</Tag></td>
                         <td>
                           <button type="button" className="mp-link" onClick={() => { setOpenId(item.id) }}>{t('colDetail')}</button>
@@ -188,7 +189,7 @@ export function EvidencePage({ t, projectId, actions, focus }: {
               <p>{open.statement}</p>
               <h3 className="mp-drawerSection">{t('colSource')}</h3>
               <p>
-                {open.sourceName ?? open.sourceType}
+                {open.sourceName === undefined ? open.sourceType : reviewerLabel(open.sourceName)}
                 {open.sourceLocator === undefined ? null : <code className="mp-caption">{` · ${open.sourceLocator}`}</code>}
                 {open.sourceUrl === undefined ? null : <>{' · '}<a className="mp-link" href={open.sourceUrl} target="_blank" rel="noreferrer">{open.sourceUrl}</a></>}
               </p>
