@@ -4,7 +4,7 @@
  */
 import { StateDot } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { WorkflowRunView } from '../api.ts'
-import { formatTime } from '../format.ts'
+import { formatDuration, formatTime } from '../format.ts'
 import type { MarketPilotText, MarketPilotTextKey } from '../locales.ts'
 import { useElapsed } from '../hooks/useExecution.ts'
 
@@ -18,9 +18,14 @@ export function TaskProgress({ t, run, startedAt, active, label }: {
 }) {
   const elapsed = useElapsed(startedAt, active)
   const activity = label ?? t('extractRunning')
-  const elapsedText = active || run !== null
-    ? `${t('elapsedLabel')} ${String(Math.floor(elapsed / 60000))}:${String(Math.floor(elapsed / 1000) % 60).padStart(2, '0')}`
-    : ''
+  // A settled run's duration is the recorded durationMs — a fixed fact that
+  // must never keep ticking. Live runs show the running elapsed counter.
+  const settledDuration = !active && run !== null && run.durationMs !== undefined
+  const elapsedText = settledDuration
+    ? `${t('elapsedLabel')} ${formatDuration(run.durationMs!)}`
+    : active || run !== null
+      ? `${t('elapsedLabel')} ${formatDuration(elapsed)}`
+      : ''
   if (run === null) {
     return (
       <div className="mp-progress" role="status">

@@ -1,0 +1,66 @@
+{
+  "homeCards": [
+    "8项目",
+    "4待审核事项",
+    "0进行中任务"
+  ],
+  "attentionRows": [
+    "CALM 正式演示（现场确认用）",
+    "GLM-5.3 结构化输出验证",
+    "GUI 验收（真实 GLM-5.3）",
+    "V3P3 自验收 06:18"
+  ],
+  "headerChips": [
+    "14 / 19需求",
+    "5UNKNOWN 项",
+    "0待人工审核"
+  ],
+  "stageItems": [
+    {
+      "state": null,
+      "text": "项目概览"
+    },
+    {
+      "state": "done",
+      "text": "01 资料与需求"
+    },
+    {
+      "state": "done",
+      "text": "02 情报研究"
+    },
+    {
+      "state": null,
+      "text": "03 证据审查"
+    },
+    {
+      "state": "done",
+      "text": "04 技术路线"
+    },
+    {
+      "state": "current",
+      "text": "05 方案生成"
+    },
+    {
+      "state": "pending",
+      "text": "06 投标检查"
+    },
+    {
+      "state": null,
+      "text": "项目成果"
+    }
+  ],
+  "nextCard": "下一步技术路线已确认：可以生成技术方案。去处理",
+  "overviewCards": [
+    "14 / 19需求",
+    "5UNKNOWN 项",
+    "38证据",
+    "4资料",
+    "202 情报研究",
+    "5成果"
+  ],
+  "activityRows": 5,
+  "overflow1440": false,
+  "overflow1366": false,
+  "overflow1024": false,
+  "pageErrors": 0
+}

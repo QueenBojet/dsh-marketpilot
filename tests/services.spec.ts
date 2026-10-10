@@ -73,6 +73,23 @@ describe.each(['sqlite', 'json'] as const)('%s project services', medium => {
     const result = await s.evidence.verify(p.id, u.id, { method: 'new_evidence', targetKind: 'FACT', statement: evidence.statement, supportingEvidenceIds: [source.id] })
     expect(result.verification?.supportingEvidenceIds).toEqual([source.id])
   })
+  it('supports human keep-unknown and reject resolutions through the same gate', async () => {
+    const { services: s, project: p } = await setup(medium)
+    const u = await s.evidence.add(p.id, { ...evidence, kind: 'UNKNOWN', sourceType: 'model', statement: '最小检漏率未冻结' })
+    // Automated keep-unknown/reject is forbidden — both need the human gate.
+    await expect(s.evidence.verify(p.id, u.id, { method: 'new_evidence', targetKind: 'UNKNOWN', statement: u.statement })).rejects.toMatchObject({ code: 'UNKNOWN_PROTECTED' })
+    await expect(s.evidence.verify(p.id, u.id, { method: 'new_evidence', targetKind: 'REJECT', statement: u.statement })).rejects.toMatchObject({ code: 'UNKNOWN_PROTECTED' })
+    // Human keep-unknown: kind stays UNKNOWN, status becomes verified, fromKind recorded.
+    const kept = await s.evidence.verify(p.id, u.id, { method: 'human', targetKind: 'UNKNOWN', statement: u.statement })
+    expect(kept).toMatchObject({ kind: 'UNKNOWN', status: 'verified', verification: { fromKind: 'UNKNOWN', method: 'human' } })
+    // Human reject: statement and kind keep their original values, status rejected.
+    const r = await s.evidence.add(p.id, { ...evidence, kind: 'INFERENCE', statement: '红外对全部油膜高灵敏' })
+    const rejected = await s.evidence.verify(p.id, r.id, { method: 'human', targetKind: 'REJECT', statement: r.statement })
+    expect(rejected).toMatchObject({ kind: 'INFERENCE', status: 'rejected', verification: { fromKind: 'INFERENCE', method: 'human' } })
+    expect(rejected.statement).toBe('红外对全部油膜高灵敏')
+    // A settled record (either way) can no longer be re-verified.
+    await expect(s.evidence.verify(p.id, u.id, { method: 'human', targetKind: 'FACT', statement: u.statement })).rejects.toMatchObject({ code: 'EVIDENCE_IMMUTABLE' })
+  })
   it('does not mark parameter clause compliant without evidence', async () => {
     const { services: s, project: p } = await setup(medium)
     const result = await s.tender.add(p.id, tender)

@@ -1,7 +1,7 @@
 /** Requirement review table: batch selection over proposed rows plus per-row detail. */
 import type { RequirementItem } from '../api.ts'
 import { StatusTag } from './StatusTag.tsx'
-import type { MarketPilotText } from '../locales.ts'
+import type { MarketPilotText, MarketPilotTextKey } from '../locales.ts'
 
 /** Callbacks and rows for the requirement table. */
 export interface RequirementTableProps {
@@ -13,11 +13,22 @@ export interface RequirementTableProps {
   onOpenDetail: (item: RequirementItem) => void
 }
 
+/** Review-urgency order: 待确认 → 冲突 → 未知 → 已确认；同级保持提取顺序。 */
+function reviewRank(status: string): number {
+  if (status === 'proposed') return 0
+  if (status === 'conflict') return 1
+  if (status === 'unknown') return 2
+  return 3
+}
+
 /** Render the requirement table. */
 export function RequirementTable({ t, rows, selected, onToggle, onSelectProposed, onOpenDetail }: RequirementTableProps) {
   if (rows.length === 0) {
     return <div className="mp-empty"><p className="mp-emptyTitle">{t('reqEmptyTitle')}</p><p className="mp-emptyBody">{t('reqEmptyBody')}</p></div>
   }
+  const ordered = rows.map((row, index) => ({ row, index }))
+    .sort((left, right) => reviewRank(left.row.status) - reviewRank(right.row.status) || left.index - right.index)
+    .map(entry => entry.row)
   return (
     <div className="mp-tableWrap">
       <table className="mp-table">
@@ -36,7 +47,7 @@ export function RequirementTable({ t, rows, selected, onToggle, onSelectProposed
           </tr>
         </thead>
         <tbody>
-          {rows.map(item => (
+          {ordered.map(item => (
             <tr key={item.id}>
               <td>
                 <input
@@ -48,7 +59,7 @@ export function RequirementTable({ t, rows, selected, onToggle, onSelectProposed
               <td><code>{item.shortId}</code></td>
               <td className="mp-cellMain">{item.normalizedText}</td>
               <td className="mp-muted">{item.type}</td>
-              <td className="mp-muted">{item.priority}</td>
+              <td className="mp-muted">{t(`priority.${item.priority}` as MarketPilotTextKey)}</td>
               <td><StatusTag t={t} kind="requirement" value={item.status} /></td>
               <td className="mp-muted">{item.sourceDocumentName ?? item.sourceDocumentId.slice(0, 8)}</td>
               <td>

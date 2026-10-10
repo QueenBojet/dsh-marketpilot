@@ -1,0 +1,23 @@
+{
+  "tocItems": 13,
+  "railItems": [
+    "设计边界与待确认条件",
+    "UNKNOWN / 待确认条件",
+    "假设",
+    "风险与后续工作"
+  ],
+  "readerWidth": 1202,
+  "exportHint": "导出需经人工审核，且只能写入新的绝对路径（不覆盖已有文件）。",
+  "exportDisabled": true,
+  "artifactColumns": [
+    "项目名称",
+    "类型",
+    "当前状态",
+    "生成时间",
+    "更新时间",
+    "操作"
+  ],
+  "tenderDrawerNeedsEvidence": null,
+  "evidenceSectionReached": false,
+  "pageErrors": 0
+}

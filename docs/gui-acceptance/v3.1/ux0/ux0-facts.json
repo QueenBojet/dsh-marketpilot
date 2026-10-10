@@ -1,0 +1,40 @@
+{
+  "themeSource": "light",
+  "darkNow": false,
+  "homeStats": [
+    "8项目",
+    "—待审核事项待接入：需求审核视图（后续阶段）",
+    "—进行中任务待接入：任务中心（后续阶段）"
+  ],
+  "projectRows": [
+    "CALM 漏油监测桌面版演示",
+    "CALM 现场演示（10 分钟版）",
+    "CALM 正式演示（现场确认用）",
+    "GLM-5.3 结构化输出验证",
+    "GUI 验收（真实 GLM-5.3）",
+    "test",
+    "V3P2 自验收 04:46",
+    "V3P3 自验收 06:18"
+  ],
+  "overviewPhaseChips": 6,
+  "overviewNavItems": 8,
+  "overviewCountCards": [
+    "4资料",
+    "14 / 19需求",
+    "5UNKNOWN 项",
+    "38证据",
+    "3候选路线",
+    "5成果",
+    "306 投标检查",
+    "17运行记录"
+  ],
+  "requirementRows": 19,
+  "evidenceRows": 38,
+  "alternativeCards": 3,
+  "readerWidth": 761,
+  "readerScrollHeight": 15138,
+  "tenderRows": 3,
+  "taskCards": 0,
+  "narrowHasHorizontalScroll": false,
+  "pageErrors": 0
+}

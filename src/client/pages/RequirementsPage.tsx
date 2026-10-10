@@ -4,7 +4,7 @@
  * batch through the real Human Gate — with the runId bound to the exact
  * extraction batch, never a "first waiting run" guess.
  */
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { RequirementItem } from '../api.ts'
 import { DocumentUploader } from '../components/DocumentUploader.tsx'
 import { HumanReviewDialog } from '../components/HumanReviewDialog.tsx'
@@ -55,11 +55,6 @@ export function RequirementsPage({ t, projectId }: { t: MarketPilotText; project
   const selectedInBatch = reviewRunId === undefined
     || (batchIds.size > 0 && [...selectedRequirements].every(id => batchIds.has(id)))
 
-  const refreshAll = (): void => {
-    documents.refresh()
-    requirements.refresh()
-  }
-
   const toggle = (setter: typeof setSelectedDocs) => (id: string) => {
     setter(current => {
       const next = new Set(current)
@@ -94,19 +89,22 @@ export function RequirementsPage({ t, projectId }: { t: MarketPilotText; project
       .catch(e => { setError(errorMessage(e)) })
   }
 
-  // Refresh data whenever a tracked workflow execution settles.
+  // Refresh data exactly once per settled execution (callId:status marker);
+  // the same pattern useToolWorkflow uses — never a render-phase side effect.
   const settled = executions.find(execution => ['completed', 'failed', 'cancelled'].includes(execution.status)
     && (execution.tool === 'marketpilot_requirement_extract' || execution.tool === 'marketpilot_requirement_confirm'))
   const settleMarker = settled === undefined ? '' : `${settled.callId}:${settled.status}`
   const [seenMarker, setSeenMarker] = useState('')
-  if (settleMarker !== '' && settleMarker !== seenMarker) {
+  useEffect(() => {
+    if (settleMarker === '' || settleMarker === seenMarker) return
     setSeenMarker(settleMarker)
     if (settled?.status === 'completed' && settled.tool === 'marketpilot_requirement_confirm') {
       setNotice(t('baselineGenerated'))
       setSelectedRequirements(new Set())
     }
-    refreshAll()
-  }
+    documents.refresh()
+    requirements.refresh()
+  }, [settleMarker, seenMarker, settled, t, documents.refresh, requirements.refresh])
 
   // The confirm execution gates on the requirement review question.
   const gating = confirmExecution?.status === 'waiting_human' ? confirmExecution : undefined

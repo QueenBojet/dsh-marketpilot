@@ -101,15 +101,48 @@ function makePanelProps(): { useStore: Parameters<typeof MarketPilotPanel>[0]['u
 }
 
 describe('MarketPilot main panel', () => {
-  it('renders the home page with real project rows and counts', async () => {
-    fetchMock.mockResolvedValue(jsonResponse(projectsPayload))
+  it('renders the home page with real project rows and real stats — no permanent placeholders', async () => {
+    fetchMock.mockImplementation(async (input: unknown) => {
+      const url = String(input)
+      if (url === '/marketpilot/api/projects') return jsonResponse(projectsPayload)
+      if (url === '/marketpilot/api/executions') {
+        return jsonResponse({ executions: [{ callId: 'c1', tool: 'marketpilot_requirement_extract', status: 'running', startedAt: '2026-10-09T01:00:00.000Z', question: null }] })
+      }
+      if (url === '/marketpilot/api/projects/p1/runs?active=1') {
+        return jsonResponse({ runs: [{ id: 'run-1', type: 'requirement_analysis', status: 'waiting_human', currentStep: 'WAITING_HUMAN', steps: [], startedAt: '2026-10-09T01:00:00.000Z', updatedAt: '2026-10-09T01:00:00.000Z' }] })
+      }
+      if (url === '/marketpilot/api/projects/p2/runs?active=1') return jsonResponse({ runs: [] })
+      throw new Error(`unexpected fetch: ${url}`)
+    })
     render(<MarketPilotPanel t={t} {...makePanelProps()} />)
     await flush()
     expect(text()).toContain('CALM 单点系泊监测')
     expect(text()).toContain('GLM 结构化验证')
     expect(text()).toContain(marketpilotLocales.zh.recentProjects)
-    // The project count card shows the real list length, never a fabricated number.
+    // The three stat cards carry real values: 2 projects, 1 waiting review, 1 running.
+    const cards = [...container!.querySelectorAll('.mp-cards .mp-card')].map(card => card.textContent ?? '')
+    expect(cards[0]).toContain('2')
+    expect(cards[1]).toContain('1')
+    expect(cards[2]).toContain('1')
+    // The attention list names the project with the waiting review.
+    expect(text()).toContain(marketpilotLocales.zh.homeAttention)
+    expect(text()).toContain('CALM 单点系泊监测')
     expect(fetchMock).toHaveBeenCalledWith('/marketpilot/api/projects', { method: 'GET' })
+  })
+
+  it('marks stats 暂无数据 when the aggregates cannot load — never a fake 0', async () => {
+    fetchMock.mockImplementation(async (input: unknown) => {
+      const url = String(input)
+      if (url === '/marketpilot/api/projects') return jsonResponse(projectsPayload)
+      if (url === '/marketpilot/api/executions') throw new Error('network down')
+      if (url.includes('/runs?active=1')) throw new Error('network down')
+      throw new Error(`unexpected fetch: ${url}`)
+    })
+    render(<MarketPilotPanel t={t} {...makePanelProps()} />)
+    await flush()
+    const cards = [...container!.querySelectorAll('.mp-cards .mp-card')].map(card => card.textContent ?? '')
+    expect(cards[1]).toContain(marketpilotLocales.zh.statUnavailable)
+    expect(cards[2]).toContain(marketpilotLocales.zh.statUnavailable)
   })
 
   it('renders the empty state when no projects exist', async () => {

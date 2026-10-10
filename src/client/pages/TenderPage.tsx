@@ -8,6 +8,7 @@ import type { TenderItemProjection } from '../api.ts'
 import { Tag } from '@deepseek-ai/dsh-client-ui-primitives'
 import { EmptyState, ErrorState, LoadingState } from '../components/States.tsx'
 import { WorkflowSurface } from '../components/WorkflowSurface.tsx'
+import { useDrawerKeys } from '../hooks/useDrawerKeys.ts'
 import { useDocuments } from '../hooks/useExecution.ts'
 import { useTenderItems, useToolWorkflow } from '../hooks/usePhase4.ts'
 import type { MarketPilotText, MarketPilotTextKey } from '../locales.ts'
@@ -21,7 +22,11 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'neutral
 }
 
 /** Render the tender page. */
-export function TenderPage({ t, projectId }: { t: MarketPilotText; projectId: string }) {
+export function TenderPage({ t, projectId, onGoEvidence }: {
+  t: MarketPilotText
+  projectId: string
+  onGoEvidence?: (() => void) | undefined
+}) {
   const [selectedDocs, setSelectedDocs] = useState<ReadonlySet<string>>(new Set())
   const [selectedItems, setSelectedItems] = useState<ReadonlySet<string>>(new Set())
   const [drawer, setDrawer] = useState<TenderItemProjection | null>(null)
@@ -29,6 +34,7 @@ export function TenderPage({ t, projectId }: { t: MarketPilotText; projectId: st
   const items = useTenderItems(projectId)
   const workflow = useToolWorkflow(projectId,
     ['marketpilot_tender_extract', 'marketpilot_tender_review'], 'tender_review', t, items.refresh)
+  const drawerRef = useDrawerKeys(drawer !== null, () => { setDrawer(null) })
   const rows = items.rows ?? []
 
   return (
@@ -65,11 +71,19 @@ export function TenderPage({ t, projectId }: { t: MarketPilotText; projectId: st
           {t('tenderExtract')}
         </button>
         <button
+          type="button" className="mp-primaryAction mp-headerNavItem"
+          disabled={workflow.busy || selectedItems.size === 0}
+          title={selectedItems.size === 0 ? t('reviewTenderNeedsSelection') : undefined}
+          onClick={() => { void workflow.start('marketpilot_tender_review', { tenderItemIds: [...selectedItems] }) }}
+        >
+          {`${t('reviewTenderSelected')}（${String(selectedItems.size)}）`}
+        </button>
+        <button
           type="button" className="mp-headerNavItem"
           disabled={workflow.busy || rows.length === 0}
           onClick={() => { void workflow.start('marketpilot_tender_review', { tenderItemIds: rows.map(row => row.id) }) }}
         >
-          {t('reviewTender')}
+          {t('reviewTenderAll')}
         </button>
       </div>
       <WorkflowSurface
@@ -126,7 +140,7 @@ export function TenderPage({ t, projectId }: { t: MarketPilotText; projectId: st
             )}
       {drawer === null ? null : (
         <div className="mp-drawerMask" role="presentation" onClick={event => { if (event.target === event.currentTarget) setDrawer(null) }}>
-          <aside className="mp-drawer" role="dialog" aria-label={t('tenderTitle')}>
+          <aside ref={drawerRef} className="mp-drawer" role="dialog" aria-label={t('tenderTitle')}>
             <div className="mp-drawerHead">
               <h2 className="mp-drawerTitle">{drawer.clauseId ?? t('colClause')}</h2>
               <button type="button" className="mp-link" onClick={() => { setDrawer(null) }}>{t('close')}</button>
@@ -135,6 +149,12 @@ export function TenderPage({ t, projectId }: { t: MarketPilotText; projectId: st
               <Tag tone={statusTone(drawer.status)}>{t(`tenderStatus.${drawer.status}` as MarketPilotTextKey)}</Tag>
               <h3 className="mp-drawerSection">{t('drawerOriginal')}</h3>
               <blockquote className="mp-quote">{drawer.originalText}</blockquote>
+              {drawer.sourceLocator === undefined ? null : (
+                <p className="mp-caption">{`${t('drawerLocator')}：${drawer.sourceLocator}`}</p>
+              )}
+              {drawer.sourceLocator !== undefined || drawer.sourceDocumentId !== undefined ? null : (
+                <p className="mp-caption" role="note">{t('drawerNoLocator')}</p>
+              )}
               <h3 className="mp-drawerSection">{t('colResponse')}</h3>
               <p>{drawer.responseDraft ?? '—'}</p>
               {drawer.risk === undefined ? null : (
@@ -150,7 +170,15 @@ export function TenderPage({ t, projectId }: { t: MarketPilotText; projectId: st
                 </>
               )}
               <h3 className="mp-drawerSection">{t('evidenceRefs')}</h3>
-              <p className="mp-caption">{drawer.evidenceIds.join(' · ') || '—'}</p>
+              <p className="mp-caption">{drawer.evidenceIds.map(id => id.slice(0, 8)).join(' · ') || '—'}</p>
+              {drawer.evidenceIds.length > 0 ? null : (
+                <p className="mp-caption" role="note">
+                  {`${t('tenderNeedsEvidence')} `}
+                  {onGoEvidence === undefined ? null : (
+                <button type="button" className="mp-link" onClick={onGoEvidence}>{t('tenderGoEvidence')}</button>
+                  )}
+                </p>
+              )}
             </div>
           </aside>
         </div>

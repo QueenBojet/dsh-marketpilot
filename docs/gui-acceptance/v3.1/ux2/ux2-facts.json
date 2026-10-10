@@ -1,0 +1,53 @@
+{
+  "reqRowOrder": [
+    "1753b7a3 | 系统最小检漏率指标尚未冻结，需通过现场试验和验收协议确认最终保证值。 | performance | MUST | 未知待补 | brief.md",
+    "666b93f8 | 误报率、检出概率及响应时间三项性能指标的保证值尚未冻结，需进一步确认。 | performance | MUST | 未知待补 | brief.md",
+    "49bb4178 | 报警事件留存周期、系统接口协议及供电条件三项待确认。 | interface | MUST | 未知待补 | brief.md",
+    "6bb78453 | 防爆认证、防护等级认证及船级认证的适用范围与证明材料待确认。 | compliance | MUST | 未知待补 | brief.md",
+    "ecc6a587 | 技术路线摘录中不含可核验的厂家型号、认证或业绩数据，相关项目须保留为 UNKNOWN 状态。 | compliance | MUST | 未知待补 | technology-notes.md",
+    "f4b772d5 | 本需求摘录中的所有表述须经项目人员确认后才能成为正式的需求基线（Requirement Baseline）。 | constraint | MUST | 已确认 | brief.md"
+  ],
+  "priorityLabels": [
+    "MUST",
+    "MUST",
+    "MUST",
+    "MUST",
+    "MUST",
+    "MUST"
+  ],
+  "uploadOutcomes": [
+    "✗ 不支持的格式.docx — 不支持的格式（仅支持 .md/.txt；DOCX/PDF 请先转换为 Markdown）"
+  ],
+  "verifyOptions": [
+    {
+      "value": "",
+      "label": "请选择核验后的分类（不会默认转为事实）"
+    },
+    {
+      "value": "FACT",
+      "label": "事实"
+    },
+    {
+      "value": "SOURCE",
+      "label": "来源"
+    },
+    {
+      "value": "ASSUMPTION",
+      "label": "假设"
+    },
+    {
+      "value": "INFERENCE",
+      "label": "推断"
+    },
+    {
+      "value": "UNKNOWN",
+      "label": "保持未知（人工确认暂无结论）"
+    },
+    {
+      "value": "REJECT",
+      "label": "驳回（声明不成立或不可用）"
+    }
+  ],
+  "verifyDefault": "",
+  "pageErrors": 0
+}

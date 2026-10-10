@@ -1,5 +1,6 @@
 /** Right-side drawer with one requirement's original text, source, and open questions. */
 import type { RequirementItem } from '../api.ts'
+import { useDrawerKeys } from '../hooks/useDrawerKeys.ts'
 import { StatusTag } from './StatusTag.tsx'
 import type { MarketPilotText } from '../locales.ts'
 
@@ -9,9 +10,10 @@ export function SourceDrawer({ t, item, onClose }: {
   item: RequirementItem
   onClose: () => void
 }) {
+  const dialogRef = useDrawerKeys(true, onClose)
   return (
     <div className="mp-drawerMask" role="presentation" onClick={event => { if (event.target === event.currentTarget) onClose() }}>
-      <aside className="mp-drawer" role="dialog" aria-label={t('drawerTitle')}>
+      <aside ref={dialogRef} className="mp-drawer" role="dialog" aria-label={t('drawerTitle')}>
         <div className="mp-drawerHead">
           <h2 className="mp-drawerTitle">{t('drawerTitle')}</h2>
           <button type="button" className="mp-link" onClick={onClose}>{t('close')}</button>
@@ -26,7 +28,9 @@ export function SourceDrawer({ t, item, onClose }: {
           <blockquote className="mp-quote">{item.originalText}</blockquote>
           <h3 className="mp-drawerSection">{t('colSource')}</h3>
           <p>{item.sourceDocumentName ?? item.sourceDocumentId}</p>
-          {item.sourceLocator === undefined ? null : (
+          {item.sourceLocator === undefined ? (
+            <p className="mp-caption" role="note">{t('drawerNoLocator')}</p>
+          ) : (
             <>
               <h3 className="mp-drawerSection">{t('drawerLocator')}</h3>
               <p><code>{item.sourceLocator}</code></p>

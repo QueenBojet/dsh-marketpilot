@@ -1,0 +1,41 @@
+{
+  "sections": [
+    {
+      "stage": "01 资料与需求",
+      "present": true
+    },
+    {
+      "stage": "02 情报研究",
+      "present": true
+    },
+    {
+      "stage": "03 证据审查",
+      "present": true
+    },
+    {
+      "stage": "04 技术路线",
+      "present": true
+    },
+    {
+      "stage": "05 方案生成",
+      "present": true
+    },
+    {
+      "stage": "06 投标检查",
+      "present": true
+    },
+    {
+      "stage": "项目成果",
+      "present": true
+    }
+  ],
+  "homeCards": [
+    "8项目",
+    "4待审核事项",
+    "0进行中任务"
+  ],
+  "projectName": "CALM 漏油监测桌面版演示",
+  "drawerEscapeCloses": true,
+  "taskCards": 0,
+  "pageErrors": 0
+}

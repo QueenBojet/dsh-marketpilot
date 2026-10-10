@@ -1,0 +1,25 @@
+{
+  "panelAlive": true,
+  "tenderSelectedLabel": "审查所选（0）",
+  "tenderSelectedDisabled": true,
+  "tenderAllLabel": "审查全部条款",
+  "tenderSelectedLabelAfterCheck": "审查所选（1）",
+  "solutionVersionButtons": [
+    "v1 · 2026/10/8 15:42:31 · 最新"
+  ],
+  "readerWideWidth": 1202,
+  "tocButtons": 13,
+  "backTop": 1,
+  "tocJumpWorks": true,
+  "verifyStartVisible": true,
+  "verifySelectDefault": "",
+  "verifySubmitDisabled": true,
+  "verifyOptions": [
+    "",
+    "FACT",
+    "SOURCE",
+    "ASSUMPTION",
+    "INFERENCE"
+  ],
+  "pageErrors": 0
+}

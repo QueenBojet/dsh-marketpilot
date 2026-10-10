@@ -1,12 +1,14 @@
 import { z } from 'zod'
 import { ids, text, ensure } from '../domain/common.ts'
-import { evidenceInput, evidenceKind } from '../domain/evidence.ts'
+import { evidenceInput } from '../domain/evidence.ts'
 import type { Evidence } from '../domain/evidence.ts'
 import { RecordService, requiredRecord } from './records.ts'
 import type { ServiceContext } from './project.ts'
 
 const verificationInput = z.strictObject({
-  method: z.enum(['human', 'new_evidence']), targetKind: evidenceKind.exclude(['DECISION', 'UNKNOWN']),
+  method: z.enum(['human', 'new_evidence']),
+  // UNKNOWN = 人工确认"暂无结论"（保持未知）；REJECT = 人工驳回（声明不成立）。
+  targetKind: z.enum(['FACT', 'SOURCE', 'ASSUMPTION', 'INFERENCE', 'UNKNOWN', 'REJECT']),
   statement: text, supportingEvidenceIds: ids.default([]),
 })
 const linksInput = z.strictObject({
@@ -47,6 +49,8 @@ export class EvidenceService extends RecordService<'evidence'> {
     const request = verificationInput.parse(input)
     const original = this.get(projectId, id)
     ensure(original.status === 'draft' && original.kind !== 'DECISION', 'EVIDENCE_IMMUTABLE', '只能核验草稿证据。')
+    ensure(request.method === 'human' || !['UNKNOWN', 'REJECT'].includes(request.targetKind),
+      'UNKNOWN_PROTECTED', '保持未知与驳回必须由人工执行。')
     const human = request.method === 'human' ? await this.ctx.review(projectId, 'verify_evidence', { original, request }) : undefined
     const state = await this.ctx.repository.update(projectId, s => {
       if (human) this.ctx.assertFresh(s, human.revision)
@@ -63,7 +67,12 @@ export class EvidenceService extends RecordService<'evidence'> {
       }
       row.verification = { method: request.method, fromKind: row.kind, previousStatement: row.statement, supportingEvidenceIds: request.supportingEvidenceIds,
         ...(human ? { review: human.review } : {}) }
-      Object.assign(row, { kind: request.targetKind, statement: request.statement, status: 'verified', updatedAt: this.ctx.now() })
+      if (request.targetKind === 'REJECT') {
+        // 驳回：声明文本与分类保持原样，仅状态改为 rejected，理由保留在核验记录。
+        Object.assign(row, { status: 'rejected', updatedAt: this.ctx.now() })
+      } else {
+        Object.assign(row, { kind: request.targetKind, statement: request.statement, status: 'verified', updatedAt: this.ctx.now() })
+      }
     })
     return requiredRecord(state, 'evidence', id)
   }

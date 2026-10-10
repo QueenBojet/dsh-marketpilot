@@ -1,15 +1,33 @@
-/** Workbench home: product summary, real project stats, recent projects. */
+/** Workbench home: real project stats, attention list, recent projects. */
 import { Button } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { ProjectRow } from '../api.ts'
 import { DataTable, type DataTableColumn } from '../components/DataTable.tsx'
 import { EmptyState, ErrorState, LoadingState } from '../components/States.tsx'
 import { StatusTag } from '../components/StatusTag.tsx'
 import { formatTime } from '../format.ts'
+import { useHomeStats } from '../hooks/useExecution.ts'
 import { byRecent, useProjects } from '../hooks/useProjects.ts'
 import type { MarketPilotText } from '../locales.ts'
 import type { MarketPilotActions } from '../stores.ts'
 
 const RECENT_LIMIT = 8
+
+/** One stat card: a real value, or the explicit 暂无数据 when data is missing. */
+function StatCard({ t, value, label, warn }: {
+  t: MarketPilotText
+  value: number | null
+  label: string
+  warn?: boolean
+}) {
+  return (
+    <div className="mp-card" {...warn === true && value !== null && value > 0 ? { 'data-tone': 'warn' } : {}}>
+      <div className="mp-cardValue" {...value === null ? { 'data-empty': 'true' } : {}}>
+        {value === null ? t('statUnavailable') : String(value)}
+      </div>
+      <div className="mp-cardLabel">{label}</div>
+    </div>
+  )
+}
 
 /**
  * Render the home page.
@@ -19,7 +37,10 @@ const RECENT_LIMIT = 8
  */
 export function HomePage({ t, actions }: { t: MarketPilotText; actions: MarketPilotActions }) {
   const { projects, error, refresh, loading } = useProjects()
+  const stats = useHomeStats(projects)
   const recent = (projects ?? []).slice().sort(byRecent).slice(0, RECENT_LIMIT)
+  const attention = projects === null || stats === null ? []
+    : projects.filter(project => (stats.waitingByProject[project.id] ?? 0) > 0)
   const columns: DataTableColumn<ProjectRow>[] = [
     {
       key: 'name', header: t('colName'),
@@ -47,20 +68,9 @@ export function HomePage({ t, actions }: { t: MarketPilotText; actions: MarketPi
         <Button variant="primary" onClick={() => { actions.goProjects() }}>{t('newProject')}</Button>
       </div>
       <div className="mp-cards">
-        <div className="mp-card">
-          <div className="mp-cardValue">{projects === null ? '—' : String(projects.length)}</div>
-          <div className="mp-cardLabel">{t('statProjects')}</div>
-        </div>
-        <div className="mp-card">
-          <div className="mp-cardValue mp-muted">—</div>
-          <div className="mp-cardLabel">{t('statPending')}</div>
-          <div className="mp-cardHint">{t('statPendingSoon')}</div>
-        </div>
-        <div className="mp-card">
-          <div className="mp-cardValue mp-muted">—</div>
-          <div className="mp-cardLabel">{t('statRunning')}</div>
-          <div className="mp-cardHint">{t('statRunningSoon')}</div>
-        </div>
+        <StatCard t={t} value={projects === null ? null : projects.length} label={t('statProjects')} />
+        <StatCard t={t} value={stats === null ? null : stats.waitingTotal} label={t('statPending')} warn />
+        <StatCard t={t} value={stats === null ? null : stats.running} label={t('statRunning')} />
       </div>
       {error !== '' ? <ErrorState t={t} message={error} onRetry={refresh} />
         : loading ? <LoadingState t={t} />
@@ -71,12 +81,31 @@ export function HomePage({ t, actions }: { t: MarketPilotText; actions: MarketPi
               action={<Button variant="primary" onClick={() => { actions.goProjects() }}>{t('newProject')}</Button>}
             />
           ) : (
-            <div>
-              <div className="mp-pageActions" style={{ justifyContent: 'space-between' }}>
-                <h2 className="mp-sectionTitle" style={{ margin: 0 }}>{t('recentProjects')}</h2>
-                <Button size="sm" variant="ghost" onClick={() => { actions.goProjects() }}>{t('viewAllProjects')}</Button>
+            <div className="mp-homeGrid">
+              <div>
+                <div className="mp-pageActions" style={{ justifyContent: 'space-between' }}>
+                  <h2 className="mp-sectionTitle" style={{ margin: 0 }}>{t('recentProjects')}</h2>
+                  <Button size="sm" variant="ghost" onClick={() => { actions.goProjects() }}>{t('viewAllProjects')}</Button>
+                </div>
+                <DataTable columns={columns} rows={recent} rowKey={row => row.id} />
               </div>
-              <DataTable columns={columns} rows={recent} rowKey={row => row.id} />
+              <aside className="mp-attention">
+                <h2 className="mp-sectionTitle" style={{ margin: 0 }}>{t('homeAttention')}</h2>
+                {attention.length === 0 ? (
+                  <p className="mp-caption" style={{ margin: 0 }}>{stats === null ? t('statUnavailable') : t('homeAttentionEmpty')}</p>
+                ) : (
+                  <ul className="mp-attentionList">
+                    {attention.map(project => (
+                      <li key={project.id} className="mp-attentionRow">
+                        <button type="button" className="mp-link mp-cellMain" onClick={() => { actions.openProject(project.id) }}>
+                          {project.name}
+                        </button>
+                        <span className="mp-caption">{`${t('statWaiting')} · ${String(stats!.waitingByProject[project.id] ?? 0)}`}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </aside>
             </div>
           )}
     </div>

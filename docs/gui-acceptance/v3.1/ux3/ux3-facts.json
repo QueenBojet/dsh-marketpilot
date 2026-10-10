@@ -1,0 +1,40 @@
+{
+  "paramChips": [
+    {
+      "text": "检出率: UNKNOWN",
+      "unknown": "true"
+    },
+    {
+      "text": "检出率: UNKNOWN",
+      "unknown": "true"
+    }
+  ],
+  "policyDrawer": null,
+  "altCardCount": 3,
+  "altCardFacts": [
+    "组成",
+    "优势",
+    "限制",
+    "风险",
+    "未知",
+    "组成",
+    "优势",
+    "限制",
+    "风险",
+    "未知",
+    "组成",
+    "优势",
+    "限制",
+    "风险",
+    "未知"
+  ],
+  "decisionBar": true,
+  "selectedCard": "路线 B：水面＋水下全域多源融合（雷达/红外/可见光 ＋ 成像声纳/UV 油份/温度）",
+  "decisionBarName": "路线 B：水面＋水下全域多源融合（雷达/红外/可见光 ＋ 成像声纳/UV 油份/温度）",
+  "cardTops": [
+    283,
+    283,
+    283
+  ],
+  "pageErrors": 0
+}

@@ -127,6 +127,42 @@ describe('TasksPage', () => {
     await flush()
     expect(text()).toContain(t('step.WAITING_HUMAN'))
   })
+
+  it('binds the timeline to the exact runId only — no same-type fallback', async () => {
+    fetchMock.mockImplementation(async (input: unknown) => {
+      const url = String(input)
+      if (url === '/marketpilot/api/projects') return jsonResponse({ projects: [{ id: 'p2', name: '精确关联项目' }] })
+      if (url === '/marketpilot/api/executions') return jsonResponse({ executions: [] })
+      // A same-type run exists, but its id differs from the execution's runId;
+      // its distinctive step must never leak into this execution's timeline.
+      if (url.startsWith('/marketpilot/api/projects/p2/runs')) {
+        return jsonResponse({
+          runs: [{ ...runsPayload.runs[0], id: 'run-OTHER', type: 'requirement_analysis',
+            status: 'completed', currentStep: '',
+            steps: [{ step: 'LOAD_DOCUMENTS', at: '2026-10-09T04:46:34.000Z' }, { step: 'SAVE_REQUIREMENTS', at: '2026-10-09T04:48:14.000Z' }],
+            durationMs: 95000 }],
+        })
+      }
+      throw new Error(`unexpected fetch: ${url}`)
+    })
+    act(() => {
+      void executionStore.adopt({
+        callId: 'call-y1', tool: 'marketpilot_requirement_extract', status: 'completed',
+        startedAt: new Date().toISOString(), projectId: 'p2', runId: 'run-1', question: null,
+      })
+    })
+    render(<TasksPage t={t} actions={noopActions} />)
+    await flush()
+    act(() => {
+      const expand = [...container!.querySelectorAll('button')].filter(b => b.textContent === t('taskShowSteps'))
+      expand[expand.length - 1]!.click()
+    })
+    await flush()
+    // The lookalike run's steps must NOT appear; the honest missing-record text does.
+    expect(text()).toContain(t('runNotAvailable'))
+    expect(text()).not.toContain(t('step.LOAD_DOCUMENTS'))
+    expect(text()).not.toContain(t('step.SAVE_REQUIREMENTS'))
+  })
 })
 
 describe('ArtifactsPage', () => {
@@ -137,6 +173,8 @@ describe('ArtifactsPage', () => {
       if (url === '/marketpilot/api/projects/p1/artifacts/a1') {
         return jsonResponse({ artifact: { ...artifactsList.artifacts[0], content: '# 基线\n\nUNKNOWN / 待确认条件' } })
       }
+      if (url.includes('/runs')) return jsonResponse({ runs: [] })
+      if (url.includes('/executions')) return jsonResponse({ executions: [] })
       throw new Error(`unexpected fetch: ${url}`)
     })
     render(<ArtifactsPage t={t} projectId="p1" />)
@@ -144,17 +182,73 @@ describe('ArtifactsPage', () => {
     expect(text()).toContain('Requirement Baseline.md')
     expect(container!.querySelector('span[data-tone="warning"]')?.textContent).toBe(t('reviewStatus.draft'))
     expect(container!.querySelector('span[data-tone="success"]')?.textContent).toBe(t('reviewStatus.approved'))
+    // Created and updated times are both shown as real timestamps.
+    expect(text()).toContain(t('colCreated'))
     act(() => {
       const open = [...container!.querySelectorAll('button')].find(b => b.textContent === t('openArtifact'))
       open!.click()
     })
     await flush()
     expect(container!.querySelector('[data-testid="mp-markdown"]')?.textContent).toContain('UNKNOWN / 待确认条件')
+    // The export bar explains the gated path and needs an explicit new path.
+    expect(text()).toContain(t('exportHint'))
+    const exportButton = [...container!.querySelectorAll('button')].find(b => b.textContent === t('exportArtifact'))
+    expect(exportButton).toBeDefined()
+    expect(exportButton!.disabled).toBe(true)
+  })
+
+  it('submits artifact export through the guarded tool with the typed path', async () => {
+    const postedTools: { name: string; args: Record<string, unknown> }[] = []
+    fetchMock.mockImplementation(async (input: unknown, init?: { method?: string; body?: string }) => {
+      const url = String(input)
+      if (url === '/marketpilot/api/projects/p1/artifacts') return jsonResponse(artifactsList)
+      if (url === '/marketpilot/api/projects/p1/artifacts/a1') {
+        return jsonResponse({ artifact: { ...artifactsList.artifacts[0], content: '# 基线' } })
+      }
+      if (url.includes('/runs')) return jsonResponse({ runs: [] })
+      if (/\/marketpilot\/api\/executions\/call-/.test(url)) {
+        return jsonResponse({ callId: 'call-x1', tool: 'marketpilot_artifact_export', projectId: 'p1',
+          status: 'waiting_human', startedAt: '2026-10-09T07:00:00.000Z',
+          question: { header: '人工审核', question: '是否确认 导出成果？', detail: '{}', options: ['确认', '退回修改'] } })
+      }
+      if (url.includes('/executions')) return jsonResponse({ executions: [] })
+      if (url === '/marketpilot/api/tools' && init?.method === 'POST') {
+        postedTools.push(JSON.parse(init.body!) as { name: string; args: Record<string, unknown> })
+        return jsonResponse({ callId: 'call-x1' })
+      }
+      throw new Error(`unexpected fetch: ${url}`)
+    })
+    render(<ArtifactsPage t={t} projectId="p1" />)
+    await flush()
+    act(() => {
+      const open = [...container!.querySelectorAll('button')].find(b => b.textContent === t('openArtifact'))
+      open!.click()
+    })
+    await flush()
+    const exportButton = [...container!.querySelectorAll('button')].find(b => b.textContent === t('exportArtifact'))
+    const input = container!.querySelector('input[type=text]') as HTMLInputElement
+    act(() => {
+      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!
+      setter.call(input, 'E:\\exports\\baseline.md')
+      input.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+    await flush()
+    expect(exportButton!.disabled).toBe(false)
+    act(() => { exportButton!.click() })
+    await flush()
+    await flush()
+    const post = postedTools.find(entry => entry.name === 'marketpilot_artifact_export')
+    expect(post).toBeDefined()
+    expect(post!.args.artifactId).toBe('a1')
+    expect(post!.args.path).toBe('E:\\exports\\baseline.md')
+    expect(post!.args.projectId).toBe('p1')
+    // The export parks on the real human gate — nothing is auto-approved.
+    expect(container!.querySelector('.mp-dialog')?.textContent).toContain('导出成果')
   })
 })
 
-describe('ProjectOverviewPage phase bar', () => {
-  it('derives live phase state and jumps to the section on click', async () => {
+describe('ProjectOverviewPage stage navigation', () => {
+  it('derives live stage state and jumps to the section on click', async () => {
     fetchMock.mockImplementation(async (input: unknown) => {
       const url = String(input)
       if (url === '/marketpilot/api/projects/p1') return jsonResponse(detailPayload)
@@ -165,12 +259,15 @@ describe('ProjectOverviewPage phase bar', () => {
     instance.actions.openProject('p1')
     render(<ProjectOverviewPage t={t} actions={instance.actions} view={{ kind: 'project', projectId: 'p1', section: 'overview' }} />)
     await flush()
-    // A waiting_human requirement run marks stage 1 as waiting despite the status baseline.
-    const phase = container!.querySelector('button.mp-phase[data-state="waiting"]')
-    expect(phase?.textContent).toContain(t('phaseRequirement'))
+    // A waiting_human requirement run marks the requirements stage as waiting
+    // despite the status baseline, and the next-action card leads with it.
+    const stage = container!.querySelector('button.mp-stageItem[data-state="waiting"]')
+    expect(stage?.textContent).toContain(t('sectionRequirements'))
+    expect(text()).toContain(t('statWaiting'))
+    expect(text()).toContain(t('projectActivity'))
     act(() => {
-      const research = [...container!.querySelectorAll<HTMLButtonElement>('button.mp-phase')]
-        .find(b => b.textContent?.includes(t('phaseResearch')))
+      const research = [...container!.querySelectorAll<HTMLButtonElement>('button.mp-stageItem')]
+        .find(b => b.textContent?.includes(t('sectionResearch')))
       research!.click()
     })
     await flush()

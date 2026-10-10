@@ -12,7 +12,16 @@ vi.mock('@deepseek-ai/dsh-client-ui-primitives', () => ({
   ),
   StateDot: () => <span data-testid="mp-stub-statedot" />,
   IconListPenOutlineRegular: () => <svg aria-hidden="true" />,
-  MarkdownText: (props: { text: string }) => <div data-testid="mp-markdown">{props.text}</div>,
+  MarkdownText: (props: { text: string }) => (
+    <div data-testid="mp-markdown">{props.text.split('\n').map((line, index) => {
+      const match = /^(#{1,3})\s+(.+)$/.exec(line)
+      if (match !== null) {
+        const TagName = `h${match[1]!.length}` as 'h1' | 'h2' | 'h3'
+        return <TagName key={index}>{match[2]}</TagName>
+      }
+      return line.trim() === '' ? null : <p key={index}>{line}</p>
+    })}</div>
+  ),
 }))
 
 import { AlternativesPage } from '../src/client/pages/AlternativesPage.tsx'
@@ -20,6 +29,7 @@ import { EvidencePage } from '../src/client/pages/EvidencePage.tsx'
 import { ResearchPage } from '../src/client/pages/ResearchPage.tsx'
 import { SolutionPage } from '../src/client/pages/SolutionPage.tsx'
 import { TenderPage } from '../src/client/pages/TenderPage.tsx'
+import { WorkflowSurface } from '../src/client/components/WorkflowSurface.tsx'
 import { marketpilotLocales } from '../src/client/locales.ts'
 
 const t = (key: keyof typeof marketpilotLocales.zh) => marketpilotLocales.zh[key]
@@ -139,6 +149,53 @@ describe('ResearchPage', () => {
     await flush()
     expect(text()).toContain('TestCo')
     expect(text()).toContain('深水未验证')
+    // Parameters render as real values with UNKNOWN kept visible — never a count.
+    const chips = [...container!.querySelectorAll('.mp-paramChip')] as HTMLButtonElement[]
+    expect(chips.length).toBe(1)
+    expect(chips[0]!.textContent).toContain('UNKNOWN')
+    expect(chips[0]!.getAttribute('data-unknown')).toBe('true')
+    // Clicking a parameter chip opens the source detail drawer.
+    act(() => { chips[0]!.click() })
+    await flush()
+    expect(text()).toContain(t('drawerPerformance'))
+    expect(text()).toContain('最小检漏率')
+  })
+
+  it('policy rows open a full-clause drawer with key requirements and version', async () => {
+    const policyPayload = {
+      policies: [{
+        id: 'po1', title: '海上平台溢油监测规范', issuer: '船级社', documentNumber: 'GD-2026', version: 'v3',
+        scope: '固定平台', mandatoryLevel: 'recommended', keyRequirements: ['检出率报告', '认证清单'],
+        impact: '影响验收基线', gap: '适用性未确认', evidenceIds: [], updatedAt: '2026-10-09T06:00:00.000Z',
+      }],
+    }
+    fetchMock.mockImplementation(async (input: unknown) => {
+      const url = String(input)
+      if (url.includes('/documents')) return jsonResponse(documentsPayload)
+      if (url.includes('/competitors')) return jsonResponse({ competitors: [] })
+      if (url.includes('/policies')) return jsonResponse(policyPayload)
+      if (url.includes('/runs')) return jsonResponse({ runs: [] })
+      if (url.includes('/executions')) return jsonResponse({ executions: [] })
+      throw new Error(`unexpected fetch: ${url}`)
+    })
+    render(<ResearchPage t={t} projectId="p1" />)
+    await flush()
+    act(() => {
+      const tabs = [...container!.querySelectorAll('button.mp-headerNavItem')] as HTMLButtonElement[]
+      const tab = tabs.find(b => (b.textContent ?? '').includes(t('tabPolicy')))
+      tab!.click()
+    })
+    await flush()
+    expect(text()).toContain('海上平台溢油监测规范')
+    expect(text()).toContain('v3')
+    act(() => {
+      const detail = [...container!.querySelectorAll('button')].find(b => b.textContent === t('colDetail'))
+      detail!.click()
+    })
+    await flush()
+    expect(text()).toContain(t('colKeyRequirements'))
+    expect(text()).toContain('检出率报告')
+    expect(text()).toContain(t('drawerNoLocator'))
   })
 })
 
@@ -160,31 +217,135 @@ describe('EvidencePage', () => {
       detail!.click()
     })
     await flush()
-    expect(text()).toContain(t('verifyHint'))
-    const verify = [...container!.querySelectorAll('button')].find(b => b.textContent === t('verifyHuman'))
+    expect(text()).toContain('深水性能未知。')
+    const verify = [...container!.querySelectorAll('button')].find(b => b.textContent === t('verifyStart'))
     expect(verify).toBeDefined()
     expect(verify!.disabled).toBe(false)
+  })
+
+  it('UNKNOWN verification requires an explicit target kind — never a FACT default', async () => {
+    const postedTools: { name: string; args: Record<string, unknown> }[] = []
+    fetchMock.mockImplementation(async (input: unknown, init?: { method?: string; body?: string }) => {
+      const url = String(input)
+      if (url.includes('/evidence')) return jsonResponse(evidencePayload)
+      if (url.includes('/runs')) return jsonResponse({ runs: [] })
+      if (url.includes('/executions')) return jsonResponse({ executions: [] })
+      if (url === '/marketpilot/api/tools' && init?.method === 'POST') {
+        postedTools.push(JSON.parse(init.body!) as { name: string; args: Record<string, unknown> })
+        return jsonResponse({ callId: 'call-e1' })
+      }
+      if (/\/marketpilot\/api\/executions\/call-/.test(url)) {
+        return jsonResponse({ callId: 'call-e1', tool: 'marketpilot_evidence_verify', projectId: 'p1',
+          status: 'completed', startedAt: '2026-10-09T07:00:00.000Z', question: null })
+      }
+      throw new Error(`unexpected fetch: ${url}`)
+    })
+    render(<EvidencePage t={t} projectId="p1" />)
+    await flush()
+    // Open the UNKNOWN row's drawer (second row).
+    act(() => {
+      const detail = [...container!.querySelectorAll('button')].filter(b => b.textContent === t('colDetail'))[1]
+      detail!.click()
+    })
+    await flush()
+    // The single-shot "verify as FACT" action is gone; the form opens explicitly.
+    expect([...container!.querySelectorAll('button')].find(b => b.textContent === t('verifyHuman'))).toBeUndefined()
+    act(() => {
+      const start = [...container!.querySelectorAll('button')].find(b => b.textContent === t('verifyStart'))
+      start!.click()
+    })
+    await flush()
+    const select = container!.querySelector('#mp-verify-target') as HTMLSelectElement
+    const submit = [...container!.querySelectorAll('button')].find(b => b.textContent === t('verifySubmit'))
+    expect(select).not.toBeNull()
+    // Default is the empty placeholder — not FACT — so submission stays disabled.
+    expect(select.value).toBe('')
+    expect(submit!.disabled).toBe(true)
+    // The full action set includes human keep-unknown and reject.
+    expect([...select.options].map(option => option.value))
+      .toEqual(['', 'FACT', 'SOURCE', 'ASSUMPTION', 'INFERENCE', 'UNKNOWN', 'REJECT'])
+    // The statement is prefilled from the UNKNOWN claim for explicit confirmation.
+    const statement = container!.querySelector('#mp-verify-statement') as HTMLTextAreaElement
+    expect(statement.value).toBe('深水性能未知。')
+    // Choosing ASSUMPTION (not FACT) and submitting posts exactly that.
+    act(() => {
+      select.value = 'ASSUMPTION'
+      select.dispatchEvent(new Event('change', { bubbles: true }))
+    })
+    await flush()
+    expect(submit!.disabled).toBe(false)
+    act(() => { submit!.click() })
+    await flush()
+    const post = postedTools.find(entry => entry.name === 'marketpilot_evidence_verify')
+    expect(post).toBeDefined()
+    expect(post!.args.targetKind).toBe('ASSUMPTION')
+    expect(post!.args.targetKind).not.toBe('FACT')
+    expect(post!.args.evidenceId).toBe('e2')
+    expect(post!.args.method).toBe('human')
   })
 })
 
 describe('AlternativesPage', () => {
-  it('renders cards and the coverage matrix; submission needs selection and rationale', async () => {
-    fetchMock.mockImplementation(async (input: unknown) => {
+  it('renders side-by-side cards with full comparison facts; submission needs selection and rationale', async () => {
+    const postedTools: { name: string; args: Record<string, unknown> }[] = []
+    fetchMock.mockImplementation(async (input: unknown, init?: { method?: string; body?: string }) => {
       const url = String(input)
       if (url.includes('/alternatives')) return jsonResponse(alternativesPayload)
       if (url.includes('/requirements')) return jsonResponse(requirementsPayload)
       if (url.includes('/runs')) return jsonResponse({ runs: [] })
+      if (/\/marketpilot\/api\/executions\/call-/.test(url)) {
+        return jsonResponse({ callId: 'call-a1', tool: 'marketpilot_decision_confirm', projectId: 'p1',
+          status: 'waiting_human', startedAt: '2026-10-09T07:00:00.000Z',
+          question: { header: '人工审核', question: '是否确认 选择技术路线？', detail: '{}', options: ['确认', '退回修改'] } })
+      }
       if (url.includes('/executions')) return jsonResponse({ executions: [] })
+      if (url === '/marketpilot/api/tools' && init?.method === 'POST') {
+        postedTools.push(JSON.parse(init.body!) as { name: string; args: Record<string, unknown> })
+        return jsonResponse({ callId: 'call-a1' })
+      }
       throw new Error(`unexpected fetch: ${url}`)
     })
     render(<AlternativesPage t={t} projectId="p1" />)
     await flush()
     expect(text()).toContain('多源融合路线')
+    // The comparison card carries composition, strengths, limitations, risks, unknowns.
+    const card = container!.querySelector('.mp-altCard') as HTMLElement
+    expect(card).not.toBeNull()
+    for (const label of [t('altComponents'), t('altStrengths'), t('altLimitations'), t('altRisks'), t('altUnknowns')]) {
+      expect(card!.textContent).toContain(label)
+    }
+    expect(card!.textContent).toContain('最小检漏率')
+    // Coverage matrix: MUST rows first with per-candidate tones.
     expect(text()).toContain(t('coverageTitle'))
     expect(container!.querySelector('span[data-tone="success"]')?.textContent).toBe(t('coverage.full'))
     expect(container!.querySelector('span[data-tone="warning"]')?.textContent).toBe(t('coverage.partial'))
     const submit = [...container!.querySelectorAll('button')].find(b => b.textContent === t('submitDecision'))
     expect(submit!.disabled).toBe(true)
+    expect(text()).toContain(t('altNoneSelected'))
+    // Selecting a card + rationale enables the real decision submission.
+    act(() => { card!.click() })
+    await flush()
+    expect((card!.querySelector('input[type=radio]') as HTMLInputElement).checked).toBe(true)
+    const textarea = container!.querySelector('textarea.mp-decisionInput') as HTMLTextAreaElement
+    act(() => {
+      // React's value tracker ignores a direct assignment; use the native setter.
+      const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')!.set!
+      setter.call(textarea, '覆盖最完整')
+      textarea.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+    await flush()
+    expect(submit!.disabled).toBe(false)
+    act(() => { submit!.click() })
+    await flush()
+    await flush()
+    const post = postedTools.find(entry => entry.name === 'marketpilot_decision_confirm')
+    expect(post).toBeDefined()
+    expect(post!.args.alternativeId).toBe('a1')
+    expect(post!.args.rationale).toBe('覆盖最完整')
+    expect(post!.args.requirementIds).toEqual(['r1', 'r2'])
+    // The real human gate parks the decision — never auto-confirmed.
+    await flush()
+    expect(container!.querySelector('.mp-dialog')?.textContent).toContain('选择技术路线')
   })
 })
 
@@ -204,6 +365,175 @@ describe('SolutionPage', () => {
     const generate = [...container!.querySelectorAll('button')].find(b => b.textContent === t('generateSolution'))
     expect(generate!.disabled).toBe(true)
   })
+
+  it('previews the newest solution, switches versions, and jumps the outline', async () => {
+    const artifactMeta = (id: string, updatedAt: string) => ({
+      id, name: `Solution-${id}.md`, type: 'solution', format: 'markdown', reviewStatus: 'draft',
+      createdAt: updatedAt, updatedAt,
+    })
+    const detail = {
+      ...projectDetailDraft,
+      project: { ...projectDetailDraft.project, status: 'solution_ready', activeDecisionId: 'dec-1' },
+    }
+    const content = '# 总体方案\n\n引言\n\n# 系统构成\n\n构成说明\n\n# UNKNOWN 待确认\n\n待确认内容'
+    fetchMock.mockImplementation(async (input: unknown) => {
+      const url = String(input)
+      if (url === '/marketpilot/api/projects/p1') return jsonResponse(detail)
+      if (url.includes('/artifacts/s-old')) return jsonResponse({ artifact: { ...artifactMeta('s-old', '2026-10-09T06:00:00.000Z'), content: '# 旧版\n\n旧正文' } })
+      if (url.includes('/artifacts/s-new')) return jsonResponse({ artifact: { ...artifactMeta('s-new', '2026-10-09T07:00:00.000Z'), content } })
+      if (url.includes('/artifacts')) return jsonResponse({ artifacts: [artifactMeta('s-old', '2026-10-09T06:00:00.000Z'), artifactMeta('s-new', '2026-10-09T07:00:00.000Z')] })
+      if (url.includes('/runs')) return jsonResponse({ runs: [] })
+      if (url.includes('/executions')) return jsonResponse({ executions: [] })
+      throw new Error(`unexpected fetch: ${url}`)
+    })
+    render(<SolutionPage t={t} projectId="p1" />)
+    await flush()
+    // The version bar exists and marks the newest (payload order is old-first).
+    expect(text()).toContain(t('solutionVersions'))
+    expect(text()).toContain(t('solutionLatest'))
+    act(() => {
+      const preview = [...container!.querySelectorAll('button')].find(b => b.textContent === t('openArtifact'))
+      preview!.click()
+    })
+    await flush()
+    // The newest artifact (not the first list row) is fetched and titled latest.
+    const artifactCalls = fetchMock.mock.calls.map(call => String(call[0])).filter(url => url.includes('/artifacts/s-'))
+    expect(artifactCalls.some(url => url.includes('/artifacts/s-new'))).toBe(true)
+    expect(artifactCalls.some(url => url.includes('/artifacts/s-old'))).toBe(false)
+    expect(text()).toContain('Solution-s-new.md')
+    // Outline entries are real buttons that scroll the matching heading into view.
+    const scrollIntoView = vi.fn()
+    Element.prototype.scrollIntoView = scrollIntoView
+    const tocButtons = [...container!.querySelectorAll('.mp-readerTocItem:not(.mp-readerTocTop)')] as HTMLButtonElement[]
+    expect(tocButtons.length).toBe(3)
+    // The UNKNOWN rail lists the matching heading and jumps to it too.
+    const railButtons = [...container!.querySelectorAll('.mp-readerRailList .mp-link')] as HTMLButtonElement[]
+    expect(railButtons.length).toBe(1)
+    expect(railButtons[0]!.textContent).toBe('UNKNOWN 待确认')
+    act(() => {
+      tocButtons.find(button => button.textContent === '系统构成')!.click()
+    })
+    await flush()
+    expect(scrollIntoView).toHaveBeenCalledTimes(1)
+    act(() => { railButtons[0]!.click() })
+    await flush()
+    expect(scrollIntoView).toHaveBeenCalledTimes(2)
+    // The rail collapses and expands.
+    act(() => {
+      const toggles = [...container!.querySelectorAll('.mp-readerRailHead .mp-link')] as HTMLButtonElement[]
+      const toggle = toggles.find(b => b.textContent === t('solutionRailCollapse'))
+      toggle!.click()
+    })
+    await flush()
+    expect(container!.querySelector('.mp-readerRailList')).toBeNull()
+    // Switching to the older version fetches that artifact instead.
+    act(() => {
+      const versionButtons = [...container!.querySelectorAll('button')]
+        .filter(button => (button.textContent ?? '').includes('v1'))
+      versionButtons[versionButtons.length - 1]!.click()
+    })
+    await flush()
+    const callsAfterSwitch = fetchMock.mock.calls.map(call => String(call[0])).filter(url => url.includes('/artifacts/s-old'))
+    expect(callsAfterSwitch.length).toBeGreaterThan(0)
+    expect(text()).toContain('Solution-s-old.md')
+  })
+})
+
+describe('WorkflowSurface', () => {
+  const waitingExecution = {
+    callId: 'call-g1', tool: 'marketpilot_evidence_verify', status: 'waiting_human' as const,
+    startedAt: '2026-10-09T07:00:00.000Z', projectId: 'p1',
+    question: { header: '人工审核', question: '是否确认 人工核验证据？', detail: '', options: ['确认', '驳回'] },
+  }
+  const dialogButtons = () => [...container!.querySelectorAll('.mp-dialog button')] as HTMLButtonElement[]
+
+  it('re-arms the gate after a failed answer instead of staying disabled', async () => {
+    const onAnswer = vi.fn()
+    const onCancel = vi.fn()
+    render(<WorkflowSurface t={t} run={null} execution={waitingExecution} busy error=""
+      onAnswer={onAnswer} onCancel={onCancel} />)
+    await flush()
+    expect(dialogButtons().length).toBeGreaterThan(0)
+    expect(dialogButtons().every(button => !button.disabled)).toBe(true)
+    // The business summary names the action; a proposal with record arrays
+    // reports the affected count.
+    expect(container!.querySelector('.mp-dialogSummary')?.textContent).toContain('人工核验证据')
+    // Answering parks the dialog busy…
+    act(() => { dialogButtons()[0]!.click() })
+    await flush()
+    expect(onAnswer).toHaveBeenCalledWith('确认', undefined)
+    expect(dialogButtons().every(button => button.disabled)).toBe(true)
+    // …and a page-level error while the same gate still waits must re-enable it.
+    act(() => {
+      root!.render(<WorkflowSurface t={t} run={null} execution={waitingExecution} busy error="回答提交失败"
+        onAnswer={onAnswer} onCancel={onCancel} />)
+    })
+    await flush()
+    expect(dialogButtons().every(button => !button.disabled)).toBe(true)
+    // When the execution leaves the waiting state the dialog unmounts.
+    act(() => {
+      root!.render(<WorkflowSurface t={t} run={null}
+        execution={{ ...waitingExecution, status: 'running', question: null }} busy={false} error=""
+        onAnswer={onAnswer} onCancel={onCancel} />)
+    })
+    await flush()
+    expect(container!.querySelector('.mp-dialog')).toBeNull()
+    expect(onCancel).not.toHaveBeenCalled()
+  })
+
+  it('summarizes affected records from the gate proposal detail', async () => {
+    render(<WorkflowSurface t={t} run={null} execution={{
+      ...waitingExecution, callId: 'call-g2',
+      question: {
+        header: '人工审核', question: '是否确认 确认所选需求？',
+        detail: JSON.stringify({ requirementIds: ['r1', 'r2', 'r3'], runId: 'run-1' }),
+        options: ['确认', '退回修改'],
+      },
+    }} busy error="" onAnswer={() => {}} onCancel={() => {}} />)
+    await flush()
+    const summary = container!.querySelector('.mp-dialogSummary')?.textContent ?? ''
+    expect(summary).toContain('确认所选需求')
+    expect(summary).toContain(`3 ${t('dialogAffectedUnit')}`)
+    expect(summary).toContain(t('dialogRiskHint'))
+  })
+
+  it('offers a real cancel for running executions and a fixed duration for settled runs', async () => {
+    const cancels: string[] = []
+    const originalFetch = fetchMock.mockImplementation(async (input: unknown, init?: { method?: string }) => {
+      const url = String(input)
+      if (/\/marketpilot\/api\/executions\/.+\/cancel/.test(url) && init?.method === 'POST') {
+        cancels.push(url)
+        return jsonResponse({ cancelled: true })
+      }
+      throw new Error(`unexpected fetch: ${url}`)
+    })
+    void originalFetch
+    // Running execution → cancel link present and wired to the cancel route.
+    render(<WorkflowSurface t={t} run={null}
+      execution={{ ...waitingExecution, status: 'running', question: null }} busy error=""
+      onAnswer={() => {}} onCancel={() => {}} />)
+    await flush()
+    const cancelLink = [...container!.querySelectorAll('button')].find(b => b.textContent === t('cancelTask'))
+    expect(cancelLink).toBeDefined()
+    act(() => { cancelLink!.click() })
+    await flush()
+    expect(cancels.length).toBe(1)
+    // A settled run with durationMs shows the fixed recorded duration.
+    render(<WorkflowSurface t={t}
+      run={{ id: 'run-9', type: 'requirement_analysis', status: 'completed', currentStep: '',
+        steps: [{ step: 'SAVE_BASELINE', at: '2026-10-09T07:00:00.000Z' }],
+        startedAt: '2026-10-09T06:58:25.000Z', updatedAt: '2026-10-09T07:00:00.000Z', durationMs: 95000 }}
+      execution={undefined} busy={false} error=""
+      onAnswer={() => {}} onCancel={() => {}} />)
+    await flush()
+    const first = container!.textContent ?? ''
+    expect(first).toContain('1:35')
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 20)) })
+    // The settled duration never keeps ticking.
+    expect(container!.textContent).toContain('1:35')
+    // No cancel is offered for settled work.
+    expect([...container!.querySelectorAll('button')].some(b => b.textContent === t('cancelTask'))).toBe(false)
+  })
 })
 
 describe('TenderPage', () => {
@@ -222,5 +552,58 @@ describe('TenderPage', () => {
     expect(text()).toContain(t('tenderCompliantNeedsEvidence'))
     expect(text()).toContain('检出率≥95%')
     expect(container!.querySelector('span[data-tone]')?.textContent).toBe(t('tenderStatus.unknown'))
+  })
+
+  it('review-selected submits only the checked clauses; review-all is a separate action', async () => {
+    const twoItems = {
+      tenderItems: [
+        tenderItemsPayload.tenderItems[0]!,
+        { ...tenderItemsPayload.tenderItems[0]!, id: 't2', normalizedRequirement: '认证范围覆盖', status: 'unknown' },
+      ],
+    }
+    const postedTools: { name: string; args: Record<string, unknown> }[] = []
+    fetchMock.mockImplementation(async (input: unknown, init?: { method?: string; body?: string }) => {
+      const url = String(input)
+      if (url.includes('/documents')) return jsonResponse(documentsPayload)
+      if (url.includes('/tender-items')) return jsonResponse(twoItems)
+      if (url.includes('/runs')) return jsonResponse({ runs: [] })
+      if (url.includes('/executions')) return jsonResponse({ executions: [] })
+      if (url === '/marketpilot/api/tools' && init?.method === 'POST') {
+        postedTools.push(JSON.parse(init.body!) as { name: string; args: Record<string, unknown> })
+        return jsonResponse({ callId: 'call-t1' })
+      }
+      if (/\/marketpilot\/api\/executions\/call-/.test(url)) {
+        return jsonResponse({ callId: 'call-t1', tool: 'marketpilot_tender_review', projectId: 'p1',
+          status: 'completed', startedAt: '2026-10-09T07:00:00.000Z', question: null })
+      }
+      throw new Error(`unexpected fetch: ${url}`)
+    })
+    render(<TenderPage t={t} projectId="p1" />)
+    await flush()
+    // Zero selection disables the selected-scope action; the count is in the label.
+    const reviewSelected = [...container!.querySelectorAll('button')]
+      .find(b => (b.textContent ?? '').includes(t('reviewTenderSelected')))
+    expect(reviewSelected).toBeDefined()
+    expect(reviewSelected!.disabled).toBe(true)
+    expect(reviewSelected!.textContent).toContain('0')
+    // Check only the second clause, then submit both scopes and compare payloads.
+    act(() => {
+      const boxes = [...container!.querySelectorAll('.mp-table tbody input[type=checkbox]')] as HTMLInputElement[]
+      boxes[1]!.click()
+    })
+    await flush()
+    expect(reviewSelected!.disabled).toBe(false)
+    expect(reviewSelected!.textContent).toContain('1')
+    // The explicit all-clauses action submits every row id first.
+    const reviewAll = [...container!.querySelectorAll('button')]
+      .find(b => (b.textContent ?? '').trim() === t('reviewTenderAll'))
+    expect(reviewAll).toBeDefined()
+    act(() => { reviewAll!.click() })
+    await flush()
+    expect(postedTools[postedTools.length - 1]!.args.tenderItemIds).toEqual(['t1', 't2'])
+    // The selected-scope action submits exactly the checked clause.
+    act(() => { reviewSelected!.click() })
+    await flush()
+    expect(postedTools[postedTools.length - 1]!.args.tenderItemIds).toEqual(['t2'])
   })
 })

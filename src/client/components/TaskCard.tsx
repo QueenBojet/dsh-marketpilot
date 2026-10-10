@@ -1,18 +1,20 @@
 /**
  * One task card in the task center: an execution with live state, elapsed
  * time, cancel for in-flight work, a project jump for follow-up, and an
- * expandable real step timeline from the related workflow run.
+ * expandable real step timeline. The timeline binds to the execution's exact
+ * runId only — a missing id shows 暂无对应运行记录, never a lookalike run of
+ * the same type.
  */
 import { useEffect, useState } from 'react'
 import { StateDot, Tag } from '@deepseek-ai/dsh-client-ui-primitives'
 import { api, type WorkflowRunView } from '../api.ts'
-import { formatTime } from '../format.ts'
+import { formatDuration, formatTime } from '../format.ts'
 import { useElapsed } from '../hooks/useExecution.ts'
 import type { MarketPilotText, MarketPilotTextKey } from '../locales.ts'
 import type { TrackedExecution } from '../hooks/executionStore.ts'
 import { executionStore } from '../hooks/executionStore.ts'
 
-/** Map a tool name to its workflow-run type for the timeline lookup. */
+/** Map a tool name to its workflow-run type for the display label. */
 const RUN_TYPE_BY_TOOL: Record<string, string> = {
   marketpilot_requirement_extract: 'requirement_analysis',
   marketpilot_competitor_extract: 'competitor_analysis',
@@ -23,6 +25,9 @@ const RUN_TYPE_BY_TOOL: Record<string, string> = {
   marketpilot_tender_review: 'tender_review',
 }
 
+/** Exact-runId lookup outcome for the step timeline. */
+type RunLookup = 'loading' | 'found' | 'missing'
+
 /** Render one task card. */
 export function TaskCard({ t, execution, projectName, onOpenProject }: {
   t: MarketPilotText
@@ -32,27 +37,37 @@ export function TaskCard({ t, execution, projectName, onOpenProject }: {
 }) {
   const [expanded, setExpanded] = useState(false)
   const [run, setRun] = useState<WorkflowRunView | null>(null)
+  const [lookup, setLookup] = useState<RunLookup>('loading')
   const active = execution.status === 'running' || execution.status === 'waiting_human'
   const elapsed = useElapsed(execution.startedAt, active)
   const runType = RUN_TYPE_BY_TOOL[execution.tool]
-  const elapsedText = `${t('elapsedLabel')} ${String(Math.floor(elapsed / 60000))}:${String(Math.floor(elapsed / 1000) % 60).padStart(2, '0')}`
+  const elapsedText = `${t('elapsedLabel')} ${formatDuration(elapsed)}`
 
   useEffect(() => {
-    if (!expanded || execution.projectId === undefined) {
+    if (!expanded) {
       setRun(null)
+      setLookup('loading')
+      return
+    }
+    // No precise runId → there is nothing to look up; never guess by type.
+    if (execution.projectId === undefined || execution.runId === undefined) {
+      setRun(null)
+      setLookup('missing')
       return
     }
     let cancelled = false
+    setLookup('loading')
     api.runs(execution.projectId)
       .then(result => {
         if (cancelled) return
-        const all = result.runs
-        setRun(all.find(candidate => candidate.id === execution.runId)
-          ?? (runType !== undefined ? all.find(candidate => candidate.type === runType) ?? null : null))
+        // Exact id match only: a same-type run is NOT this execution's log.
+        const exact = result.runs.find(candidate => candidate.id === execution.runId) ?? null
+        setRun(exact)
+        setLookup(exact === null ? 'missing' : 'found')
       })
-      .catch(() => { if (!cancelled) setRun(null) })
+      .catch(() => { if (!cancelled) { setRun(null); setLookup('missing') } })
     return () => { cancelled = true }
-  }, [expanded, execution.projectId, execution.runId, execution.callId, runType])
+  }, [expanded, execution.projectId, execution.runId, execution.callId])
 
   return (
     <div className="mp-taskCard" data-status={execution.status}>
@@ -72,6 +87,9 @@ export function TaskCard({ t, execution, projectName, onOpenProject }: {
             : execution.status === 'waiting_human' ? 'warning' : 'neutral'}>
           {t(`runStatus.${execution.status}` as MarketPilotTextKey)}
         </Tag>
+        {run?.durationMs !== undefined && !active ? (
+          <span className="mp-caption">{`${t('elapsedLabel')} ${formatDuration(run.durationMs)}`}</span>
+        ) : null}
         {execution.error === undefined ? null : <span className="mp-errorText">{execution.error}</span>}
         {execution.lost === true ? <span className="mp-errorText">{t('interruptBody')}</span> : null}
       </div>
@@ -94,19 +112,21 @@ export function TaskCard({ t, execution, projectName, onOpenProject }: {
         </button>
       </div>
       {expanded ? (
-        run === null
+        lookup === 'loading'
           ? <div className="mp-caption">{t('loading')}</div>
-          : (
-            <ol className="mp-steps">
-              {run.steps.map((step, index) => (
-                <li key={`${step.step}-${String(index)}`} className="mp-step"
-                  data-state={index === run.steps.length - 1 && run.status !== 'completed' ? 'current' : 'done'}>
-                  {t(`step.${step.step}` as MarketPilotTextKey)}
-                  <span className="mp-caption">{formatTime(step.at)}</span>
-                </li>
-              ))}
-            </ol>
-          )
+          : run === null
+            ? <div className="mp-caption">{t('runNotAvailable')}</div>
+            : (
+              <ol className="mp-steps">
+                {run.steps.map((step, index) => (
+                  <li key={`${step.step}-${String(index)}`} className="mp-step"
+                    data-state={index === run.steps.length - 1 && run.status !== 'completed' ? 'current' : 'done'}>
+                    {t(`step.${step.step}` as MarketPilotTextKey)}
+                    <span className="mp-caption">{formatTime(step.at)}</span>
+                  </li>
+                ))}
+              </ol>
+            )
       ) : null}
     </div>
   )

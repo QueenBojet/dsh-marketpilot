@@ -4,7 +4,7 @@
  * props-driven; these hooks own only fetch/poll plumbing.
  */
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
-import { api, type ArtifactFullRow, type ArtifactMetaRow, type DocumentMeta, type RequirementsPage, type RequirementsQuery, type WorkflowRunView } from '../api.ts'
+import { api, type ArtifactFullRow, type ArtifactMetaRow, type DocumentMeta, type ProjectRow, type RequirementsPage, type RequirementsQuery, type WorkflowRunView } from '../api.ts'
 import { executionStore, type TrackedExecution } from './executionStore.ts'
 
 /** All tracked executions, newest first; in-flight host executions started
@@ -129,4 +129,48 @@ export function useProjectRuns(projectId: string) {
   }, [projectId])
   useEffect(() => { refresh() }, [refresh])
   return { runs, refresh }
+}
+
+/**
+ * Home statistics over real data only: the global in-flight execution count
+ * and each project's waiting-for-human runs. No synthetic values — a failed
+ * lookup yields `null` so the page can show 暂无数据 instead of a fake 0.
+ * @param projects - the loaded project rows (stats load once per id set).
+ */
+export function useHomeStats(projects: readonly ProjectRow[] | null) {
+  const [stats, setStats] = useState<{ running: number; waitingTotal: number; waitingByProject: Record<string, number> } | null>(null)
+  const ids = (projects ?? []).map(row => row.id).join(',')
+  useEffect(() => {
+    if (projects === null) return
+    let cancelled = false
+    const projectIds = ids === '' ? [] : ids.split(',')
+    const load = async (): Promise<void> => {
+      try {
+        const [executions, ...runLists] = await Promise.all([
+          api.executions(),
+          ...projectIds.map(id => api.runs(id, { active: true }).catch(() => null)),
+        ] as const)
+        if (cancelled) return
+        // Attribute waiting runs to their requesting project by request order.
+        const waitingByProject: Record<string, number> = {}
+        let waitingTotal = 0
+        runLists.forEach((result, index) => {
+          if (result === null || projectIds[index] === undefined) return
+          const count = result.runs.filter(run => run.status === 'waiting_human').length
+          if (count > 0) {
+            waitingByProject[projectIds[index]!] = count
+            waitingTotal += count
+          }
+        })
+        const running = executions.executions
+          .filter(view => view.status === 'running' || view.status === 'waiting_human').length
+        setStats({ running, waitingTotal, waitingByProject })
+      } catch {
+        if (!cancelled) setStats(null)
+      }
+    }
+    void load()
+    return () => { cancelled = true }
+  }, [projects, ids])
+  return stats
 }

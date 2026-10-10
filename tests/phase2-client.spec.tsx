@@ -15,6 +15,7 @@ vi.mock('@deepseek-ai/dsh-client-ui-primitives', () => ({
 }))
 
 import { RequirementsPage } from '../src/client/pages/RequirementsPage.tsx'
+import { executionStore } from '../src/client/hooks/executionStore.ts'
 import { marketpilotLocales } from '../src/client/locales.ts'
 
 const t = (key: keyof typeof marketpilotLocales.zh) => marketpilotLocales.zh[key]
@@ -103,12 +104,101 @@ describe('RequirementsPage', () => {
     expect(text()).toContain(t('drawerOriginal'))
     expect(text()).toContain('连续监测原文')
     expect(text()).toContain('第 1 条')
+    // Escape closes the drawer and returns focus to the invoking element.
+    const invoker = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    act(() => {
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    })
+    await flush()
+    expect(text()).not.toContain(t('drawerOriginal'))
+    expect(document.activeElement).toBe(invoker)
+    // Reopen via the same button to prove the dialog still works afterwards.
+    act(() => {
+      const detail = [...container!.querySelectorAll('button')].find(b => b.textContent === t('colDetail'))
+      detail!.click()
+    })
+    await flush()
+    expect(text()).toContain(t('drawerOriginal'))
     act(() => {
       const close = [...container!.querySelectorAll('button')].find(b => b.textContent === t('close'))
       close!.click()
     })
     await flush()
     expect(text()).not.toContain(t('drawerOriginal'))
+  })
+
+  it('settles one completed confirm exactly once: one refresh, no render-phase refetch', async () => {
+    let callSeq = 0
+    fetchMock.mockImplementation(async (input: unknown, init?: { method?: string; body?: string }) => {
+      const url = String(input)
+      if (url.startsWith('/marketpilot/api/projects/p9/documents')) return jsonResponse(documentsPayload)
+      if (url.startsWith('/marketpilot/api/projects/p9/requirements')) return jsonResponse(requirementsPayload)
+      if (url.startsWith('/marketpilot/api/projects/p9/runs')) return jsonResponse({ runs: [] })
+      if (url === '/marketpilot/api/executions?projectId=p9') return jsonResponse({ executions: [] })
+      if (url === '/marketpilot/api/tools' && init?.method === 'POST') {
+        callSeq += 1
+        return jsonResponse({ callId: `call-${String(callSeq)}` })
+      }
+      if (/\/marketpilot\/api\/executions\/call-/.test(url)) {
+        return jsonResponse({ callId: `call-${String(callSeq)}`, tool: 'marketpilot_requirement_confirm',
+          projectId: 'p9', status: 'completed', startedAt: '2026-10-09T05:00:00.000Z', question: null })
+      }
+      throw new Error(`unexpected fetch: ${url}`)
+    })
+    render(<RequirementsPage t={t} projectId="p9" />)
+    await flush()
+    const requirementFetches = () => fetchMock.mock.calls
+      .map(call => String(call[0])).filter(url => url.includes('/requirements')).length
+    expect(requirementFetches()).toBe(1)
+    // A tracked confirm execution settles: the marker effect runs exactly once.
+    await act(async () => {
+      await executionStore.start('marketpilot_requirement_confirm', { projectId: 'p9' })
+    })
+    await flush()
+    expect(requirementFetches()).toBe(2)
+    expect(text()).toContain(t('baselineGenerated'))
+    // Extra renders (settled marker stable) must not refetch.
+    await flush()
+    await flush()
+    expect(requirementFetches()).toBe(2)
+  })
+
+  it('reports every uploaded file: success, unsupported format, and server failure', async () => {
+    const uploads: string[] = []
+    fetchMock.mockImplementation(async (input: unknown, init?: { method?: string; body?: string }) => {
+      const url = String(input)
+      if (url.startsWith('/marketpilot/api/projects/p1/documents/upload')) {
+        const name = new URL(url, 'http://localhost').searchParams.get('name') ?? ''
+        if (name === 'c.md') return { ok: false, status: 413, json: async () => ({ error: '文件超过上限。' }) }
+        uploads.push(name)
+        return jsonResponse({ document: { id: `d-${name}`, name, kind: 'customer_requirement', importedAt: '2026-10-09T01:00:00.000Z', bytes: 10, hasText: true } })
+      }
+      if (url.startsWith('/marketpilot/api/projects/p1/documents')) return jsonResponse(documentsPayload)
+      if (url.startsWith('/marketpilot/api/projects/p1/requirements')) return jsonResponse(requirementsPayload)
+      if (url.startsWith('/marketpilot/api/projects/p1/runs')) return jsonResponse({ runs: [] })
+      if (url.startsWith('/marketpilot/api/executions')) return jsonResponse({ executions: [] })
+      throw new Error(`unexpected fetch: ${init?.method ?? 'GET'} ${url}`)
+    })
+    render(<RequirementsPage t={t} projectId="p1" />)
+    await flush()
+    const input = container!.querySelector('input[type=file]') as HTMLInputElement
+    expect(input).not.toBeNull()
+    const good = new File(['内容'], 'a.md', { type: 'text/markdown' })
+    const unsupported = new File(['x'], 'b.pdf', { type: 'application/pdf' })
+    const failing = new File(['y'], 'c.md', { type: 'text/markdown' })
+    Object.defineProperty(input, 'files', { value: [good, unsupported, failing], configurable: true })
+    await act(async () => { input.dispatchEvent(new Event('change', { bubbles: true })) })
+    await flush()
+    // Unsupported formats never reach the server but are reported by name.
+    expect(uploads).toEqual(['a.md'])
+    const outcomes = [...container!.querySelectorAll('.mp-uploadOutcome')].map(el => (el.textContent ?? ''))
+    expect(outcomes.length).toBe(3)
+    expect(outcomes[0]).toContain('a.md')
+    expect(outcomes[0]).toContain(t('uploadFileDone'))
+    expect(outcomes[1]).toContain('b.pdf')
+    expect(outcomes[1]).toContain(t('uploadRejected'))
+    expect(outcomes[2]).toContain('c.md')
+    expect(outcomes[2]).toContain('文件超过上限。')
   })
 
   it('renders the empty state before any extraction', async () => {
@@ -149,7 +239,7 @@ describe('RequirementsPage', () => {
       }
       if (/\/marketpilot\/api\/executions\/call-/.test(url)) {
         return jsonResponse({ callId: `call-${String(callSeq)}`, tool: 'marketpilot_requirement_confirm',
-          status: 'completed', startedAt: '2026-10-09T04:50:00.000Z', question: null,
+          projectId: 'p1', status: 'completed', startedAt: '2026-10-09T04:50:00.000Z', question: null,
           value: { summary: '', data: { run: { id: waitingRun.id, status: 'completed' } } } })
       }
       throw new Error(`unexpected fetch: ${url}`)
