@@ -127,8 +127,8 @@ export interface ProjectDetail {
   tenderItems: TenderItemRow[]
   artifacts: ArtifactRow[]
   workflowRuns: WorkflowRunRow[]
-  /** Persisted short-code assignments (absent on legacy projects). */
-  codeBook?: ShortCodeBook
+  /** Persisted short-code assignments; JSON `null` on legacy projects. */
+  codeBook?: ShortCodeBook | null
 }
 
 /** Polling projection of one click-driven execution. */

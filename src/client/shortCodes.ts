@@ -14,7 +14,8 @@ import { useProjectDetail } from './hooks/useProjects.ts'
 export function projectShortCodeIndex(detail: ProjectDetail): ShortCodeIndex {
   const rows = (value: unknown): unknown[] => Array.isArray(value) ? value : []
   return buildShortCodeIndex({
-    codeBook: detail.codeBook,
+    // Wire absence is JSON `null` — normalize before the shared builder.
+    codeBook: detail.codeBook ?? undefined,
     requirements: rows(detail.requirements) as ProjectDetail['requirements'],
     evidence: rows(detail.evidence) as ProjectDetail['evidence'],
     alternatives: rows(detail.alternatives) as ProjectDetail['alternatives'],

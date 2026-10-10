@@ -119,4 +119,16 @@ describe('persisted code book (V3.2.1 stability)', () => {
     expect(index.codeOf(reqA.id)).toBe('REQ-01')
     expect(index.codeOf(reqB.id)).toBe('REQ-02')
   })
+
+  it('treats a JSON-null codeBook exactly like an absent one (live GUI crash)', () => {
+    // The detail route projects `codeBook: null` for legacy projects; the
+    // first workspace render crashed with "Cannot read properties of null
+    // (reading 'codes')" and unmounted the whole client slot.
+    const derived = buildShortCodeIndex({ requirements: [reqA, reqB] })
+    const nulled = buildShortCodeIndex({ requirements: [reqA, reqB], codeBook: null })
+    expect(nulled.codeOf(reqA.id)).toBe('REQ-01')
+    expect(nulled.codeOf(reqB.id)).toBe('REQ-02')
+    expect(nulled.entries().map(entry => entry.code)).toEqual(derived.entries().map(entry => entry.code))
+    expect(nulled.replace(`见 ${reqB.id}`)).toBe('见 REQ-02')
+  })
 })

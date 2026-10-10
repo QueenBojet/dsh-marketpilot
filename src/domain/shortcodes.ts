@@ -38,9 +38,10 @@ const KIND_LABEL: Record<ShortCodeKind, string> = {
 }
 
 /** The structural input: any projection of these collections qualifies.
- * `codeBook` (optional) pins previously assigned codes over the derivation. */
+ * `codeBook` (optional) pins previously assigned codes over the derivation;
+ * JSON `null` (wire absence on legacy projects) is normalized to absent. */
 export interface ShortCodeCollections {
-  codeBook?: ShortCodeBook | undefined
+  codeBook?: ShortCodeBook | null | undefined
   requirements?: readonly { id: string; normalizedText?: string | undefined; createdAt?: string | undefined; updatedAt?: string | undefined }[] | undefined
   evidence?: readonly { id: string; title?: string | undefined; statement?: string | undefined; createdAt?: string | undefined; updatedAt?: string | undefined }[] | undefined
   alternatives?: readonly { id: string; name?: string | undefined; createdAt?: string | undefined; updatedAt?: string | undefined }[] | undefined
@@ -91,7 +92,9 @@ interface Seed { kind: ShortCodeKind; id: string; time: string; label: string }
  * derivation, so codes survive deletions of sibling records unchanged.
  */
 export function buildShortCodeIndex(collections: ShortCodeCollections): ShortCodeIndex {
-  const book = collections.codeBook
+  // `null` (JSON absence over the wire) must behave exactly like an absent
+  // book — a null here crashed the whole client slot on legacy projects.
+  const book = collections.codeBook ?? undefined
   const frozen = new Set<string>(book === undefined ? [] : Object.values(book.codes))
   const seeds: Seed[] = []
   const push = <R extends { id: string }>(kind: ShortCodeKind, rows: readonly R[] | undefined,
