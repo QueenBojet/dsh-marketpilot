@@ -27,7 +27,7 @@ export const RUN_TYPE_BY_TOOL: Record<string, string> = {
 }
 
 /** Localized run-type label with the raw fallback for unknown types. */
-function runTypeLabel(t: MarketPilotText, type: string): string {
+export function runTypeLabel(t: MarketPilotText, type: string): string {
   return t(`runType.${type}` as MarketPilotTextKey)
 }
 

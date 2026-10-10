@@ -90,13 +90,31 @@ function text(): string {
   return container?.textContent ?? ''
 }
 
-const noopActions: MarketPilotActions = { goHome: () => {}, goProjects: () => {}, goTasks: () => {}, openProject: () => {}, setSection: () => {} }
+const noopActions: MarketPilotActions = {
+  goHome: () => {}, goProjects: () => {}, goTasks: () => {}, openProject: () => {}, setSection: () => {},
+  focusRecord: () => {},
+}
 
 describe('navigation store', () => {
   it('supports the tasks view', () => {
     const instance = createMarketPilotStore().create()
     instance.actions.goTasks()
     expect(instance.getSnapshot().view).toEqual({ kind: 'tasks' })
+  })
+
+  it('lands cross-module focus on a section and clears it on plain navigation', () => {
+    const instance = createMarketPilotStore().create()
+    instance.actions.openProject('p1')
+    instance.actions.focusRecord('requirements', 'requirement', 'r9')
+    expect(instance.getSnapshot().view).toEqual({
+      kind: 'project', projectId: 'p1', section: 'requirements', focus: { kind: 'requirement', id: 'r9' },
+    })
+    instance.actions.setSection('evidence')
+    expect(instance.getSnapshot().view).toEqual({ kind: 'project', projectId: 'p1', section: 'evidence' })
+    instance.actions.focusRecord('evidence', 'evidence', 'e3')
+    expect(instance.getSnapshot().view).toEqual({
+      kind: 'project', projectId: 'p1', section: 'evidence', focus: { kind: 'evidence', id: 'e3' },
+    })
   })
 })
 

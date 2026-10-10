@@ -8,12 +8,12 @@ import { api, type ArtifactFullRow, type ArtifactMetaRow, type DocumentMeta, typ
 import { executionStore, type TrackedExecution } from './executionStore.ts'
 
 /** All tracked executions, newest first; in-flight host executions started
- * elsewhere (another browser, or before a reload) are adopted on mount so
- * page switches and reloads never lose the task. */
+ * elsewhere (another browser, or before a reload) are adopted on mount —
+ * scoped to one project when an id is given, across all projects otherwise
+ * (home + task center truth). */
 export function useExecutions(projectId?: string): readonly TrackedExecution[] {
   const all = useSyncExternalStore(executionStore.subscribe, executionStore.getSnapshot, executionStore.getSnapshot)
   useEffect(() => {
-    if (projectId === undefined) return
     let cancelled = false
     api.executions(projectId)
       .then(result => { if (!cancelled) for (const view of result.executions) executionStore.adopt(view) })

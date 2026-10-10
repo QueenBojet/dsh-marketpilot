@@ -31,8 +31,18 @@ import { SolutionPage } from '../src/client/pages/SolutionPage.tsx'
 import { TenderPage } from '../src/client/pages/TenderPage.tsx'
 import { WorkflowSurface } from '../src/client/components/WorkflowSurface.tsx'
 import { marketpilotLocales } from '../src/client/locales.ts'
+import type { MarketPilotActions } from '../src/client/stores.ts'
 
 const t = (key: keyof typeof marketpilotLocales.zh) => marketpilotLocales.zh[key]
+
+/** Recorded cross-module jumps for the shared actions stub below. */
+const jumps: { section: string; kind: string; id: string }[] = []
+
+/** Recording actions stub shared by drawer-jump tests. */
+const evidenceActions: MarketPilotActions = {
+  goHome: () => {}, goProjects: () => {}, goTasks: () => {}, openProject: () => {}, setSection: () => {},
+  focusRecord: (section, kind, id) => { jumps.push({ section, kind, id }) },
+}
 
 interface JsonLike { ok: boolean; status: number; json(): Promise<unknown> }
 const jsonResponse = (payload: unknown): JsonLike => ({ ok: true, status: 200, json: async () => payload })
@@ -200,15 +210,18 @@ describe('ResearchPage', () => {
 })
 
 describe('EvidencePage', () => {
+  const detailMock = (payload: unknown): ((input: unknown) => Promise<unknown>) => async (input: unknown) => {
+    const url = String(input)
+    if (url === '/marketpilot/api/projects/p1') return jsonResponse(payload)
+    if (url.includes('/evidence')) return jsonResponse(evidencePayload)
+    if (url.includes('/runs')) return jsonResponse({ runs: [] })
+    if (url.includes('/executions')) return jsonResponse({ executions: [] })
+    throw new Error(`unexpected fetch: ${url}`)
+  }
+
   it('renders the ledger with chips and opens the drawer with human verification', async () => {
-    fetchMock.mockImplementation(async (input: unknown) => {
-      const url = String(input)
-      if (url.includes('/evidence')) return jsonResponse(evidencePayload)
-      if (url.includes('/runs')) return jsonResponse({ runs: [] })
-      if (url.includes('/executions')) return jsonResponse({ executions: [] })
-      throw new Error(`unexpected fetch: ${url}`)
-    })
-    render(<EvidencePage t={t} projectId="p1" />)
+    fetchMock.mockImplementation(async (input: unknown) => detailMock(projectDetailDraft)(input))
+    render(<EvidencePage t={t} projectId="p1" actions={evidenceActions} />)
     await flush()
     expect(text()).toContain('客户要求连续监测。')
     expect(container!.querySelector('span[data-tone="success"]')?.textContent).toBe(t('evidenceStatus.verified'))
@@ -223,10 +236,70 @@ describe('EvidencePage', () => {
     expect(verify!.disabled).toBe(false)
   })
 
+  it('shows short codes and jumps from drawer references to the owning module', async () => {
+    const reqUuid = '11111111-1111-4111-8111-111111111111'
+    const evUuid = '33333333-3333-4333-8333-333333333333'
+    const linked = {
+      ...evidencePayload,
+      evidence: [{
+        ...evidencePayload.evidence[0]!, id: evUuid,
+        relatedRequirementIds: [reqUuid], supportingEvidenceIds: [evidencePayload.evidence[1]!.id],
+      }],
+    }
+    const detail = {
+      ...projectDetailDraft,
+      requirements: [{ id: reqUuid, normalizedText: '连续监测', status: 'confirmed', createdAt: '2026-10-09T05:00:00.000Z' }],
+      evidence: [{ id: evidencePayload.evidence[1]!.id, title: '待确认', kind: 'UNKNOWN' }],
+    }
+    jumps.length = 0
+    fetchMock.mockImplementation(async (input: unknown) => {
+      const url = String(input)
+      if (url === '/marketpilot/api/projects/p1') return jsonResponse(detail)
+      if (url.includes('/evidence')) return jsonResponse(linked)
+      if (url.includes('/runs')) return jsonResponse({ runs: [] })
+      if (url.includes('/executions')) return jsonResponse({ executions: [] })
+      throw new Error(`unexpected fetch: ${url}`)
+    })
+    render(<EvidencePage t={t} projectId="p1" actions={evidenceActions} />)
+    await flush()
+    act(() => {
+      const detail = [...container!.querySelectorAll('button')].find(b => b.textContent === t('colDetail'))
+      detail!.click()
+    })
+    await flush()
+    // References render as short codes, not raw UUID fragments.
+    expect(text()).toContain('REQ-01')
+    expect(text()).toContain('EVD-01')
+    expect(text()).not.toContain(reqUuid)
+    // Clicking a requirement reference lands on the requirements section focused.
+    act(() => {
+      const reqLink = [...container!.querySelectorAll<HTMLButtonElement>('.mp-relatedLinks button')]
+        .find(b => b.textContent === 'REQ-01')
+      reqLink!.click()
+    })
+    await flush()
+    expect(jumps).toEqual([{ section: 'requirements', kind: 'requirement', id: reqUuid }])
+    // The code map keeps full-record traceability one level down.
+    expect(container!.querySelector('.mp-drawer details.mp-codeMap')).not.toBeNull()
+  })
+
+  it('opens the referenced drawer directly on a cross-module focus', async () => {
+    fetchMock.mockImplementation(async (input: unknown) => detailMock(projectDetailDraft)(input))
+    render(
+      <EvidencePage t={t} projectId="p1" actions={evidenceActions}
+        focus={{ kind: 'evidence', id: evidencePayload.evidence[1]!.id }} />,
+    )
+    await flush()
+    // The focus lands without any user click: the UNKNOWN row's drawer is open.
+    expect(text()).toContain('深水性能未知。')
+    expect(container!.querySelector('.mp-drawer')).not.toBeNull()
+  })
+
   it('UNKNOWN verification requires an explicit target kind — never a FACT default', async () => {
     const postedTools: { name: string; args: Record<string, unknown> }[] = []
     fetchMock.mockImplementation(async (input: unknown, init?: { method?: string; body?: string }) => {
       const url = String(input)
+      if (url === '/marketpilot/api/projects/p1') return jsonResponse(projectDetailDraft)
       if (url.includes('/evidence')) return jsonResponse(evidencePayload)
       if (url.includes('/runs')) return jsonResponse({ runs: [] })
       if (url.includes('/executions')) return jsonResponse({ executions: [] })
@@ -240,7 +313,7 @@ describe('EvidencePage', () => {
       }
       throw new Error(`unexpected fetch: ${url}`)
     })
-    render(<EvidencePage t={t} projectId="p1" />)
+    render(<EvidencePage t={t} projectId="p1" actions={evidenceActions} />)
     await flush()
     // Open the UNKNOWN row's drawer (second row).
     act(() => {
@@ -657,5 +730,47 @@ describe('TenderPage', () => {
     act(() => { reviewSelected!.click() })
     await flush()
     expect(postedTools[postedTools.length - 1]!.args.tenderItemIds).toEqual(['t2'])
+  })
+
+  it('drawer evidence references are clickable jumps to the evidence module', async () => {
+    const reqUuid = '11111111-1111-4111-8111-111111111111'
+    const evUuid = '33333333-3333-4333-8333-333333333333'
+    const linked = {
+      tenderItems: [{
+        ...tenderItemsPayload.tenderItems[0]!, evidenceIds: [evUuid], requirementIds: [reqUuid],
+      }],
+    }
+    const detail = {
+      project: { id: 'p1', name: 'P', status: 'tender_review', updatedAt: '2026-10-09T06:00:00.000Z' },
+      documents: [], requirements: [{ id: reqUuid, normalizedText: '检出率', status: 'confirmed', createdAt: '2026-10-09T05:00:00.000Z' }],
+      evidence: [{ id: evUuid, title: '检出率报告', kind: 'FACT' }],
+      alternatives: [], decisions: [], tenderItems: [], artifacts: [], workflowRuns: [],
+    }
+    jumps.length = 0
+    fetchMock.mockImplementation(async (input: unknown) => {
+      const url = String(input)
+      if (url === '/marketpilot/api/projects/p1') return jsonResponse(detail)
+      if (url.includes('/documents')) return jsonResponse(documentsPayload)
+      if (url.includes('/tender-items')) return jsonResponse(linked)
+      if (url.includes('/runs')) return jsonResponse({ runs: [] })
+      if (url.includes('/executions')) return jsonResponse({ executions: [] })
+      throw new Error(`unexpected fetch: ${url}`)
+    })
+    render(<TenderPage t={t} projectId="p1" actions={evidenceActions} />)
+    await flush()
+    act(() => {
+      const detail = [...container!.querySelectorAll('button')].find(b => b.textContent === t('colDetail'))
+      detail!.click()
+    })
+    await flush()
+    expect(text()).toContain('EVD-01')
+    expect(text()).toContain('REQ-01')
+    act(() => {
+      const evLink = [...container!.querySelectorAll<HTMLButtonElement>('.mp-relatedLinks button, .mp-drawer button')]
+        .find(b => b.textContent === 'EVD-01')
+      evLink!.click()
+    })
+    await flush()
+    expect(jumps).toEqual([{ section: 'evidence', kind: 'evidence', id: evUuid }])
   })
 })

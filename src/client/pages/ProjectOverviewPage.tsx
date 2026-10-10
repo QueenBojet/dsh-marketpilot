@@ -98,19 +98,19 @@ export function ProjectOverviewPage({ t, actions, view }: {
               <ProjectActivity t={t} detail={detail} />
             </>
           ) : view.section === 'requirements' ? (
-            <RequirementsPage t={t} projectId={view.projectId} />
+            <RequirementsPage t={t} projectId={view.projectId} focus={view.focus} />
           ) : view.section === 'artifacts' ? (
             <ArtifactsPage t={t} projectId={view.projectId} />
           ) : view.section === 'research' ? (
             <ResearchPage t={t} projectId={view.projectId} />
           ) : view.section === 'evidence' ? (
-            <EvidencePage t={t} projectId={view.projectId} />
+            <EvidencePage t={t} projectId={view.projectId} actions={actions} focus={view.focus} />
           ) : view.section === 'alternatives' ? (
             <AlternativesPage t={t} projectId={view.projectId} />
           ) : view.section === 'solution' ? (
             <SolutionPage t={t} projectId={view.projectId} />
           ) : view.section === 'tender' ? (
-            <TenderPage t={t} projectId={view.projectId} onGoEvidence={() => { setSection('evidence') }} />
+            <TenderPage t={t} projectId={view.projectId} actions={actions} onGoEvidence={() => { setSection('evidence') }} />
           ) : (
             <div className="mp-planned">
               <p className="mp-plannedTitle">{t('plannedTitle')}</p>

@@ -15,10 +15,14 @@ vi.mock('@deepseek-ai/dsh-client-ui-primitives', () => ({
 }))
 
 import { RequirementsPage } from '../src/client/pages/RequirementsPage.tsx'
+import { HomePage } from '../src/client/pages/HomePage.tsx'
 import { executionStore } from '../src/client/hooks/executionStore.ts'
 import { marketpilotLocales } from '../src/client/locales.ts'
 
 const t = (key: keyof typeof marketpilotLocales.zh) => marketpilotLocales.zh[key]
+
+/** Recorded openProject calls for the home actions stub. */
+const opened: string[] = []
 
 interface JsonLike { ok: boolean; status: number; json(): Promise<unknown> }
 const jsonResponse = (payload: unknown): JsonLike => ({ ok: true, status: 200, json: async () => payload })
@@ -259,5 +263,95 @@ describe('RequirementsPage', () => {
     const confirmPost = postedTools.find(post => post.name === 'marketpilot_requirement_confirm')
     expect(confirmPost).toBeDefined()
     expect(confirmPost!.args.runId).toBe('run-waiting-0001')
+  })
+
+  it("opens the referenced requirement's drawer on a cross-module focus", async () => {
+    fetchMock.mockImplementation(async (input: unknown) => {
+      const url = String(input)
+      if (url.startsWith('/marketpilot/api/projects/p1/documents')) return jsonResponse(documentsPayload)
+      if (url.startsWith('/marketpilot/api/projects/p1/requirements')) return jsonResponse(requirementsPayload)
+      if (url.startsWith('/marketpilot/api/projects/p1/runs')) return jsonResponse({ runs: [] })
+      if (url.startsWith('/marketpilot/api/executions')) return jsonResponse({ executions: [] })
+      throw new Error(`unexpected fetch: ${url}`)
+    })
+    render(
+      <RequirementsPage t={t} projectId="p1"
+        focus={{ kind: 'requirement', id: 'r10000000-0000-0000-0000-000000000001' }} />,
+    )
+    await flush()
+    // The jump lands with the referenced requirement's source drawer open.
+    expect(container!.querySelector('.mp-drawer')).not.toBeNull()
+    expect(text()).toContain('系统应连续监测')
+  })
+})
+
+describe('HomePage', () => {
+  const homeActions = {
+    goHome: () => {}, goProjects: () => {}, goTasks: () => {},
+    openProject: (projectId: string) => { opened.push(projectId) }, setSection: () => {},
+    focusRecord: () => {},
+  }
+  const projectsPayload = {
+    projects: [
+      { id: 'p1', name: '最近项目', scenario: '监测', status: 'solution_ready', updatedAt: '2026-10-09T08:00:00.000Z' },
+      { id: 'p2', name: '较早项目', scenario: '', status: 'draft', updatedAt: '2026-10-08T08:00:00.000Z' },
+    ],
+  }
+  function homeFetchMock(): void {
+    fetchMock.mockImplementation(async (input: unknown) => {
+      const url = String(input)
+      if (url === '/marketpilot/api/projects') return jsonResponse(projectsPayload)
+      if (url === '/marketpilot/api/executions') return jsonResponse({ executions: [] })
+      if (url.includes('/runs')) {
+        // p1 has one waiting review; p2 has none. Match by request order.
+        const waiting = url.includes('p1') ? [{ id: 'run-w1', type: 'evidence_review', status: 'waiting_human' }] : []
+        return jsonResponse({ runs: waiting })
+      }
+      throw new Error(`unexpected fetch: ${url}`)
+    })
+  }
+
+  it('focuses the continue card, pending reviews, and live tasks', async () => {
+    homeFetchMock()
+    opened.length = 0
+    act(() => {
+      void executionStore.adopt({
+        callId: 'call-home-1', tool: 'marketpilot_solution_generate', status: 'running',
+        startedAt: new Date().toISOString(), projectId: 'p1', runId: 'run-live-1', question: null,
+      })
+    })
+    render(<HomePage t={t} actions={homeActions} />)
+    await flush()
+    // Continue card features the most recently updated project.
+    const continueSection = container!.querySelector('.mp-continueCard')
+    expect(continueSection?.textContent).toContain('最近项目')
+    expect(continueSection?.textContent).toContain(t('homeContinue'))
+    // Pending reviews list the project with a waiting run.
+    expect(text()).toContain(t('homeAttention'))
+    expect(text()).toContain('最近项目')
+    // Live task list shows the tracked execution with run type and status.
+    expect(text()).toContain(t('homeRunningTitle'))
+    expect(text()).toContain(t('runType.solution_generation'))
+    expect(text()).toContain(t('runStatus.running'))
+    // Clicking continue opens the featured project.
+    act(() => {
+      const button = [...continueSection!.querySelectorAll('button')]
+        .find(b => b.textContent === t('homeContinue'))
+      button!.click()
+    })
+    await flush()
+    expect(opened).toEqual(['p1'])
+  })
+
+  it('shows the explicit empty states without projects or tasks', async () => {
+    fetchMock.mockImplementation(async (input: unknown) => {
+      const url = String(input)
+      if (url === '/marketpilot/api/projects') return jsonResponse({ projects: [] })
+      if (url === '/marketpilot/api/executions') return jsonResponse({ executions: [] })
+      throw new Error(`unexpected fetch: ${url}`)
+    })
+    render(<HomePage t={t} actions={homeActions} />)
+    await flush()
+    expect(text()).toContain(t('emptyTitle'))
   })
 })

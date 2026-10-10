@@ -12,12 +12,16 @@ export type ProjectSection =
   | 'overview' | 'requirements' | 'research' | 'evidence'
   | 'alternatives' | 'solution' | 'tender' | 'artifacts'
 
+/** A cross-module jump target: land on a section and highlight one record. */
+export type ProjectFocus = { readonly kind: 'requirement' | 'evidence'; readonly id: string }
+
 /** Which page the main panel shows. */
 export type MarketPilotView =
   | { readonly kind: 'home' }
   | { readonly kind: 'projects' }
   | { readonly kind: 'tasks' }
-  | { readonly kind: 'project'; readonly projectId: string; readonly section: ProjectSection }
+  | { readonly kind: 'project'; readonly projectId: string; readonly section: ProjectSection;
+      readonly focus?: ProjectFocus | undefined }
 
 export interface MarketPilotNavigationState {
   view: MarketPilotView
@@ -29,6 +33,7 @@ type NavigationActionsDecl = {
   goTasks: (draft: MarketPilotNavigationState) => void
   openProject: (draft: MarketPilotNavigationState, projectId: string) => void
   setSection: (draft: MarketPilotNavigationState, section: ProjectSection) => void
+  focusRecord: (draft: MarketPilotNavigationState, section: ProjectSection, kind: 'requirement' | 'evidence', id: string) => void
 } & ActionsDecl<MarketPilotNavigationState>
 
 /** The bound (draft-peeled) action shape components receive. */
@@ -38,6 +43,7 @@ export type MarketPilotActions = {
   goTasks(): void
   openProject(projectId: string): void
   setSection(section: ProjectSection): void
+  focusRecord(section: ProjectSection, kind: 'requirement' | 'evidence', id: string): void
 }
 
 /** Snapshot-selector hook the slot renderer synthesizes from the store seat. */
@@ -57,7 +63,12 @@ export function createMarketPilotStore(): EngineStoreHandle<MarketPilotNavigatio
       openProject: (draft, projectId) => { draft.view = { kind: 'project', projectId, section: 'overview' } },
       setSection: (draft, section) => {
         if (draft.view.kind !== 'project') return
-        draft.view = { ...draft.view, section }
+        // Plain section navigation clears any stale cross-module focus.
+        draft.view = { kind: 'project', projectId: draft.view.projectId, section }
+      },
+      focusRecord: (draft, section, kind, id) => {
+        if (draft.view.kind !== 'project') return
+        draft.view = { kind: 'project', projectId: draft.view.projectId, section, focus: { kind, id } }
       },
     },
   })

@@ -81,6 +81,11 @@ const PANEL_CSS = `
 .mp-attention{border:1px solid var(--dsw-alias-border-l2);border-radius:var(--dsw-radius-md);padding:14px 16px}
 .mp-attentionList{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
 .mp-attentionRow{display:flex;align-items:center;justify-content:space-between;gap:10px}
+/* Home "continue project" feature card + drawer cross-reference link groups. */
+.mp-continueCard{display:flex;align-items:center;justify-content:space-between;gap:16px;border:1px solid var(--dsw-alias-border-l2);border-left:3px solid var(--dsw-alias-state-business-primary);border-radius:var(--dsw-radius-md);padding:14px 18px;margin-bottom:16px;background:var(--dsw-alias-bg-base)}
+.mp-continueMain{display:flex;flex-direction:column;gap:4px;min-width:0}
+.mp-continueTitle{font-size:16px;font-weight:600}
+.mp-relatedLinks{display:flex;flex-wrap:wrap;gap:6px 12px;margin:4px 0 0}
 .mp-cardValue[data-empty='true']{font-size:14px;color:var(--dsw-alias-label-tertiary);font-weight:500}
 .mp-card[data-tone='warn']{border-color:var(--dsw-alias-state-warn-primary)}
 .mp-taskList{display:flex;flex-direction:column;gap:12px}

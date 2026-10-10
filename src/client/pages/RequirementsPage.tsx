@@ -14,12 +14,17 @@ import { TaskProgress } from '../components/TaskProgress.tsx'
 import { executionStore } from '../hooks/executionStore.ts'
 import { useActiveRun, useDocuments, useExecutions, useRequirements } from '../hooks/useExecution.ts'
 import { errorMessage } from '../hooks/useProjects.ts'
+import type { ProjectFocus } from '../stores.ts'
 import type { MarketPilotText, MarketPilotTextKey } from '../locales.ts'
 
 const STATUS_FILTERS = ['all', 'proposed', 'confirmed', 'unknown', 'conflict'] as const
 
 /** Render the requirements page for one project. */
-export function RequirementsPage({ t, projectId }: { t: MarketPilotText; projectId: string }) {
+export function RequirementsPage({ t, projectId, focus }: {
+  t: MarketPilotText
+  projectId: string
+  focus?: ProjectFocus | undefined
+}) {
   const [kind, setKind] = useState('customer_requirement')
   const [selectedDocs, setSelectedDocs] = useState<ReadonlySet<string>>(new Set())
   const [selectedRequirements, setSelectedRequirements] = useState<ReadonlySet<string>>(new Set())
@@ -109,6 +114,15 @@ export function RequirementsPage({ t, projectId }: { t: MarketPilotText; project
   // The confirm execution gates on the requirement review question.
   const gating = confirmExecution?.status === 'waiting_human' ? confirmExecution : undefined
   const progressVisible = busy || extractExecution?.lost === true || waitingRun !== null
+
+  // A cross-module jump (e.g. from the evidence drawer) opens the referenced
+  // requirement's source drawer once its row is loaded.
+  const focusId = focus?.kind === 'requirement' ? focus.id : undefined
+  useEffect(() => {
+    if (focusId === undefined) return
+    const row = (requirements.page?.requirements ?? []).find(item => item.id === focusId)
+    if (row !== undefined) setDrawer(row)
+  }, [focusId, requirements.page])
 
   return (
     <div>

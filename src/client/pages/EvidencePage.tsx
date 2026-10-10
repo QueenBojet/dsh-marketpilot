@@ -3,13 +3,17 @@
  * source, and verify it through the real Human Gate. UNKNOWN is never promoted
  * to fact by this page — verification is always an explicit human action.
  */
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { EvidenceItem } from '../api.ts'
 import { Tag } from '@deepseek-ai/dsh-client-ui-primitives'
+import { CodeMapPanel } from '../components/CodeMapPanel.tsx'
 import { EmptyState, ErrorState, LoadingState } from '../components/States.tsx'
 import { WorkflowSurface } from '../components/WorkflowSurface.tsx'
 import { useDrawerKeys } from '../hooks/useDrawerKeys.ts'
 import { useEvidencePage, useToolWorkflow } from '../hooks/usePhase4.ts'
+import { useCodeIndex } from '../shortCodes.ts'
+import type { ProjectFocus } from '../stores.ts'
+import type { MarketPilotActions } from '../stores.ts'
 import type { MarketPilotText, MarketPilotTextKey } from '../locales.ts'
 
 const STATUS_FILTERS = ['all', 'draft', 'verified'] as const
@@ -34,7 +38,12 @@ function targetLabel(t: MarketPilotText, kind: string): string {
 }
 
 /** Render the evidence ledger page. */
-export function EvidencePage({ t, projectId }: { t: MarketPilotText; projectId: string }) {
+export function EvidencePage({ t, projectId, actions, focus }: {
+  t: MarketPilotText
+  projectId: string
+  actions: MarketPilotActions
+  focus?: ProjectFocus | undefined
+}) {
   const [status, setStatus] = useState<string>('all')
   const [kind, setKind] = useState<string>('all')
   const [query, setQuery] = useState('')
@@ -43,7 +52,15 @@ export function EvidencePage({ t, projectId }: { t: MarketPilotText; projectId: 
   const [targetKind, setTargetKind] = useState('')
   const [statement, setStatement] = useState('')
   const ledger = useEvidencePage(projectId, { status, kind, q: query })
+  const { index: codeIndex } = useCodeIndex(projectId)
+  const codeOf = (id: string): string => codeIndex?.codeOf(id) ?? id.slice(0, 8)
   const workflow = useToolWorkflow(projectId, ['marketpilot_evidence_verify'], 'evidence_review', t, ledger.refresh)
+  // A cross-module jump (e.g. from the tender drawer) opens the referenced
+  // record's drawer directly; closing it again keeps it closed.
+  const focusId = focus?.kind === 'evidence' ? focus.id : undefined
+  useEffect(() => {
+    if (focusId !== undefined) setOpenId(focusId)
+  }, [focusId])
   const open = ledger.page?.evidence.find(row => row.id === openId) ?? null
   const closeDrawer = (): void => {
     setOpenId(null)
@@ -139,7 +156,11 @@ export function EvidencePage({ t, projectId }: { t: MarketPilotText; projectId: 
         <div className="mp-drawerMask" role="presentation" onClick={event => { if (event.target === event.currentTarget) closeDrawer() }}>
           <aside ref={drawerRef} className="mp-drawer" role="dialog" aria-label={t('evidenceTitle')}>
             <div className="mp-drawerHead">
-              <h2 className="mp-drawerTitle">{open.title}</h2>
+              <h2 className="mp-drawerTitle">
+                {open.title}
+                {' '}
+                <code className="mp-caption">{codeOf(open.id)}</code>
+              </h2>
               <button type="button" className="mp-link" onClick={closeDrawer}>{t('close')}</button>
             </div>
             <div className="mp-drawerBody">
@@ -161,9 +182,36 @@ export function EvidencePage({ t, projectId }: { t: MarketPilotText; projectId: 
               {open.relatedRequirementIds.length === 0 ? null : (
                 <>
                   <h3 className="mp-drawerSection">{t('relatedTitle')}</h3>
-                  <p className="mp-caption">{open.relatedRequirementIds.map(id => id.slice(0, 8)).join(' · ')}</p>
+                  <p className="mp-relatedLinks">
+                    {open.relatedRequirementIds.map(id => (
+                      <button
+                        key={id} type="button" className="mp-link"
+                        title={t('jumpToRecord')}
+                        onClick={() => { actions.focusRecord('requirements', 'requirement', id) }}
+                      >
+                        {codeOf(id)}
+                      </button>
+                    ))}
+                  </p>
                 </>
               )}
+              {open.supportingEvidenceIds.length === 0 || verifying ? null : (
+                <>
+                  <h3 className="mp-drawerSection">{t('evidenceRefs')}</h3>
+                  <p className="mp-relatedLinks">
+                    {open.supportingEvidenceIds.map(id => (
+                      <button
+                        key={id} type="button" className="mp-link"
+                        title={t('jumpToRecord')}
+                        onClick={() => { actions.focusRecord('evidence', 'evidence', id) }}
+                      >
+                        {codeOf(id)}
+                      </button>
+                    ))}
+                  </p>
+                </>
+              )}
+              <CodeMapPanel t={t} index={codeIndex} />
               {open.status !== 'draft' ? null : verifying ? (
                 <div className="mp-verifyForm">
                   <p className="mp-caption">{t('verifyFormHint')}</p>

@@ -16,6 +16,7 @@ import { useDocuments } from '../hooks/useExecution.ts'
 import { useProjectDetail } from '../hooks/useProjects.ts'
 import { useTenderItems, useToolWorkflow } from '../hooks/usePhase4.ts'
 import { projectShortCodeIndex } from '../shortCodes.ts'
+import type { MarketPilotActions } from '../stores.ts'
 import type { MarketPilotText, MarketPilotTextKey } from '../locales.ts'
 
 function statusTone(status: string): 'success' | 'warning' | 'danger' | 'neutral' | 'quiet' {
@@ -27,9 +28,10 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'neutral
 }
 
 /** Render the tender page. */
-export function TenderPage({ t, projectId, onGoEvidence }: {
+export function TenderPage({ t, projectId, actions, onGoEvidence }: {
   t: MarketPilotText
   projectId: string
+  actions?: MarketPilotActions | undefined
   onGoEvidence?: (() => void) | undefined
 }) {
   const [selectedDocs, setSelectedDocs] = useState<ReadonlySet<string>>(new Set())
@@ -178,11 +180,33 @@ export function TenderPage({ t, projectId, onGoEvidence }: {
                 </>
               )}
               <h3 className="mp-drawerSection">{t('evidenceRefs')}</h3>
-              <p className="mp-caption">{drawer.evidenceIds.map(id => codeOf(id)).join(' · ') || '—'}</p>
+              <p className="mp-relatedLinks">
+                {drawer.evidenceIds.length === 0 ? '—' : drawer.evidenceIds.map(id => (
+                  actions === undefined ? <code key={id}>{codeOf(id)}</code> : (
+                    <button
+                      key={id} type="button" className="mp-link" title={t('jumpToRecord')}
+                      onClick={() => { actions.focusRecord('evidence', 'evidence', id) }}
+                    >
+                      {codeOf(id)}
+                    </button>
+                  )
+                ))}
+              </p>
               {drawer.requirementIds.length === 0 ? null : (
                 <>
                   <h3 className="mp-drawerSection">{t('relatedTitle')}</h3>
-                  <p className="mp-caption">{drawer.requirementIds.map(id => codeOf(id)).join(' · ')}</p>
+                  <p className="mp-relatedLinks">
+                    {drawer.requirementIds.map(id => (
+                      actions === undefined ? <code key={id}>{codeOf(id)}</code> : (
+                        <button
+                          key={id} type="button" className="mp-link" title={t('jumpToRecord')}
+                          onClick={() => { actions.focusRecord('requirements', 'requirement', id) }}
+                        >
+                          {codeOf(id)}
+                        </button>
+                      )
+                    ))}
+                  </p>
                 </>
               )}
               <CodeMapPanel t={t} index={codeIndex} />

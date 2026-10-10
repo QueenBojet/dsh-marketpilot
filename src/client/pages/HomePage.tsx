@@ -1,13 +1,19 @@
-/** Workbench home: real project stats, attention list, recent projects. */
+/**
+ * Workbench home, focused on what to do next: continue the most recent
+ * project, jump into pending human reviews, and watch live tasks — with the
+ * full recent-projects table one glance away. Every number is real; missing
+ * data shows the explicit 暂无数据 instead of a zero.
+ */
 import { Button } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { ProjectRow } from '../api.ts'
 import { DataTable, type DataTableColumn } from '../components/DataTable.tsx'
 import { EmptyState, ErrorState, LoadingState } from '../components/States.tsx'
 import { StatusTag } from '../components/StatusTag.tsx'
+import { runTypeLabel, RUN_TYPE_BY_TOOL } from '../components/TaskCard.tsx'
 import { formatTime } from '../format.ts'
-import { useHomeStats } from '../hooks/useExecution.ts'
+import { useExecutions, useHomeStats } from '../hooks/useExecution.ts'
 import { byRecent, useProjects } from '../hooks/useProjects.ts'
-import type { MarketPilotText } from '../locales.ts'
+import type { MarketPilotText, MarketPilotTextKey } from '../locales.ts'
 import type { MarketPilotActions } from '../stores.ts'
 
 const RECENT_LIMIT = 8
@@ -38,9 +44,17 @@ function StatCard({ t, value, label, warn }: {
 export function HomePage({ t, actions }: { t: MarketPilotText; actions: MarketPilotActions }) {
   const { projects, error, refresh, loading } = useProjects()
   const stats = useHomeStats(projects)
-  const recent = (projects ?? []).slice().sort(byRecent).slice(0, RECENT_LIMIT)
+  const executions = useExecutions()
+  const sorted = (projects ?? []).slice().sort(byRecent)
+  const featured = sorted[0]
+  const recent = sorted.slice(0, RECENT_LIMIT)
   const attention = projects === null || stats === null ? []
     : projects.filter(project => (stats.waitingByProject[project.id] ?? 0) > 0)
+  const live = executions
+    .filter(execution => execution.status === 'running' || execution.status === 'waiting_human')
+    .slice(0, 5)
+  const projectName = (id: string | undefined): string =>
+    projects?.find(project => project.id === id)?.name ?? '—'
   const columns: DataTableColumn<ProjectRow>[] = [
     {
       key: 'name', header: t('colName'),
@@ -67,11 +81,6 @@ export function HomePage({ t, actions }: { t: MarketPilotText; actions: MarketPi
         </div>
         <Button variant="primary" onClick={() => { actions.goProjects() }}>{t('newProject')}</Button>
       </div>
-      <div className="mp-cards">
-        <StatCard t={t} value={projects === null ? null : projects.length} label={t('statProjects')} />
-        <StatCard t={t} value={stats === null ? null : stats.waitingTotal} label={t('statPending')} warn />
-        <StatCard t={t} value={stats === null ? null : stats.running} label={t('statRunning')} />
-      </div>
       {error !== '' ? <ErrorState t={t} message={error} onRetry={refresh} />
         : loading ? <LoadingState t={t} />
           : projects !== null && projects.length === 0 ? (
@@ -81,32 +90,76 @@ export function HomePage({ t, actions }: { t: MarketPilotText; actions: MarketPi
               action={<Button variant="primary" onClick={() => { actions.goProjects() }}>{t('newProject')}</Button>}
             />
           ) : (
-            <div className="mp-homeGrid">
-              <div>
-                <div className="mp-pageActions" style={{ justifyContent: 'space-between' }}>
-                  <h2 className="mp-sectionTitle" style={{ margin: 0 }}>{t('recentProjects')}</h2>
-                  <Button size="sm" variant="ghost" onClick={() => { actions.goProjects() }}>{t('viewAllProjects')}</Button>
-                </div>
-                <DataTable columns={columns} rows={recent} rowKey={row => row.id} />
+            <>
+              {featured === undefined ? null : (
+                <section className="mp-continueCard" aria-label={t('homeContinue')}>
+                  <div className="mp-continueMain">
+                    <p className="mp-caption" style={{ margin: 0 }}>{t('homeContinueHint')}</p>
+                    <button
+                      type="button" className="mp-link mp-cellMain mp-continueTitle"
+                      onClick={() => { actions.openProject(featured.id) }}
+                    >
+                      {featured.name}
+                    </button>
+                    <p className="mp-caption" style={{ margin: 0 }}>
+                      <StatusTag t={t} kind="project" value={featured.status} />
+                      {' '}
+                      <span className="mp-muted">{formatTime(featured.updatedAt)}</span>
+                    </p>
+                  </div>
+                  <Button variant="primary" onClick={() => { actions.openProject(featured.id) }}>{t('homeContinue')}</Button>
+                </section>
+              )}
+              <div className="mp-cards">
+                <StatCard t={t} value={projects === null ? null : projects.length} label={t('statProjects')} />
+                <StatCard t={t} value={stats === null ? null : stats.waitingTotal} label={t('statPending')} warn />
+                <StatCard t={t} value={stats === null ? null : stats.running} label={t('statRunning')} />
               </div>
-              <aside className="mp-attention">
-                <h2 className="mp-sectionTitle" style={{ margin: 0 }}>{t('homeAttention')}</h2>
-                {attention.length === 0 ? (
-                  <p className="mp-caption" style={{ margin: 0 }}>{stats === null ? t('statUnavailable') : t('homeAttentionEmpty')}</p>
-                ) : (
-                  <ul className="mp-attentionList">
-                    {attention.map(project => (
-                      <li key={project.id} className="mp-attentionRow">
-                        <button type="button" className="mp-link mp-cellMain" onClick={() => { actions.openProject(project.id) }}>
-                          {project.name}
-                        </button>
-                        <span className="mp-caption">{`${t('statWaiting')} · ${String(stats!.waitingByProject[project.id] ?? 0)}`}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </aside>
-            </div>
+              <div className="mp-homeGrid">
+                <div>
+                  <div className="mp-pageActions" style={{ justifyContent: 'space-between' }}>
+                    <h2 className="mp-sectionTitle" style={{ margin: 0 }}>{t('recentProjects')}</h2>
+                    <Button size="sm" variant="ghost" onClick={() => { actions.goProjects() }}>{t('viewAllProjects')}</Button>
+                  </div>
+                  <DataTable columns={columns} rows={recent} rowKey={row => row.id} />
+                </div>
+                <aside className="mp-attention">
+                  <h2 className="mp-sectionTitle" style={{ margin: 0 }}>{t('homeAttention')}</h2>
+                  {attention.length === 0 ? (
+                    <p className="mp-caption" style={{ margin: 0 }}>{stats === null ? t('statUnavailable') : t('homeAttentionEmpty')}</p>
+                  ) : (
+                    <ul className="mp-attentionList">
+                      {attention.map(project => (
+                        <li key={project.id} className="mp-attentionRow">
+                          <button type="button" className="mp-link mp-cellMain" onClick={() => { actions.openProject(project.id) }}>
+                            {project.name}
+                          </button>
+                          <span className="mp-caption">{`${t('statWaiting')} · ${String(stats!.waitingByProject[project.id] ?? 0)}`}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <h2 className="mp-sectionTitle" style={{ marginBottom: 8 }}>{t('homeRunningTitle')}</h2>
+                  {live.length === 0 ? <p className="mp-caption" style={{ margin: 0 }}>{t('homeRunningEmpty')}</p> : (
+                    <ul className="mp-attentionList">
+                      {live.map(execution => (
+                        <li key={execution.callId} className="mp-attentionRow">
+                          <button type="button" className="mp-link mp-cellMain" onClick={() => { actions.goTasks() }}>
+                            {runTypeLabel(t, RUN_TYPE_BY_TOOL[execution.tool] ?? execution.tool)}
+                          </button>
+                          <span className="mp-caption">
+                            {`${projectName(execution.projectId)} · ${t(`runStatus.${execution.status}` as MarketPilotTextKey)}`}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <button type="button" className="mp-link mp-caption" onClick={() => { actions.goTasks() }}>
+                    {t('homeGoTasks')}
+                  </button>
+                </aside>
+              </div>
+            </>
           )}
     </div>
   )
