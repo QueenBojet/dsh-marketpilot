@@ -47,7 +47,12 @@ describe('Requirement Analysis fixed workflow', () => {
     const artifact = s.artifacts.list(p.id)[0]!
     expect(artifact.name).toBe('Requirement Baseline.md')
     expect(artifact.content).toContain('UNKNOWN / 待确认条件')
-    expect(artifact.content).toContain(document.id)
+    // The baseline table shows business short codes; traceability stays in the appendix.
+    expect(artifact.content).toContain('DOC-01')
+    expect(artifact.content).toContain('REQ-01')
+    expect(artifact.content).not.toContain(document.id)
+    expect(artifact.content).toContain(document.id.slice(0, 8))
+    expect(artifact.content).toContain('附录：编号对照')
     expect(artifact.content).toContain('最小检漏率未冻结')
     expect(artifact.content).toContain('test-engineer')
     await s.requirements.finalizeAnalysis(p.id, run.id)

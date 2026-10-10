@@ -4,11 +4,14 @@
  * unverified parameters are never presented as commitments. The preview picks
  * the NEWEST solution artifact by updatedAt (createdAt/id as stable
  * tie-breakers), offers the version history, and reads it in a wide document
- * reader whose outline entries scroll to the matching heading.
+ * reader whose outline entries scroll to the matching heading. Reading
+ * surfaces show business short codes instead of raw UUIDs (display-only
+ * replacement over the stored artifact, backed by a collapsible code map).
  */
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { MarkdownText } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { ArtifactMetaRow } from '../api.ts'
+import { CodeMapPanel } from '../components/CodeMapPanel.tsx'
 import { EmptyState, ErrorState, LoadingState } from '../components/States.tsx'
 import { WorkflowSurface } from '../components/WorkflowSurface.tsx'
 import { formatTime } from '../format.ts'
@@ -16,6 +19,7 @@ import { useArtifact, useArtifacts } from '../hooks/useExecution.ts'
 import { useDrawerKeys } from '../hooks/useDrawerKeys.ts'
 import { useProjectDetail } from '../hooks/useProjects.ts'
 import { useToolWorkflow } from '../hooks/usePhase4.ts'
+import { projectShortCodeIndex } from '../shortCodes.ts'
 import type { MarketPilotText } from '../locales.ts'
 
 /** Split a markdown document into its heading outline. */
@@ -56,6 +60,9 @@ export function SolutionPage({ t, projectId }: { t: MarketPilotText; projectId: 
   const latest = solutions[0] ?? null
   const selected = solutions.find(row => row.id === versionId) ?? latest
   const reader = useArtifact(projectId, open && selected !== null ? selected.id : null)
+  const codeIndex = useMemo(() => detail.detail === null ? null : projectShortCodeIndex(detail.detail), [detail.detail])
+  const displayContent = reader.artifact === null ? null
+    : codeIndex === null ? reader.artifact.content : codeIndex.replace(reader.artifact.content)
 
   return (
     <div>
@@ -110,7 +117,7 @@ export function SolutionPage({ t, projectId }: { t: MarketPilotText; projectId: 
             <div className="mp-readerBody mp-readerBodyWide">
               {reader.error !== '' ? <ErrorState t={t} message={reader.error} />
                 : reader.artifact === null ? <LoadingState t={t} />
-                  : <SolutionBody t={t} content={reader.artifact.content} />}
+                  : <SolutionBody t={t} content={displayContent ?? ''} codeIndex={codeIndex} />}
             </div>
           </aside>
         </div>
@@ -119,7 +126,11 @@ export function SolutionPage({ t, projectId }: { t: MarketPilotText; projectId: 
   )
 }
 
-function SolutionBody({ t, content }: { t: MarketPilotText; content: string }) {
+function SolutionBody({ t, content, codeIndex }: {
+  t: MarketPilotText
+  content: string
+  codeIndex: ReturnType<typeof projectShortCodeIndex> | null
+}) {
   const documentRef = useRef<HTMLDivElement | null>(null)
   const [railOpen, setRailOpen] = useState(true)
   const headings = outline(content)
@@ -156,6 +167,7 @@ function SolutionBody({ t, content }: { t: MarketPilotText; content: string }) {
         </nav>
       )}
       <div className="mp-readerDocument" ref={documentRef}>
+        <CodeMapPanel t={t} index={codeIndex} />
         <MarkdownText
           text={content}
           labels={{ code: { copyLabel: t('mdCopy'), copiedLabel: t('mdCopied') }, footnotes: t('mdFootnotes') }}

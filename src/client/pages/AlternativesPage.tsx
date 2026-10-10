@@ -1,16 +1,19 @@
 /**
- * Route candidates compared side by side: 2-3 columns with composition,
- * strengths, limitations, risks and unknowns at equal height, the confirmed-
- * requirement coverage matrix in the same view, and a sticky decision bar
- * (selection + rationale) that submits through the real Decision Gate — the
- * model cannot select for the user.
+ * Route candidates compared side by side: 2-3 columns, each card leading with
+ * name, composition, strengths, limitations and risk summaries (long text
+ * clamped with an explicit expand/collapse toggle), the confirmed-requirement
+ * coverage matrix in the same view, and a decision bar (selection + rationale)
+ * that submits through the real Decision Gate — the model cannot select for
+ * the user. On narrow viewports the bar rests in normal flow so it never
+ * covers the body text.
  */
-import { useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Tag } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { AlternativeItem } from '../api.ts'
+import { buildShortCodeIndex } from '../../domain/shortcodes.ts'
 import { EmptyState, ErrorState, LoadingState } from '../components/States.tsx'
 import { WorkflowSurface } from '../components/WorkflowSurface.tsx'
-import { useAlternatives, useToolWorkflow } from '../hooks/usePhase4.ts'
+import { useAlternatives, useEvidencePage, useToolWorkflow } from '../hooks/usePhase4.ts'
 import { useRequirements } from '../hooks/useExecution.ts'
 import type { MarketPilotText, MarketPilotTextKey } from '../locales.ts'
 
@@ -22,16 +25,18 @@ function coverageTone(level: string | undefined): 'success' | 'warning' | 'dange
 }
 
 /** One candidate column. */
-function CandidateCard({ t, row, selected, busy, onSelect }: {
+function CandidateCard({ t, row, selected, busy, onSelect, clean }: {
   t: MarketPilotText
   row: AlternativeItem
   selected: boolean
   busy: boolean
   onSelect: (id: string) => void
+  clean: (text: string) => string
 }) {
+  const [expanded, setExpanded] = useState(false)
   return (
     <article
-      className="mp-altCard" data-selected={selected ? 'true' : 'false'}
+      className="mp-altCard" data-selected={selected ? 'true' : 'false'} data-expanded={expanded ? 'true' : 'false'}
       aria-label={row.name}
       onClick={() => { if (!busy) onSelect(row.id) }}
     >
@@ -47,21 +52,27 @@ function CandidateCard({ t, row, selected, busy, onSelect }: {
             : row.status === 'rejected' ? t('altStatusRejected') : t('altStatusCandidate')}
         </Tag>
       </header>
-      <p className="mp-altCardSummary">{row.summary}</p>
+      <p className="mp-altCardSummary">{clean(row.summary)}</p>
       <dl className="mp-altCardFacts">
         <dt>{t('altComponents')}</dt>
-        <dd>{row.components.join(' · ') || '—'}</dd>
+        <dd>{row.components.map(clean).join(' · ') || '—'}</dd>
         <dt>{t('altStrengths')}</dt>
-        <dd>{row.strengths.join('；') || '—'}</dd>
+        <dd>{row.strengths.map(clean).join('；') || '—'}</dd>
         <dt>{t('altLimitations')}</dt>
-        <dd>{row.limitations.join('；') || '—'}</dd>
+        <dd>{row.limitations.map(clean).join('；') || '—'}</dd>
         <dt>{t('altRisks')}</dt>
-        <dd>{row.risks.join('；') || '—'}</dd>
+        <dd>{row.risks.map(clean).join('；') || '—'}</dd>
         <dt>{t('altUnknowns')}</dt>
-        <dd className="mp-altUnknowns">{row.unknowns.join('；') || '—'}</dd>
+        <dd className="mp-altUnknowns">{row.unknowns.map(clean).join('；') || '—'}</dd>
       </dl>
       <footer className="mp-altCardFoot">
         <span className="mp-caption">{`${t('colEvidence')}: ${String(row.evidenceIds.length)}`}</span>
+        <button
+          type="button" className="mp-link mp-caption" aria-expanded={expanded}
+          onClick={event => { event.stopPropagation(); setExpanded(current => !current) }}
+        >
+          {expanded ? t('altCollapseAll') : t('altExpandAll')}
+        </button>
       </footer>
     </article>
   )
@@ -72,14 +83,24 @@ export function AlternativesPage({ t, projectId }: { t: MarketPilotText; project
   const [selected, setSelected] = useState<string>('')
   const [rationale, setRationale] = useState('')
   const alternatives = useAlternatives(projectId)
-  const requirements = useRequirements(projectId, { status: 'confirmed', pageSize: 100 })
+  const requirements = useRequirements(projectId, { pageSize: 100 })
+  const evidence = useEvidencePage(projectId, {})
   const workflow = useToolWorkflow(projectId, ['marketpilot_alternative_generate', 'marketpilot_decision_confirm'],
     'alternative_generation', t, alternatives.refresh)
   const rows = alternatives.rows ?? []
-  const chosen = rows.find(row => row.id === selected)
-  const confirmed = [...requirements.page?.requirements ?? []]
+  // All requirements and evidence feed the short-code index (old runs may
+  // reference either in stored summaries); confirmed ones drive the matrix.
+  const allRequirements = useMemo(() => requirements.page?.requirements ?? [], [requirements.page])
+  const allEvidence = useMemo(() => evidence.page?.evidence ?? [], [evidence.page])
+  const confirmed = useMemo(() => [...allRequirements]
+    .filter(row => row.status === 'confirmed')
     .sort((left, right) => (left.priority === 'must' ? 0 : 1) - (right.priority === 'must' ? 0 : 1)
-      || left.shortId.localeCompare(right.shortId))
+      || left.shortId.localeCompare(right.shortId)), [allRequirements])
+  const codeIndex = useMemo(
+    () => buildShortCodeIndex({ requirements: allRequirements, evidence: allEvidence }),
+    [allRequirements, allEvidence])
+  const clean = useCallback((text: string) => codeIndex.replace(text), [codeIndex])
+  const chosen = rows.find(row => row.id === selected)
   const submit = (): void => {
     if (chosen === undefined || rationale.trim() === '' || workflow.busy) return
     void workflow.start('marketpilot_decision_confirm', {
@@ -88,7 +109,7 @@ export function AlternativesPage({ t, projectId }: { t: MarketPilotText; project
     })
   }
   return (
-    <div>
+    <div className="mp-altPage">
       <h2 className="mp-sectionTitle" style={{ marginTop: 0 }}>{t('alternativesTitle')}</h2>
       <div className="mp-toolbar">
         <button
@@ -110,7 +131,7 @@ export function AlternativesPage({ t, projectId }: { t: MarketPilotText; project
             : (
               <div className="mp-altGrid" data-count={String(Math.min(rows.length, 3))}>
                 {rows.map(row => (
-                  <CandidateCard key={row.id} t={t} row={row} selected={selected === row.id} busy={workflow.busy} onSelect={setSelected} />
+                  <CandidateCard key={row.id} t={t} row={row} selected={selected === row.id} busy={workflow.busy} onSelect={setSelected} clean={clean} />
                 ))}
               </div>
             )}

@@ -3,11 +3,12 @@
  * time, cancel for in-flight work, a project jump for follow-up, and an
  * expandable real step timeline. The timeline binds to the execution's exact
  * runId only — a missing id shows 暂无对应运行记录, never a lookalike run of
- * the same type.
+ * the same type. RunHistoryCard renders one persisted workflow-run record
+ * (the history section that survives host restarts).
  */
 import { useEffect, useState } from 'react'
 import { StateDot, Tag } from '@deepseek-ai/dsh-client-ui-primitives'
-import { api, type WorkflowRunView } from '../api.ts'
+import { api, type HistoryRunRow, type WorkflowRunView } from '../api.ts'
 import { formatDuration, formatTime } from '../format.ts'
 import { useElapsed } from '../hooks/useExecution.ts'
 import type { MarketPilotText, MarketPilotTextKey } from '../locales.ts'
@@ -15,7 +16,7 @@ import type { TrackedExecution } from '../hooks/executionStore.ts'
 import { executionStore } from '../hooks/executionStore.ts'
 
 /** Map a tool name to its workflow-run type for the display label. */
-const RUN_TYPE_BY_TOOL: Record<string, string> = {
+export const RUN_TYPE_BY_TOOL: Record<string, string> = {
   marketpilot_requirement_extract: 'requirement_analysis',
   marketpilot_competitor_extract: 'competitor_analysis',
   marketpilot_policy_extract: 'policy_analysis',
@@ -23,6 +24,11 @@ const RUN_TYPE_BY_TOOL: Record<string, string> = {
   marketpilot_solution_generate: 'solution_generation',
   marketpilot_tender_extract: 'tender_review',
   marketpilot_tender_review: 'tender_review',
+}
+
+/** Localized run-type label with the raw fallback for unknown types. */
+function runTypeLabel(t: MarketPilotText, type: string): string {
+  return t(`runType.${type}` as MarketPilotTextKey)
 }
 
 /** Exact-runId lookup outcome for the step timeline. */
@@ -80,8 +86,7 @@ export function TaskCard({ t, execution, projectName, onOpenProject }: {
         {projectName === undefined ? null : <span className="mp-caption">{projectName}</span>}
         <span className="mp-toolbarSpacer" />
         <span className="mp-caption">{active ? elapsedText : formatTime(execution.startedAt)}</span>
-      </div>
-      <div className="mp-taskMeta">
+      </div>      <div className="mp-taskMeta">
         <Tag tone={execution.status === 'completed' ? 'success'
           : execution.status === 'failed' ? 'danger'
             : execution.status === 'waiting_human' ? 'warning' : 'neutral'}>
@@ -127,6 +132,65 @@ export function TaskCard({ t, execution, projectName, onOpenProject }: {
                 ))}
               </ol>
             )
+      ) : null}
+    </div>
+  )
+}
+
+/**
+ * One persisted workflow-run record in the task center's history section:
+ * real recorded state and steps from storage — this is what remains visible
+ * after a host restart, when the in-memory execution registry is empty.
+ */
+export function RunHistoryCard({ t, run, onOpenProject }: {
+  t: MarketPilotText
+  run: HistoryRunRow
+  onOpenProject: (projectId: string) => void
+}) {
+  const [expanded, setExpanded] = useState(false)
+  return (
+    <div className="mp-taskCard" data-status={run.status}>
+      <div className="mp-taskHead">
+        <StateDot state={run.status === 'completed' ? 'done'
+          : run.status === 'failed' ? 'error'
+            : run.status === 'waiting_human' ? 'warning'
+              : run.status === 'cancelled' ? 'idle' : 'ongoing'} />
+        <span className="mp-cellMain">{runTypeLabel(t, run.type)}</span>
+        <span className="mp-caption">{run.projectName}</span>
+        <span className="mp-toolbarSpacer" />
+        <span className="mp-caption">{formatTime(run.startedAt)}</span>
+      </div>
+      <div className="mp-taskMeta">
+        <Tag tone={run.status === 'completed' ? 'success'
+          : run.status === 'failed' ? 'danger'
+            : run.status === 'waiting_human' ? 'warning' : 'neutral'}>
+          {t(`runStatus.${run.status}` as MarketPilotTextKey)}
+        </Tag>
+        {run.durationMs !== undefined ? (
+          <span className="mp-caption">{`${t('elapsedLabel')} ${formatDuration(run.durationMs)}`}</span>
+        ) : null}
+        {run.error === undefined || run.error === '' ? null : <span className="mp-errorText">{run.error}</span>}
+      </div>
+      <div className="mp-taskActions">
+        <button type="button" className="mp-link" onClick={() => { onOpenProject(run.projectId) }}>
+          {t('taskOpenProject')}
+        </button>
+        {run.steps.length === 0 ? null : (
+          <button type="button" className="mp-link" onClick={() => { setExpanded(current => !current) }}>
+            {expanded ? t('taskHideSteps') : t('taskShowSteps')}
+          </button>
+        )}
+      </div>
+      {expanded && run.steps.length > 0 ? (
+        <ol className="mp-steps">
+          {run.steps.map((step, index) => (
+            <li key={`${step.step}-${String(index)}`} className="mp-step"
+              data-state={index === run.steps.length - 1 && run.status !== 'completed' ? 'current' : 'done'}>
+              {t(`step.${step.step}` as MarketPilotTextKey)}
+              <span className="mp-caption">{formatTime(step.at)}</span>
+            </li>
+          ))}
+        </ol>
       ) : null}
     </div>
   )

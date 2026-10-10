@@ -2,6 +2,7 @@ import { tenderInput, validateTenderStatus } from '../domain/tender.ts'
 import { RecordService, requiredRecord } from './records.ts'
 import type { ServiceContext } from './project.ts'
 import { tenderExtraction, tenderReview } from '../domain/tender-analysis.ts'
+import { advanceProjectStatus } from '../domain/state.ts'
 import { ensure, ids } from '../domain/common.ts'
 import { businessVersion } from './generation.ts'
 import { completeRun } from './workflow.ts'
@@ -39,6 +40,7 @@ export class TenderService extends RecordService<'tenderItems'> {
       const rows = data.clauses.map(c => ({ ...c, ...this.ctx.fields(projectId), status: 'unknown' as const,
         requirementIds: [], evidenceIds: [], action: '匹配需求与已核验证据，并复核符合性。' }))
       s.tenderItems.push(...rows)
+      advanceProjectStatus(s, 'tender_review', this.ctx.now())
       completeRun(run, this.ctx.now(), { tenderItemIds: rows.map(r => r.id) })
     })
     return requiredRecord(state, 'workflowRuns', runId)
@@ -64,8 +66,9 @@ export class TenderService extends RecordService<'tenderItems'> {
       }
       const rows = selected.map(id => requiredRecord(s, 'tenderItems', id))
       const artifact = { ...this.ctx.fields(projectId), name: 'Compliance Matrix.md', type: 'compliance_matrix' as const,
-        format: 'markdown' as const, content: renderCompliance(rows), workflowRunId: run.id, reviewStatus: 'draft' as const }
+        format: 'markdown' as const, content: renderCompliance(s, rows), workflowRunId: run.id, reviewStatus: 'draft' as const }
       s.artifacts.push(artifact)
+      advanceProjectStatus(s, 'tender_review', this.ctx.now())
       completeRun(run, this.ctx.now(), { tenderItemIds: selected, artifactId: artifact.id })
     })
     return requiredRecord(state, 'workflowRuns', runId)

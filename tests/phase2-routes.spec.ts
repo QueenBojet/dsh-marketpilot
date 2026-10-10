@@ -130,7 +130,8 @@ describe('MarketPilot Phase 2 routes', () => {
     expect(page.total).toBe(3)
     expect(page.counts).toMatchObject({ proposed: 1, unknown: 1, conflict: 1 })
     expect(page.requirements[0]).toMatchObject({ sourceDocumentName: 'brief.md' })
-    expect(page.requirements[0]!.shortId).toHaveLength(8)
+    // Short codes are business labels (REQ-01…), not raw id fragments.
+    expect(page.requirements[0]!.shortId).toMatch(/^REQ-\d{2}$/)
     expect(JSON.stringify(page.requirements)).toContain('连续监测')
     const filtered = await call('GET', `/marketpilot/api/projects/${project.id}/requirements?status=proposed`)
     expect((filtered.body as { total: number; requirements: unknown[] }).total).toBe(1)
@@ -218,5 +219,33 @@ describe('MarketPilot Phase 2 routes', () => {
     }
     expect(done.status).toBe('completed')
     expect(services.requirements.get(project.id, row!.id).status).toBe('confirmed')
+  })
+
+  it('lists persisted runs across projects for the task-center history', async () => {
+    const { call, project, services } = await phase2Harness()
+    // Two persisted runs in the first project, one in a second project.
+    // (requirement_analysis transitions demand confirmed requirements, so the
+    // history rows here use research/tender types.)
+    const runA = await services.workflows.start(project.id, { type: 'competitor_analysis', input: {} })
+    await services.workflows.complete(project.id, runA.id)
+    const runB = await services.workflows.start(project.id, { type: 'policy_analysis', input: {} })
+    await services.workflows.cancel(project.id, runB.id)
+    const other = await services.projects.create({ name: '历史第二项目' })
+    const runC = await services.workflows.start(other.id, { type: 'tender_review', input: {} })
+    await services.workflows.fail(other.id, runC.id, 'No source text')
+    const listed = await call('GET', '/marketpilot/api/runs?limit=10')
+    expect(listed.status).toBe(200)
+    const runs = (listed.body as { runs: Record<string, unknown>[] }).runs
+    expect(runs).toHaveLength(3)
+    // Every row carries its owning project — the history survives restarts.
+    expect(runs.map(run => run.projectName)).toContain('匿名监测需求测试')
+    expect(runs.map(run => run.projectName)).toContain('历史第二项目')
+    const byId = new Map(runs.map(run => [run.id, run]))
+    expect(byId.get(runA.id)).toMatchObject({ status: 'completed', type: 'competitor_analysis' })
+    expect(byId.get(runB.id)).toMatchObject({ status: 'cancelled', type: 'policy_analysis' })
+    expect(byId.get(runC.id)).toMatchObject({ status: 'failed', type: 'tender_review' })
+    // Newest first.
+    const startedAts = runs.map(run => (run.startedAt as string))
+    expect([...startedAts].sort((a, b) => b.localeCompare(a))).toEqual(startedAts)
   })
 })

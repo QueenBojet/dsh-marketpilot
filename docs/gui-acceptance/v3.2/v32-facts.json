@@ -1,0 +1,83 @@
+{
+  "shots": [],
+  "checks": {
+    "homeStats": [
+      "8项目",
+      "4待审核事项",
+      "0进行中任务"
+    ],
+    "stageStates": [
+      {
+        "label": "项目概览",
+        "state": null
+      },
+      {
+        "label": "01 资料与需求",
+        "state": "done"
+      },
+      {
+        "label": "02 情报研究",
+        "state": "done"
+      },
+      {
+        "label": "03 证据审查",
+        "state": null
+      },
+      {
+        "label": "04 技术路线",
+        "state": "done"
+      },
+      {
+        "label": "05 方案生成",
+        "state": "current"
+      },
+      {
+        "label": "06 投标检查",
+        "state": "pending"
+      },
+      {
+        "label": "项目成果",
+        "state": null
+      }
+    ],
+    "altCardFacts": {
+      "expanded": "false",
+      "hasExpandButton": true
+    },
+    "altExpanded": "true",
+    "artifactReader": {
+      "singleColumn": true,
+      "legacyGrid": false,
+      "codeMapPresent": true,
+      "codeMapHasReq": true,
+      "rawUuidVisible": false
+    },
+    "solutionReader": {
+      "codeMapPresent": true,
+      "rawUuidVisible": false
+    },
+    "tenderDrawer": {
+      "rawUuidVisible": false,
+      "hasCodeMap": true
+    },
+    "tasks": {
+      "historyTitlePresent": true,
+      "cardCount": 28,
+      "hasExpandable": true
+    },
+    "header1024": {
+      "headerHeight": 53,
+      "navWrapped": false
+    },
+    "stageStrip1024": {
+      "rows": 35,
+      "scrollable": true
+    },
+    "decisionBar1024": {
+      "position": "static"
+    }
+  },
+  "projectName": "CALM 漏油监测桌面版演示",
+  "lightRestored": true,
+  "pageErrors": 0
+}

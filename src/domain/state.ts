@@ -66,6 +66,24 @@ export type ProjectState = z.infer<typeof stateSchema>
 export type Collection = Exclude<keyof ProjectState, 'project' | 'revision'>
 export type RecordOf<K extends Collection> = ProjectState[K][number]
 
+/** Forward-only project status order; `archived` is terminal. */
+const STATUS_ORDER: readonly ProjectState['project']['status'][] = [
+  'draft', 'requirements_ready', 'researching', 'alternatives_ready',
+  'decision_confirmed', 'solution_ready', 'tender_review', 'archived',
+]
+
+/**
+ * Move the project status forward only — a completed workflow never drags the
+ * stage baseline backwards, and archived projects stay archived. Passing the
+ * clock also refreshes the project's updatedAt, keeping 最近项目 ordering honest.
+ */
+export function advanceProjectStatus(s: ProjectState, next: ProjectState['project']['status'], now?: string): void {
+  if (STATUS_ORDER.indexOf(next) > STATUS_ORDER.indexOf(s.project.status)) {
+    s.project.status = next
+    if (now !== undefined) s.project.updatedAt = now
+  }
+}
+
 /** Return an explicit prerequisite result without letting a model select a route. */
 export function solutionPrerequisites(s: ProjectState): { status: 'ready' | 'waiting_human' | 'prerequisite_error'; reason: string } {
   if (!s.requirements.some(r => r.status === 'confirmed')) return { status: 'prerequisite_error', reason: '请先确认客户需求。' }

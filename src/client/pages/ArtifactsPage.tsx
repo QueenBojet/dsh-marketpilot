@@ -1,20 +1,26 @@
 /**
  * Project artifacts: metadata list with reviewStatus badges and a reader view
  * that renders markdown through the shared untrusted-GFM renderer — never a
- * raw <pre> — preserving UNKNOWN sections and citations. Export goes through
- * the guarded `marketpilot_artifact_export` tool (a real human gate) with an
- * explicit new absolute path; the browser never writes files itself.
+ * raw <pre> — preserving UNKNOWN sections and citations. The reader is a true
+ * single-column document layout (no reserved side rail), with a readable
+ * measure, horizontally scrollable tables, and business short codes in place
+ * of raw UUIDs plus a collapsible code map for traceability. Export goes
+ * through the guarded `marketpilot_artifact_export` tool (a real human gate)
+ * with an explicit new absolute path; the browser never writes files itself.
  */
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { MarkdownText, Tag } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { ArtifactMetaRow } from '../api.ts'
+import { CodeMapPanel } from '../components/CodeMapPanel.tsx'
 import { EmptyState, ErrorState, LoadingState } from '../components/States.tsx'
 import { WorkflowSurface } from '../components/WorkflowSurface.tsx'
 import { formatTime } from '../format.ts'
 import { executionStore } from '../hooks/executionStore.ts'
 import { useArtifact, useArtifacts } from '../hooks/useExecution.ts'
+import { useProjectDetail } from '../hooks/useProjects.ts'
 import { useDrawerKeys } from '../hooks/useDrawerKeys.ts'
 import { useToolWorkflow } from '../hooks/usePhase4.ts'
+import { projectShortCodeIndex } from '../shortCodes.ts'
 import type { MarketPilotText, MarketPilotTextKey } from '../locales.ts'
 
 /** reviewStatus → Tag tone; draft stays amber until the human review. */
@@ -31,6 +37,8 @@ export function ArtifactsPage({ t, projectId }: { t: MarketPilotText; projectId:
   const [notice, setNotice] = useState('')
   const list = useArtifacts(projectId)
   const detail = useArtifact(projectId, openId)
+  const project = useProjectDetail(projectId)
+  const codeIndex = useMemo(() => project.detail === null ? null : projectShortCodeIndex(project.detail), [project.detail])
   const workflow = useToolWorkflow(projectId, ['marketpilot_artifact_export'], 'artifact_export',
     t, list.refresh)
   if (list.error !== '') return <ErrorState t={t} message={list.error} onRetry={list.refresh} />
@@ -46,6 +54,9 @@ export function ArtifactsPage({ t, projectId }: { t: MarketPilotText; projectId:
       .catch(() => { setNotice(t('exportFailed')) })
       .finally(() => { setExportBusy(false) })
   }
+  const displayContent = detail.artifact === null || detail.artifact.format !== 'markdown'
+    ? null
+    : codeIndex === null ? detail.artifact.content : codeIndex.replace(detail.artifact.content)
   return (
     <div>
       <h2 className="mp-sectionTitle" style={{ marginTop: 0 }}>{t('artifactsTitle')}</h2>
@@ -119,14 +130,13 @@ export function ArtifactsPage({ t, projectId }: { t: MarketPilotText; projectId:
                 : detail.loading ? <LoadingState t={t} />
                   : detail.artifact === null ? null
                     : detail.artifact.format === 'markdown' ? (
-                      <div className="mp-readerLayout">
-                        <div className="mp-readerDocument">
-                          <MarkdownText
-                            text={detail.artifact.content}
-                            labels={{ code: { copyLabel: t('mdCopy'), copiedLabel: t('mdCopied') }, footnotes: t('mdFootnotes') }}
-                          />
-                        </div>
-                      </div>
+                      <article className="mp-readerSingle">
+                        <CodeMapPanel t={t} index={codeIndex} />
+                        <MarkdownText
+                          text={displayContent ?? ''}
+                          labels={{ code: { copyLabel: t('mdCopy'), copiedLabel: t('mdCopied') }, footnotes: t('mdFootnotes') }}
+                        />
+                      </article>
                     ) : (
                       <pre className="mp-dialogPre">{detail.artifact.content}</pre>
                     )}

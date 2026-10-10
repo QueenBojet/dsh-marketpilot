@@ -111,6 +111,18 @@ const PANEL_CSS = `
 .mp-readerTocItem[data-level='3']{padding-left:24px}
 .mp-readerTocTop{color:var(--dsw-alias-state-business-primary);margin-bottom:6px}
 .mp-readerDocument{overflow-y:auto;padding:20px 32px;min-height:0}
+/* True single-column reading layout (artifact reader): readable measure,
+   centered, no reserved side grid column. Tables scroll horizontally inside
+   the column instead of stretching the page. */
+.mp-readerSingle{flex:1 1 auto;min-height:0;overflow-y:auto;width:100%;max-width:880px;margin:0 auto;padding:20px 32px}
+.mp-readerSingle table,.mp-readerDocument table{display:block;width:max-content;max-width:100%;overflow-x:auto}
+/* Collapsible short-code map shown at the top of formal readers. */
+.mp-codeMap{border:1px solid var(--dsw-alias-border-l2);border-radius:var(--dsw-radius-md);padding:8px 12px;margin:0 0 16px;background:var(--dsw-alias-bg-skeleton)}
+.mp-codeMap summary{cursor:pointer}
+.mp-codeMapList{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:4px}
+.mp-codeMapRow{display:flex;gap:8px;align-items:baseline}
+.mp-codeMapRow code{flex:none}
+.mp-codeMapRow .mp-caption{overflow-wrap:anywhere}
 .mp-verifyForm{display:flex;flex-direction:column;gap:8px;border:1px solid var(--dsw-alias-border-l2);border-radius:var(--dsw-radius-md);padding:12px;margin-top:12px}
 .mp-altGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;align-items:stretch;margin-bottom:16px}
 .mp-altGrid[data-count='2']{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -120,14 +132,19 @@ const PANEL_CSS = `
 .mp-altCard[data-selected='true']{border-color:var(--dsw-alias-state-business-primary);box-shadow:0 0 0 1px var(--dsw-alias-state-business-primary)}
 .mp-altCardHead{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .mp-altCardTitle{font-size:15px;font-weight:600;margin:0;min-width:0;overflow-wrap:anywhere}
-.mp-altCardSummary{margin:0;font-size:13px}
+.mp-altCardSummary{margin:0;font-size:13px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
 .mp-altCardFacts{margin:0;display:flex;flex-direction:column;gap:6px;font-size:12.5px}
 .mp-altCardFacts dt{color:var(--dsw-alias-label-tertiary);font-size:11.5px}
-.mp-altCardFacts dd{margin:0;overflow-wrap:anywhere}
+.mp-altCardFacts dd{margin:0;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.mp-altCard[data-expanded='true'] .mp-altCardSummary,
+.mp-altCard[data-expanded='true'] .mp-altCardFacts dd{display:block;-webkit-line-clamp:unset;overflow:visible}
 .mp-altUnknowns{color:var(--dsw-alias-state-warn-primary)}
-.mp-altCardFoot{margin-top:auto;display:flex;justify-content:flex-end}
+.mp-altCardFoot{margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .mp-coverageBlock{margin-top:16px}
-.mp-decisionBar{position:sticky;bottom:0;z-index:5;display:flex;align-items:center;gap:12px;flex-wrap:wrap;border:1px solid var(--dsw-alias-border-l2);border-radius:var(--dsw-radius-md);padding:12px 16px;margin-top:16px;background:var(--dsw-alias-bg-base);box-shadow:0 -4px 18px color-mix(in srgb,var(--dsw-static-neutral-bluish-1000) 8%,transparent)}
+/* The decision bar rests in normal flow after the coverage matrix: it never
+   overlays body text at any width (the V3.1 sticky bar covered the matrix
+   rows while scrolling). */
+.mp-decisionBar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;border:1px solid var(--dsw-alias-border-l2);border-radius:var(--dsw-radius-md);padding:12px 16px;margin:16px 0 4px;background:var(--dsw-alias-bg-base)}
 .mp-decisionBarMain{display:flex;flex-direction:column;gap:2px;min-width:180px}
 .mp-decisionInput{min-height:44px;flex:1 1 260px}
 .mp-exportBar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 16px;border-bottom:1px solid var(--dsw-alias-border-l2)}
@@ -152,7 +169,11 @@ const PANEL_CSS = `
 .mp-planned{border:1px dashed var(--dsw-alias-border-l3);border-radius:var(--dsw-radius-md);padding:32px 24px;text-align:center}
 .mp-plannedTitle{font-size:15px;font-weight:600;margin:0 0 6px}
 .mp-plannedBody{color:var(--dsw-alias-label-tertiary);font-size:13px;margin:0}
-@media (max-width:1024px){.mp-layout{grid-template-columns:1fr}.mp-stageNav{position:static;flex-direction:row;flex-wrap:wrap}.mp-cards,.mp-overviewGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.mp-homeGrid{grid-template-columns:1fr}.mp-countGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.mp-altGrid[data-count='2'],.mp-altGrid[data-count='3']{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}}
+/* Narrow panels: reclaim the brand description earlier so the top navigation
+   never wraps, compact the chrome, and turn the stage list into one
+   horizontally scrollable strip so the first screen shows real content. */
+@media (max-width:1200px){.mp-brandDesc{display:none}.mp-header{padding:0 16px}}
+@media (max-width:1024px){.mp-layout{grid-template-columns:1fr}.mp-stageNav{position:static;flex-direction:row;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;padding-bottom:4px}.mp-stageItem{width:auto;flex:0 0 auto;white-space:nowrap;padding:7px 10px}.mp-cards,.mp-overviewGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.mp-homeGrid{grid-template-columns:1fr}.mp-countGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.mp-altGrid[data-count='2'],.mp-altGrid[data-count='3']{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}.mp-header{height:52px;gap:8px}.mp-headerNav{margin-left:0;gap:2px}.mp-headerNavItem{padding:5px 9px;font-size:12.5px}.mp-scroll{padding:16px}.mp-layout{gap:16px}.mp-projectHeader{margin-bottom:12px}.mp-sectionTitle{margin:16px 0 10px}}
 @media (max-width:720px){.mp-cards,.mp-overviewGrid,.mp-countGrid{grid-template-columns:1fr}.mp-brandDesc{display:none}.mp-projectHeader{flex-direction:column}}
 .mp-subTitle{font-size:15px;font-weight:600;margin:20px 0 8px}
 .mp-dropzone{display:flex;align-items:center;gap:12px;flex-wrap:wrap;border:1px dashed var(--dsw-alias-border-l3);border-radius:var(--dsw-radius-md);padding:12px 16px}

@@ -5,6 +5,7 @@ import type {} from '@deepseek-ai/dsh-storage-domain'
 import type { MarketPilotService } from './service.ts'
 import { WorkbenchManager } from './workbench.ts'
 import { ensure, MarketPilotError } from '../domain/common.ts'
+import { buildShortCodeIndex } from '../domain/shortcodes.ts'
 
 const API_PREFIX = '/marketpilot/api'
 const MAX_BODY_BYTES = 1024 * 1024
@@ -91,6 +92,12 @@ interface WorkflowRunRow {
   output?: { requirementIds?: string[]; unknownIds?: string[]; artifactId?: string } | null
 }
 
+/** One persisted workflow run with its owning project, for the task center history. */
+interface ProjectRunRow extends WorkflowRunRow {
+  projectId: string
+  projectName: string
+}
+
 interface ArtifactRow {
   id: string; name: string; type: string; format: string; content: string
   reviewStatus: string; workflowRunId?: string; createdAt: string; updatedAt: string
@@ -167,9 +174,10 @@ function documentProjection(row: DocumentRow): Record<string, unknown> {
 }
 
 /** Requirement list projection with the source document name resolved for the drawer. */
-function requirementProjection(row: RequirementRow, documentName: string | undefined): Record<string, unknown> {
+function requirementProjection(row: RequirementRow, documentName: string | undefined,
+  codeOf: (id: string) => string | undefined): Record<string, unknown> {
   return {
-    id: row.id, shortId: row.id.slice(0, 8), originalText: row.originalText, normalizedText: row.normalizedText,
+    id: row.id, shortId: codeOf(row.id) ?? row.id.slice(0, 8), originalText: row.originalText, normalizedText: row.normalizedText,
     type: row.type, priority: row.priority, status: row.status,
     sourceDocumentId: row.sourceDocumentId,
     ...documentName === undefined ? {} : { sourceDocumentName: documentName },
@@ -281,6 +289,7 @@ export function mountWorkbenchRoutes(ctx: Context, workbench: WorkbenchManager):
             const all = marketpilot.services.requirements.list(projectId) as RequirementRow[]
             const nameOf = new Map((marketpilot.services.documents.list(projectId) as DocumentRow[])
               .map(row => [row.id, row.name] as const))
+            const reqCodes = buildShortCodeIndex({ requirements: all })
             const status = parsedUrl.searchParams.get('status')
             const query = (parsedUrl.searchParams.get('q') ?? '').trim().toLowerCase()
             const filtered = all
@@ -294,8 +303,24 @@ export function mountWorkbenchRoutes(ctx: Context, workbench: WorkbenchManager):
             return sendJson(response, 200, {
               total: filtered.length, page, pageSize, counts,
               requirements: filtered.slice(start, start + pageSize)
-                .map(row => requirementProjection(row, nameOf.get(row.sourceDocumentId))),
+                .map(row => requirementProjection(row, nameOf.get(row.sourceDocumentId), id => reqCodes.codeOf(id))),
             })
+          }
+          // GET /runs?limit= → persisted runs across projects (task-center history
+          // that survives host restarts), newest first.
+          if (method === 'GET' && segments.length === 1 && segments[0] === 'runs') {
+            const limit = Math.min(Math.max(Number(parsedUrl.searchParams.get('limit') ?? 40) || 40, 1), 100)
+            const projects = marketpilot.services.projects.list() as { id: string; name: string }[]
+            const rows: ProjectRunRow[] = []
+            for (const project of projects) {
+              const runs = marketpilot.services.workflows.list(project.id) as WorkflowRunRow[]
+              for (const run of runs.slice(-20)) {
+                rows.push({ ...run, projectId: project.id, projectName: project.name })
+              }
+            }
+            rows.sort((left, right) => right.startedAt.localeCompare(left.startedAt)
+              || right.updatedAt.localeCompare(left.updatedAt))
+            return sendJson(response, 200, { runs: rows.slice(0, limit) })
           }
           // GET /projects/:id/runs?type=&active=1 → workflow-run timeline snapshots.
           if (method === 'GET' && segments.length === 3 && segments[0] === 'projects' && segments[2] === 'runs') {

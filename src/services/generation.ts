@@ -2,11 +2,11 @@ import { createHash } from 'node:crypto'
 import { z } from 'zod'
 import { alternativesOutput, sectionOutput, sectionTitles, validateSection } from '../domain/generation.ts'
 import { ensure } from '../domain/common.ts'
-import { solutionPrerequisites } from '../domain/state.ts'
+import { advanceProjectStatus, solutionPrerequisites } from '../domain/state.ts'
 import type { ProjectState } from '../domain/state.ts'
 import type { ServiceContext } from './project.ts'
 import { requiredRecord } from './records.ts'
-import { renderAlternatives, renderSolution } from '../render/generation.ts'
+import { projectCodeIndex, renderAlternatives, renderSolution } from '../render/generation.ts'
 import { completeRun } from './workflow.ts'
 
 /** Workflow telemetry does not invalidate a business snapshot; concurrent business edits do. */
@@ -42,8 +42,11 @@ export class GenerationService {
       })
       s.alternatives.push(...rows)
       const artifact = { ...this.ctx.fields(projectId), name: 'Alternative Comparison.md', type: 'alternative_comparison' as const,
-        format: 'markdown' as const, content: renderAlternatives(rows), workflowRunId: run.id, reviewStatus: 'draft' as const }
+        format: 'markdown' as const, content: renderAlternatives(rows, projectCodeIndex(s)), workflowRunId: run.id, reviewStatus: 'draft' as const }
       s.artifacts.push(artifact)
+      // The candidates exist and now wait on the human Decision — move the
+      // stage baseline forward so the UI never shows a stale current stage.
+      advanceProjectStatus(s, 'alternatives_ready', this.ctx.now())
       completeRun(run, this.ctx.now(), { alternativeIds: rows.map(r => r.id), artifactId: artifact.id })
     })
     return requiredRecord(state, 'workflowRuns', runId)
@@ -63,6 +66,9 @@ export class GenerationService {
       const artifact = { ...this.ctx.fields(projectId), name: 'Solution.md', type: 'solution' as const,
         format: 'markdown' as const, content: renderSolution(s, sections), workflowRunId: run.id, reviewStatus: 'draft' as const }
       s.artifacts.push(artifact)
+      // A finished solution moves the stage baseline to 投标检查 — no stale
+      // "当前阶段：方案生成" hint after success.
+      advanceProjectStatus(s, 'solution_ready', this.ctx.now())
       completeRun(run, this.ctx.now(), { artifactId: artifact.id, decisionId: s.project.activeDecisionId! })
     })
     return requiredRecord(state, 'workflowRuns', runId)

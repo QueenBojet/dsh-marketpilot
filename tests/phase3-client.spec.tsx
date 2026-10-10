@@ -107,6 +107,7 @@ describe('TasksPage', () => {
       if (url === '/marketpilot/api/projects') return jsonResponse({ projects: [{ id: 'p1', name: '任务中心项目' }] })
       if (url === '/marketpilot/api/executions') return jsonResponse({ executions: [] })
       if (url.startsWith('/marketpilot/api/projects/p1/runs')) return jsonResponse(runsPayload)
+      if (url.startsWith('/marketpilot/api/runs')) return jsonResponse({ runs: [] })
       throw new Error(`unexpected fetch: ${url}`)
     })
     act(() => {
@@ -133,6 +134,7 @@ describe('TasksPage', () => {
       const url = String(input)
       if (url === '/marketpilot/api/projects') return jsonResponse({ projects: [{ id: 'p2', name: '精确关联项目' }] })
       if (url === '/marketpilot/api/executions') return jsonResponse({ executions: [] })
+      if (url.startsWith('/marketpilot/api/runs')) return jsonResponse({ runs: [] })
       // A same-type run exists, but its id differs from the execution's runId;
       // its distinctive step must never leak into this execution's timeline.
       if (url.startsWith('/marketpilot/api/projects/p2/runs')) {
@@ -163,12 +165,136 @@ describe('TasksPage', () => {
     expect(text()).not.toContain(t('step.LOAD_DOCUMENTS'))
     expect(text()).not.toContain(t('step.SAVE_REQUIREMENTS'))
   })
+
+  it('merges persisted run history when no live executions exist (after a host restart)', async () => {
+    const history = {
+      runs: [
+        { id: 'run-old', type: 'solution_generation', status: 'completed', currentStep: 'COMPLETED',
+          projectId: 'p1', projectName: '历史项目甲', startedAt: '2026-10-09T02:00:00.000Z', updatedAt: '2026-10-09T02:01:40.000Z',
+          steps: [{ step: 'START', at: '2026-10-09T02:00:00.000Z' }, { step: 'COMPLETED', at: '2026-10-09T02:01:40.000Z' }], durationMs: 100000 },
+        { id: 'run-older', type: 'tender_review', status: 'failed', currentStep: 'FAILED',
+          projectId: 'p9', projectName: '历史项目乙', startedAt: '2026-10-08T09:00:00.000Z', updatedAt: '2026-10-08T09:01:00.000Z',
+          steps: [{ step: 'START', at: '2026-10-08T09:00:00.000Z' }, { step: 'FAILED', at: '2026-10-08T09:01:00.000Z' }],
+          error: 'No source text' },
+      ],
+    }
+    fetchMock.mockImplementation(async (input: unknown) => {
+      const url = String(input)
+      if (url === '/marketpilot/api/projects') return jsonResponse({ projects: [] })
+      if (url === '/marketpilot/api/executions') return jsonResponse({ executions: [] })
+      if (url.startsWith('/marketpilot/api/runs')) return jsonResponse(history)
+      throw new Error(`unexpected fetch: ${url}`)
+    })
+    render(<TasksPage t={t} actions={noopActions} />)
+    await flush()
+    // The history section renders persisted records with project names and errors.
+    expect(text()).toContain(t('tasksHistoryTitle'))
+    expect(text()).toContain('历史项目甲')
+    expect(text()).toContain('历史项目乙')
+    expect(text()).toContain(t('runType.solution_generation'))
+    expect(text()).toContain('No source text')
+    // History steps expand from the persisted record itself.
+    act(() => {
+      const expand = [...container!.querySelectorAll('button')].filter(b => b.textContent === t('taskShowSteps'))
+      expand[0]!.click()
+    })
+    await flush()
+    expect(text()).toContain(t('step.COMPLETED'))
+  })
+
+  it('falls back to per-project runs when the cross-project route is missing (older host)', async () => {
+    fetchMock.mockImplementation(async (input: unknown) => {
+      const url = String(input)
+      if (url === '/marketpilot/api/projects') {
+        return jsonResponse({ projects: [{ id: 'p1', name: '项目甲' }, { id: 'p9', name: '项目乙' }] })
+      }
+      if (url === '/marketpilot/api/executions') return jsonResponse({ executions: [] })
+      if (url.startsWith('/marketpilot/api/runs')) return { ok: false, status: 404, json: async () => ({ error: '未知的工作台请求' }) }
+      if (url.startsWith('/marketpilot/api/projects/p1/runs')) {
+        return jsonResponse({ runs: [{ ...runsPayload.runs[0], id: 'run-1', status: 'completed', currentStep: 'COMPLETED',
+          steps: [{ step: 'COMPLETED', at: '2026-10-09T04:48:14.000Z' }], durationMs: 100000, projectId: undefined }] })
+      }
+      if (url.startsWith('/marketpilot/api/projects/p9/runs')) {
+        return jsonResponse({ runs: [{ id: 'run-9', type: 'tender_review', status: 'failed', currentStep: 'FAILED',
+          steps: [{ step: 'FAILED', at: '2026-10-08T09:01:00.000Z' }], startedAt: '2026-10-08T09:00:00.000Z',
+          updatedAt: '2026-10-08T09:01:00.000Z', error: 'No source text' }] })
+      }
+      throw new Error(`unexpected fetch: ${url}`)
+    })
+    render(<TasksPage t={t} actions={noopActions} />)
+    await flush()
+    expect(text()).toContain(t('tasksHistoryTitle'))
+    expect(text()).toContain('项目甲')
+    expect(text()).toContain('项目乙')
+    expect(text()).toContain(t('runType.tender_review'))
+    expect(text()).toContain('No source text')
+  })
+
+  it('does not duplicate a run already shown as a live execution', async () => {
+    const history = {
+      runs: [
+        { id: 'run-1', type: 'requirement_analysis', status: 'waiting_human', currentStep: 'WAITING_HUMAN',
+          projectId: 'p1', projectName: '任务中心项目', startedAt: '2026-10-09T04:46:34.000Z', updatedAt: '2026-10-09T04:48:14.000Z',
+          steps: [{ step: 'WAITING_HUMAN', at: '2026-10-09T04:48:14.000Z' }] },
+        { id: 'run-solo', type: 'tender_review', status: 'completed', currentStep: 'COMPLETED',
+          projectId: 'p1', projectName: '任务中心项目', startedAt: '2026-10-09T03:00:00.000Z', updatedAt: '2026-10-09T03:01:00.000Z',
+          steps: [{ step: 'COMPLETED', at: '2026-10-09T03:01:00.000Z' }] },
+      ],
+    }
+    fetchMock.mockImplementation(async (input: unknown) => {
+      const url = String(input)
+      if (url === '/marketpilot/api/projects') return jsonResponse({ projects: [{ id: 'p1', name: '任务中心项目' }] })
+      if (url === '/marketpilot/api/executions') return jsonResponse({ executions: [] })
+      if (url.startsWith('/marketpilot/api/runs')) return jsonResponse(history)
+      throw new Error(`unexpected fetch: ${url}`)
+    })
+    act(() => {
+      void executionStore.adopt({
+        callId: 'call-d1', tool: 'marketpilot_requirement_extract', status: 'waiting_human',
+        startedAt: new Date().toISOString(), projectId: 'p1', runId: 'run-1', question: null,
+      })
+    })
+    render(<TasksPage t={t} actions={noopActions} />)
+    await flush()
+    // The module-level execution registry keeps earlier tests' records, so the
+    // invariant is: total cards = live executions + persisted rows minus the
+    // persisted run that a live execution already represents (run-1).
+    const liveCount = executionStore.getSnapshot().length
+    const total = container!.querySelectorAll('.mp-taskCard').length
+    expect(total).toBe(liveCount + 1)
+    // And run-1 is never rendered twice: exactly one card binds its steps.
+    const runOneTitles = [...container!.querySelectorAll('.mp-taskCard .mp-cellMain')]
+      .filter(node => node.textContent === t('runType.requirement_analysis'))
+    expect(runOneTitles.length).toBe(
+      [...executionStore.getSnapshot()].filter(view => view.tool === 'marketpilot_requirement_extract').length)
+  })
 })
 
 describe('ArtifactsPage', () => {
+  const REQ_UUID = '11111111-1111-4111-8111-111111111111'
+  const artifactsDetail = {
+    ...detailPayload,
+    requirements: [{ id: REQ_UUID, normalizedText: '系统需 24 h 连续监测', status: 'confirmed', createdAt: '2026-10-09T05:00:00.000Z' }],
+  }
+
+  function artifactFetchMock(content: string): void {
+    fetchMock.mockImplementation(async (input: unknown) => {
+      const url = String(input)
+      if (url === '/marketpilot/api/projects/p1') return jsonResponse(artifactsDetail)
+      if (url === '/marketpilot/api/projects/p1/artifacts') return jsonResponse(artifactsList)
+      if (url === '/marketpilot/api/projects/p1/artifacts/a1') {
+        return jsonResponse({ artifact: { ...artifactsList.artifacts[0], content } })
+      }
+      if (url.includes('/runs')) return jsonResponse({ runs: [] })
+      if (url.includes('/executions')) return jsonResponse({ executions: [] })
+      throw new Error(`unexpected fetch: ${url}`)
+    })
+  }
+
   it('lists review badges and opens the markdown reader', async () => {
     fetchMock.mockImplementation(async (input: unknown) => {
       const url = String(input)
+      if (url === '/marketpilot/api/projects/p1') return jsonResponse(detailPayload)
       if (url === '/marketpilot/api/projects/p1/artifacts') return jsonResponse(artifactsList)
       if (url === '/marketpilot/api/projects/p1/artifacts/a1') {
         return jsonResponse({ artifact: { ...artifactsList.artifacts[0], content: '# 基线\n\nUNKNOWN / 待确认条件' } })
@@ -197,10 +323,44 @@ describe('ArtifactsPage', () => {
     expect(exportButton!.disabled).toBe(true)
   })
 
+  it('reads in a true single-column layout — no reserved 224px side grid column', async () => {
+    artifactFetchMock('# 基线\n\nUNKNOWN / 待确认条件')
+    render(<ArtifactsPage t={t} projectId="p1" />)
+    await flush()
+    act(() => {
+      const open = [...container!.querySelectorAll('button')].find(b => b.textContent === t('openArtifact'))
+      open!.click()
+    })
+    await flush()
+    // The reader document is a single-column article, never the 2-column grid.
+    expect(container!.querySelector('.mp-readerSingle')).not.toBeNull()
+    expect(container!.querySelector('.mp-readerLayout')).toBeNull()
+  })
+
+  it('shows business short codes instead of raw UUIDs, with the code map for traceability', async () => {
+    artifactFetchMock(`# 基线\n\n- [${REQ_UUID}] 系统需 24 h 连续监测\n`)
+    render(<ArtifactsPage t={t} projectId="p1" />)
+    await flush()
+    act(() => {
+      const open = [...container!.querySelectorAll('button')].find(b => b.textContent === t('openArtifact'))
+      open!.click()
+    })
+    await flush()
+    const markdown = container!.querySelector('[data-testid="mp-markdown"]')?.textContent ?? ''
+    expect(markdown).toContain('REQ-01')
+    expect(markdown).not.toContain(REQ_UUID)
+    // The collapsible code map keeps the full record id reachable.
+    const codeMap = container!.querySelector('details.mp-codeMap')
+    expect(codeMap?.textContent).toContain(t('codeMapTitle'))
+    expect(codeMap?.textContent).toContain(`（${REQ_UUID.slice(0, 8)}）`)
+    expect(codeMap?.textContent).toContain('系统需 24 h 连续监测')
+  })
+
   it('submits artifact export through the guarded tool with the typed path', async () => {
     const postedTools: { name: string; args: Record<string, unknown> }[] = []
     fetchMock.mockImplementation(async (input: unknown, init?: { method?: string; body?: string }) => {
       const url = String(input)
+      if (url === '/marketpilot/api/projects/p1') return jsonResponse(detailPayload)
       if (url === '/marketpilot/api/projects/p1/artifacts') return jsonResponse(artifactsList)
       if (url === '/marketpilot/api/projects/p1/artifacts/a1') {
         return jsonResponse({ artifact: { ...artifactsList.artifacts[0], content: '# 基线' } })
@@ -273,5 +433,33 @@ describe('ProjectOverviewPage stage navigation', () => {
     await flush()
     // The static view prop cannot re-render; the store's section change is the contract.
     expect(instance.getSnapshot().view).toEqual({ kind: 'project', projectId: 'p1', section: 'research' })
+  })
+
+  it('keeps the stage baseline consistent after a successful solution generation', async () => {
+    const solutionDetail = {
+      ...detailPayload,
+      project: { ...detailPayload.project, status: 'solution_ready' },
+    }
+    const solutionRuns = {
+      runs: [{ id: 'run-s1', type: 'solution_generation', status: 'completed', currentStep: 'COMPLETED',
+        steps: [{ step: 'START', at: '2026-10-09T04:00:00.000Z' }, { step: 'COMPLETED', at: '2026-10-09T04:01:30.000Z' }],
+        startedAt: '2026-10-09T04:00:00.000Z', updatedAt: '2026-10-09T04:01:30.000Z', durationMs: 90000, output: null }],
+    }
+    fetchMock.mockImplementation(async (input: unknown) => {
+      const url = String(input)
+      if (url === '/marketpilot/api/projects/p1') return jsonResponse(solutionDetail)
+      if (url.startsWith('/marketpilot/api/projects/p1/runs')) return jsonResponse(solutionRuns)
+      throw new Error(`unexpected fetch: ${url}`)
+    })
+    const instance = createMarketPilotStore().create()
+    instance.actions.openProject('p1')
+    render(<ProjectOverviewPage t={t} actions={instance.actions} view={{ kind: 'project', projectId: 'p1', section: 'overview' }} />)
+    await flush()
+    // 方案生成 shows done; the current stage is 投标检查 — no stale "current" hint
+    // on a stage whose workflow already finished.
+    const stages = [...container!.querySelectorAll<HTMLButtonElement>('button.mp-stageItem')]
+    expect(stages.find(b => b.textContent?.includes(t('sectionSolution')))?.getAttribute('data-state')).toBe('done')
+    expect(stages.find(b => b.textContent?.includes(t('sectionTender')))?.getAttribute('data-state')).toBe('current')
+    expect(text()).toContain(t('next.solution_ready'))
   })
 })

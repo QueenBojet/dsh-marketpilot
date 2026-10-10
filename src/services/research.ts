@@ -2,12 +2,14 @@ import { z } from 'zod'
 import { ensure, ids, text } from '../domain/common.ts'
 import type { Evidence } from '../domain/evidence.ts'
 import type { Competitor } from '../domain/research.ts'
+import { advanceProjectStatus } from '../domain/state.ts'
 import type { ProjectState } from '../domain/state.ts'
 import { competitorExtraction, policyExtraction } from '../domain/research-analysis.ts'
 import type { ServiceContext } from './project.ts'
 import { businessVersion } from './generation.ts'
 import { requiredRecord } from './records.ts'
 import { completeRun } from './workflow.ts'
+import { buildShortCodeIndex, renderCodeAppendix } from '../domain/shortcodes.ts'
 
 /** Quoted research remains draft SOURCE; absent facts remain UNKNOWN until verification. */
 export class ResearchService {
@@ -66,6 +68,7 @@ export class ResearchService {
       }
       s.competitors.push(...rows)
       for (const gap of data.gaps) s.evidence.push(this.evidence(projectId, '竞品研究缺项', gap, 'UNKNOWN'))
+      const codes = buildShortCodeIndex(s)
       const artifact = { ...this.ctx.fields(projectId), type: 'competitor_matrix' as const, name: 'Competitor Matrix.md',
         format: 'markdown' as const, reviewStatus: 'draft' as const, workflowRunId: run.id,
         content: ['# Competitor Matrix', '', '来源摘录尚未核验，不作为性能承诺。', '',
@@ -73,8 +76,11 @@ export class ResearchService {
             ...Object.entries(r.performance).map(([key, value]) => `- ${key}：${value ?? 'UNKNOWN'}`),
             `- 技术：${r.technology ?? 'UNKNOWN'}`, `- 认证：${r.certifications.join('、') || 'UNKNOWN'}`,
             `- 接口：${r.interfaces.join('、') || 'UNKNOWN'}`, `- 业绩：${r.cases.join('、') || 'UNKNOWN'}`,
-            `- 证据：${r.evidenceIds.join('、')}`, '']), '## UNKNOWN / 研究缺项', '', ...data.gaps.map(g => `- ${g}`), ''].join('\n') }
+            `- 证据：${r.evidenceIds.map(id => codes.codeOf(id) ?? id).join('、')}`, '']), '## UNKNOWN / 研究缺项', '', ...data.gaps.map(g => `- ${g}`), '',
+            renderCodeAppendix(codes),
+          ].join('\n') }
       s.artifacts.push(artifact)
+      advanceProjectStatus(s, 'researching', this.ctx.now())
       completeRun(run, this.ctx.now(), { competitorIds: rows.map(r => r.id), artifactId: artifact.id })
     })
     return requiredRecord(state, 'workflowRuns', runId)
@@ -97,6 +103,7 @@ export class ResearchService {
       })
       s.policies.push(...rows)
       for (const gap of data.gaps) s.evidence.push(this.evidence(projectId, '标准研究缺项', gap, 'UNKNOWN'))
+      advanceProjectStatus(s, 'researching', this.ctx.now())
       completeRun(run, this.ctx.now(), { policyIds: rows.map(r => r.id) })
     })
     return requiredRecord(state, 'workflowRuns', runId)

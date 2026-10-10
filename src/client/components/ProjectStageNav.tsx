@@ -8,14 +8,17 @@
 import type { MarketPilotText, MarketPilotTextKey } from '../locales.ts'
 import type { ProjectSection } from '../stores.ts'
 
-/** Which six-phase stage each project status maps to (0-5; 6 = archived/complete). */
+/** Which six-phase stage each project status maps to (0-5; 6 = archived/complete).
+ * The baseline marks the stage the user should work in NEXT — requirements_ready
+ * points at research (2), solution_ready at tender (5) — so a finished stage
+ * never lingers as the stale "current" one. */
 export const STAGE_BY_STATUS: Record<string, number> = {
   draft: 0,
-  requirements_ready: 1,
+  requirements_ready: 2,
   researching: 2,
   alternatives_ready: 3,
   decision_confirmed: 4,
-  solution_ready: 4,
+  solution_ready: 5,
   tender_review: 5,
   archived: 6,
 }

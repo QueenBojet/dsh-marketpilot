@@ -2,15 +2,20 @@
  * Tender compliance: clause extraction and review through the real tools.
  * A clause marked compliant requires verified FACT/SOURCE evidence — the
  * server downgrades anything weaker to unknown, and the page states so.
+ * The response drawer shows business short codes (EVD/REQ/TND) instead of
+ * raw UUIDs, with the full mapping one level down in the project context.
  */
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { TenderItemProjection } from '../api.ts'
 import { Tag } from '@deepseek-ai/dsh-client-ui-primitives'
+import { CodeMapPanel } from '../components/CodeMapPanel.tsx'
 import { EmptyState, ErrorState, LoadingState } from '../components/States.tsx'
 import { WorkflowSurface } from '../components/WorkflowSurface.tsx'
 import { useDrawerKeys } from '../hooks/useDrawerKeys.ts'
 import { useDocuments } from '../hooks/useExecution.ts'
+import { useProjectDetail } from '../hooks/useProjects.ts'
 import { useTenderItems, useToolWorkflow } from '../hooks/usePhase4.ts'
+import { projectShortCodeIndex } from '../shortCodes.ts'
 import type { MarketPilotText, MarketPilotTextKey } from '../locales.ts'
 
 function statusTone(status: string): 'success' | 'warning' | 'danger' | 'neutral' | 'quiet' {
@@ -32,6 +37,9 @@ export function TenderPage({ t, projectId, onGoEvidence }: {
   const [drawer, setDrawer] = useState<TenderItemProjection | null>(null)
   const documents = useDocuments(projectId)
   const items = useTenderItems(projectId)
+  const project = useProjectDetail(projectId)
+  const codeIndex = useMemo(() => project.detail === null ? null : projectShortCodeIndex(project.detail), [project.detail])
+  const codeOf = (id: string): string => codeIndex?.codeOf(id) ?? id.slice(0, 8)
   const workflow = useToolWorkflow(projectId,
     ['marketpilot_tender_extract', 'marketpilot_tender_review'], 'tender_review', t, items.refresh)
   const drawerRef = useDrawerKeys(drawer !== null, () => { setDrawer(null) })
@@ -170,7 +178,14 @@ export function TenderPage({ t, projectId, onGoEvidence }: {
                 </>
               )}
               <h3 className="mp-drawerSection">{t('evidenceRefs')}</h3>
-              <p className="mp-caption">{drawer.evidenceIds.map(id => id.slice(0, 8)).join(' · ') || '—'}</p>
+              <p className="mp-caption">{drawer.evidenceIds.map(id => codeOf(id)).join(' · ') || '—'}</p>
+              {drawer.requirementIds.length === 0 ? null : (
+                <>
+                  <h3 className="mp-drawerSection">{t('relatedTitle')}</h3>
+                  <p className="mp-caption">{drawer.requirementIds.map(id => codeOf(id)).join(' · ')}</p>
+                </>
+              )}
+              <CodeMapPanel t={t} index={codeIndex} />
               {drawer.evidenceIds.length > 0 ? null : (
                 <p className="mp-caption" role="note">
                   {`${t('tenderNeedsEvidence')} `}

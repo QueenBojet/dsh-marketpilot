@@ -58,12 +58,34 @@ it('resumes after a human Decision and renders UNKNOWN, source trace and suggest
   const run = await new SolutionWorkflow(s, responses([outline, ...sections])).start(p.id, signal())
   expect(run).toMatchObject({ status: 'completed', modelCalls: 7 })
   const artifact = s.artifacts.list(p.id).find(a => a.type === 'solution')!
-  expect(artifact.content).toContain(decision.id)
+  // Formal prose carries the business short code — never the raw decision UUID.
+  expect(artifact.content).toContain('DEC-01')
+  expect(artifact.content).not.toContain(decision.id)
+  expect(artifact.content).toContain(decision.id.slice(0, 8))
   expect(artifact.content).toContain('UNKNOWN / 待确认条件')
   expect(artifact.content).toContain('最小检漏率与误报率待确认')
   expect(artifact.content).toContain('建议，待验证')
   expect(artifact.content).toContain('需求响应与证据索引')
+  expect(artifact.content).toContain('附录：编号对照')
   expect(artifact.reviewStatus).toBe('draft')
+  // A finished solution moves the stage baseline forward (no stale stage hint).
+  expect(s.projects.get(p.id)!.status).toBe('solution_ready')
+})
+
+it('advances the project status baseline forward-only as workflows complete', async () => {
+  const { services: s, project: p } = await setup()
+  const requirementId = await confirmedRequirement(s, p.id)
+  expect(s.projects.get(p.id)!.status).toBe('requirements_ready')
+  await new AlternativeWorkflow(s, responses([candidates(requirementId)])).start(p.id, signal())
+  expect(s.projects.get(p.id)!.status).toBe('alternatives_ready')
+  const routes = s.alternatives.list(p.id)
+  const decision = await s.decisions.confirm(p.id, { alternativeId: routes[0]!.id, decision: '采用第一候选路线',
+    rationale: '人工比较后确认。', evidenceIds: [], requirementIds: [requirementId] })
+  expect(s.projects.get(p.id)!.status).toBe('decision_confirmed')
+  const sections = sectionTitles.map(title => ({ title, decisionId: decision.id, claims: [{ text: '建议完成现场基线采集和人工复核。',
+    kind: 'narrative', status: 'suggested', requirementIds: [requirementId], evidenceIds: [] }] }))
+  await new SolutionWorkflow(s, responses([outline, ...sections])).start(p.id, signal())
+  expect(s.projects.get(p.id)!.status).toBe('solution_ready')
 })
 
 it('rejects unsupported parameter values, invented decisions and missing requirement trace', async () => {
@@ -121,8 +143,12 @@ it('accepts short handles from the model and resolves them back to real ids', as
   const sectionModel: ModelStructuredOutputAdapter = { async generate({ schema }) { return schema.parse(queue.shift()) } }
   expect((await new SolutionWorkflow(s, sectionModel).start(p.id, signal())).status).toBe('completed')
   const artifact = s.artifacts.list(p.id).find(a => a.type === 'solution')!
-  expect(artifact.content).toContain(decision.id)
-  expect(artifact.content).toContain(requirementId)
+  // Codes replace UUIDs in prose; the appendix keeps the 8-char trace fragments.
+  expect(artifact.content).toContain('DEC-01')
+  expect(artifact.content).toContain('REQ-01')
+  expect(artifact.content).not.toContain(decision.id)
+  expect(artifact.content).toContain(decision.id.slice(0, 8))
+  expect(artifact.content).toContain(requirementId.slice(0, 8))
 })
 
 it('projects generation schemas through the actual Harness output schema validator', () => {

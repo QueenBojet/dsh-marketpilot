@@ -12,29 +12,29 @@ export interface ProjectRow {
   updatedAt: string
 }
 
-/** One requirement record. */
-export interface RequirementRow { id: string; originalText: string; normalizedText: string; type: string; priority: string; status: string }
+/** One requirement record (full rows carry createdAt; projections may omit it). */
+export interface RequirementRow { id: string; originalText: string; normalizedText: string; type: string; priority: string; status: string; createdAt?: string }
 
-/** One evidence record. */
-export interface EvidenceRow { id: string; kind: string; status: string; title: string; statement: string }
+/** One evidence record (full rows carry createdAt; projections may omit it). */
+export interface EvidenceRow { id: string; kind: string; status: string; title: string; statement: string; createdAt?: string }
 
 /** One source document (full record, detail route only). */
-export interface DocumentRow { id: string; name: string; kind: string }
+export interface DocumentRow { id: string; name: string; kind: string; importedAt?: string }
 
-/** One candidate route. */
-export interface AlternativeRow { id: string; name: string; summary: string }
+/** One candidate route (full rows carry createdAt; projections may omit it). */
+export interface AlternativeRow { id: string; name: string; summary: string; createdAt?: string }
 
 /** One human decision. */
 export interface DecisionRow { id: string; rationale: string; createdAt: string }
 
-/** One tender clause record. */
-export interface TenderItemRow { id: string; originalText: string; normalizedRequirement: string; status: string }
+/** One tender clause record (full rows carry timestamps; projections may omit them). */
+export interface TenderItemRow { id: string; originalText: string; normalizedRequirement: string; status: string; clauseId?: string; createdAt?: string }
 
 /**
  * One generated artifact. The review state is `reviewStatus`
  * ('draft' | 'approved') — the backend field name, not `status`.
  */
-export interface ArtifactRow { id: string; name: string; reviewStatus: string; type?: string; content?: string }
+export interface ArtifactRow { id: string; name: string; reviewStatus: string; type?: string; content?: string; createdAt?: string }
 
 /** Artifact list metadata (no content payload). */
 export interface ArtifactMetaRow {
@@ -53,6 +53,15 @@ export interface ArtifactFullRow extends ArtifactMetaRow { content: string }
 
 /** One workflow run record. */
 export interface WorkflowRunRow { id: string; type: string; status: string; currentStep: string; updatedAt: string; error?: string }
+
+/** One persisted run with its owning project — the task-center history rows. */
+export interface HistoryRunRow extends WorkflowRunRow {
+  projectId: string
+  projectName: string
+  startedAt: string
+  steps: { step: string; at: string }[]
+  durationMs?: number
+}
 
 /** One workflow-run timeline snapshot from the runs route. */
 export interface WorkflowRunView {
@@ -267,6 +276,8 @@ export const api = {
     const suffix = params.size === 0 ? '' : `?${params.toString()}`
     return request<{ runs: WorkflowRunView[] }>('GET', `/marketpilot/api/projects/${projectId}/runs${suffix}`)
   },
+  /** Persisted runs across all projects, newest first — survives host restarts. */
+  recentRuns: (limit = 40) => request<{ runs: HistoryRunRow[] }>('GET', `/marketpilot/api/runs?limit=${String(limit)}`),
   requestArtifacts: (projectId: string) => request<{ artifacts: ArtifactMetaRow[] }>('GET', `/marketpilot/api/projects/${projectId}/artifacts`),
   artifact: (projectId: string, artifactId: string) => request<{ artifact: ArtifactFullRow }>('GET', `/marketpilot/api/projects/${projectId}/artifacts/${artifactId}`),
   competitors: (projectId: string) => request<{ competitors: CompetitorItem[] }>('GET', `/marketpilot/api/projects/${projectId}/competitors`),

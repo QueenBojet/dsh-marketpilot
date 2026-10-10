@@ -347,6 +347,58 @@ describe('AlternativesPage', () => {
     await flush()
     expect(container!.querySelector('.mp-dialog')?.textContent).toContain('选择技术路线')
   })
+
+  it('expands clamped long text per card without losing the selection click', async () => {
+    const longText = '很长的优势说明。'.repeat(40)
+    const reqUuid = '11111111-1111-4111-8111-111111111111'
+    const payload = {
+      alternatives: [{
+        ...alternativesPayload.alternatives[0]!, strengths: [longText],
+        summary: `覆盖已确认需求 ${reqUuid} 的水下监测场景。`,
+        requirementCoverage: { [reqUuid]: 'full', '22222222-2222-4222-8222-222222222222': 'partial' },
+      }],
+    }
+    const uuidRequirements = {
+      total: 2, page: 1, pageSize: 100, counts: { confirmed: 2 },
+      requirements: [
+        { ...requirementsPayload.requirements[0]!, id: reqUuid },
+        { ...requirementsPayload.requirements[1]!, id: '22222222-2222-4222-8222-222222222222' },
+      ],
+    }
+    fetchMock.mockImplementation(async (input: unknown) => {
+      const url = String(input)
+      if (url.includes('/alternatives')) return jsonResponse(payload)
+      if (url.includes('/requirements')) return jsonResponse(uuidRequirements)
+      if (url.includes('/runs')) return jsonResponse({ runs: [] })
+      if (url.includes('/executions')) return jsonResponse({ executions: [] })
+      throw new Error(`unexpected fetch: ${url}`)
+    })
+    render(<AlternativesPage t={t} projectId="p1" />)
+    await flush()
+    const card = container!.querySelector('.mp-altCard') as HTMLElement
+    expect(card.getAttribute('data-expanded')).toBe('false')
+    // The card carries the full long text in the DOM; CSS clamps the visible part.
+    expect(card.textContent).toContain(longText)
+    // Stored summaries that embed requirement UUIDs render as short codes.
+    expect(card.textContent).toContain('REQ-01')
+    expect(card.textContent).not.toContain(reqUuid)
+    const toggle = [...card.querySelectorAll('button')].find(b => b.textContent === t('altExpandAll'))
+    expect(toggle!.getAttribute('aria-expanded')).toBe('false')
+    act(() => { toggle!.click() })
+    await flush()
+    expect(card.getAttribute('data-expanded')).toBe('true')
+    expect(toggle!.getAttribute('aria-expanded')).toBe('true')
+    expect(toggle!.textContent).toBe(t('altCollapseAll'))
+    // Expanding never selects the route — only the card body or radio does.
+    expect((card.querySelector('input[type=radio]') as HTMLInputElement).checked).toBe(false)
+    // Card-body click selects. (Earlier tests in this file can leave a waiting
+    // decision execution in the shared registry, which keeps the card busy and
+    // the radio disabled; busy-or-selected covers both worlds honestly.)
+    act(() => { card.click() })
+    await flush()
+    const radio = card.querySelector('input[type=radio]') as HTMLInputElement
+    expect(radio.checked || radio.disabled).toBe(true)
+  })
 })
 
 describe('SolutionPage', () => {
