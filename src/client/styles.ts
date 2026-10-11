@@ -245,6 +245,12 @@ const PANEL_CSS = `
 .mp-dialogPre{max-height:200px;overflow:auto;background:var(--dsw-alias-bg-skeleton);border-radius:var(--dsw-radius-sm);padding:8px;font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere}
 .mp-dialogInput{min-height:64px;resize:vertical;padding:8px;border:1px solid var(--dsw-alias-border-l2);border-radius:var(--dsw-radius-sm);background:var(--dsw-alias-bg-base);color:inherit;font-family:inherit;font-size:13px}
 .mp-dialogActions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.mp-artifactContext{padding:10px 14px;margin:8px 0;border:1px solid var(--dsw-alias-border-l2);border-left:3px solid var(--dsw-alias-state-business-primary);border-radius:var(--dsw-radius-md);overflow-wrap:anywhere}
+.mp-artifactContext[data-context='possibly_stale'],.mp-artifactContext[data-context='untracked']{border-left-color:var(--dsw-alias-label-secondary)}
+.mp-routeMatrix{min-width:660px;table-layout:fixed}.mp-routeMatrix th:first-child{width:120px}.mp-routeMatrix th,.mp-routeMatrix td{white-space:normal;overflow-wrap:anywhere;vertical-align:top}
+.mp-readerRail h4{margin:10px 0 0;font-size:12.5px}.mp-readerRail p{margin:4px 0}.mp-readerRail .mp-readerRailList li{border-bottom:1px solid var(--dsw-alias-border-l2);padding:4px 0}
+@media (max-width:1024px){.mp-readerLayout{grid-template-rows:auto minmax(240px,1fr) minmax(120px,26%)}.mp-readerToc{max-height:140px}.mp-readerRail{overflow-y:auto}.mp-decisionBar{position:static}.mp-dialog{max-height:88vh}.mp-readerDocument{padding:16px}}
+
 `
 
 /**

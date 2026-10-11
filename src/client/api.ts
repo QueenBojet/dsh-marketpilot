@@ -2,6 +2,7 @@
 import type { ShortCodeBook } from '../domain/shortcodes.ts'
 import type { ProjectWorkflowOverview } from '../domain/project-workflow.ts'
 import type { ProjectReviewOverview } from '../domain/project-review.ts'
+import type { DesignOverview } from '../services/design-overview.ts'
 
 /** One project row as the list route returns it. */
 export interface ProjectRow {
@@ -259,6 +260,7 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
 }
 
 export const api = {
+  design: (projectId: string) => request<DesignOverview>('GET', `/marketpilot/api/projects/${projectId}/design`),
   projects: () => request<{ projects: ProjectRow[] }>('GET', '/marketpilot/api/projects'),
   project: (id: string) => request<ProjectDetail>('GET', `/marketpilot/api/projects/${id}`),
   workflow: (id: string) => request<ProjectWorkflowOverview>('GET', `/marketpilot/api/projects/${id}/workflow`),

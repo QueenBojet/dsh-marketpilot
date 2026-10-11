@@ -70,7 +70,10 @@ export const stateSchema = z.strictObject({
     refs(t.requirementIds, 'requirements')
     if (t.status === 'compliant' && findUnsupportedClaims([t], s.evidence).length) fail('Compliant clause lacks verified evidence')
   }
-  for (const a of s.artifacts) if (a.workflowRunId) refs([a.workflowRunId], 'workflowRuns')
+  for (const a of s.artifacts) {
+    if (a.workflowRunId) refs([a.workflowRunId], 'workflowRuns')
+    if (a.dependencies?.decisionId) refs([a.dependencies.decisionId], 'decisions')
+  }
   const active = s.decisions.find(d => d.id === s.project.activeDecisionId)
   if (s.project.activeDecisionId && !active) fail('Active Decision is missing')
   if (active && active.requirementIds.some(id => !s.requirements.some(r => r.id === id && r.status === 'confirmed'))) fail('Active Decision requires confirmed requirements')

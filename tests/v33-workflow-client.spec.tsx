@@ -13,6 +13,7 @@ import { ProjectOverviewPage } from '../src/client/pages/ProjectOverviewPage.tsx
 import { marketpilotLocales } from '../src/client/locales.ts'
 import { createMarketPilotStore } from '../src/client/stores.ts'
 import { executionStore } from '../src/client/hooks/executionStore.ts'
+import { designOverview } from '../src/services/design-overview.ts'
 import { projectWorkflowOverview } from '../src/domain/project-workflow.ts'
 import { capabilities, now, run, withDecision, withInputs, withSolution, workflowState } from './workflow-fixtures.ts'
 import type { ProjectState } from '../src/domain/state.ts'
@@ -44,6 +45,7 @@ beforeEach(() => {
       if (readError) throw new Error('WORKFLOW_READ_FAILED: test disconnect')
       return response(projectWorkflowOverview(state, workflowCapabilities, executionFacts))
     }
+    if (url.endsWith('/design')) return response(designOverview(state))
     if (url === '/marketpilot/api/projects/p1') return response(state)
     if (url.includes('/executions')) return response({ executions: [] })
     if (url.includes('/requirements')) return response({ requirements: state.requirements.map(r => ({ ...r, shortId: 'REQ-01', sourceDocumentId: 'doc1', sourceDocumentName: 'customer.md' })), total: state.requirements.length, counts: {}, page: 1, pageSize: 100 })
@@ -125,7 +127,7 @@ describe('V3.3 interactive project workflow', () => {
     expect(container.textContent).toContain(t('workflow.recordedSteps'))
   })
   it('missing model blocks generation but preserves an existing route Human Gate', async () => {
-    state = withDecision(); state.decisions = []; state.project.activeDecisionId = undefined
+    state = withDecision(); state.decisions = []; state.project.activeDecisionId = undefined; state.alternatives[0]!.status = 'candidate'
     workflowCapabilities.model = { available: false, mode: 'unavailable', reason: 'test missing provider' }
     const start = vi.spyOn(executionStore, 'start').mockResolvedValue('human-gate-test')
     await render(); await click(t('workflow.chooseRoute'))
@@ -140,7 +142,7 @@ describe('V3.3 interactive project workflow', () => {
       Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')!.set!.call(input, 'Test human review only')
       input.dispatchEvent(new Event('input', { bubbles: true }))
     })
-    await flush(); await click(t('submitDecision'))
+    await flush(); await click(t('submitDecision')); await click(t('design.openHumanGate'))
     expect(start).toHaveBeenCalledWith('marketpilot_decision_confirm', expect.objectContaining({ projectId: 'p1', alternativeId: 'alt1', rationale: 'Test human review only' }))
   })
 })

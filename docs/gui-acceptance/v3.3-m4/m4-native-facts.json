@@ -1,0 +1,23 @@
+{
+  "mode": "real-native-dsh-desktop-sky",
+  "date": "2026-10-11T06:31:17.394Z",
+  "appVersion": "0.2.0-rc.2",
+  "screenshot": {
+    "name": "m4-native-desktop-matrix-2560.png",
+    "width": 2560,
+    "height": 1392
+  },
+  "project": "CALM 漏油监测桌面版演示",
+  "providerLabel": "zai / glm-5.3-flash / max",
+  "theme": "light",
+  "checks": {
+    "nativeMainPanel": true,
+    "routeMatrix": true,
+    "longHeadersWrap": true,
+    "syntheticNotice": true,
+    "businessWrites": false,
+    "gateAnswers": false,
+    "modelInvocations": false
+  },
+  "hostedReadOnlyVerification": "m4-facts.json"
+}

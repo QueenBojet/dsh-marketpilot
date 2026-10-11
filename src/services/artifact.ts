@@ -1,4 +1,5 @@
-import { artifactInput } from '../domain/artifact.ts'
+import { artifactInput, type Artifact } from '../domain/artifact.ts'
+import { captureArtifactDependencies } from './artifact-context.ts'
 import { ensure } from '../domain/common.ts'
 import { solutionPrerequisites } from '../domain/state.ts'
 import { RecordService, requiredRecord } from './records.ts'
@@ -7,12 +8,13 @@ import type { ServiceContext } from './project.ts'
 export class ArtifactService extends RecordService<'artifacts'> {
   constructor(ctx: ServiceContext) { super(ctx, 'artifacts') }
   async save(projectId: string, input: unknown) {
-    const row = { ...artifactInput.parse(input), ...this.ctx.fields(projectId), reviewStatus: 'draft' as const }
+    const row: Artifact = { ...artifactInput.parse(input), ...this.ctx.fields(projectId), reviewStatus: 'draft' }
     await this.ctx.repository.update(projectId, s => {
       if (row.type === 'solution') {
         const gate = solutionPrerequisites(s)
         ensure(gate.status === 'ready', gate.status, gate.reason)
       }
+      row.dependencies = captureArtifactDependencies(s, row.type)
       s.artifacts.push(row)
     })
     return row
@@ -23,6 +25,8 @@ export class ArtifactService extends RecordService<'artifacts'> {
       const row = requiredRecord(s, 'artifacts', id)
       Object.assign(row, patch, { reviewStatus: 'draft', updatedAt: this.ctx.now() })
       delete row.review
+      // Manual edits have no provable generation snapshot; retain the content, report the gap.
+      delete row.dependencies
     })
     return requiredRecord(state, 'artifacts', id)
   }

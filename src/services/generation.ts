@@ -1,3 +1,4 @@
+import { captureArtifactDependencies } from './artifact-context.ts'
 import { createHash } from 'node:crypto'
 import { z } from 'zod'
 import { alternativesOutput, sectionOutput, sectionTitles, validateSection } from '../domain/generation.ts'
@@ -43,7 +44,7 @@ export class GenerationService {
       s.alternatives.push(...rows)
       const artifact = { ...this.ctx.fields(projectId), name: 'Alternative Comparison.md', type: 'alternative_comparison' as const,
         format: 'markdown' as const, content: renderAlternatives(rows, projectCodeIndex(s)), workflowRunId: run.id, reviewStatus: 'draft' as const }
-      s.artifacts.push(artifact)
+      s.artifacts.push({ ...artifact, dependencies: captureArtifactDependencies(s, artifact.type) })
       // The candidates exist and now wait on the human Decision — move the
       // stage baseline forward so the UI never shows a stale current stage.
       advanceProjectStatus(s, 'alternatives_ready', this.ctx.now())
@@ -65,7 +66,7 @@ export class GenerationService {
         'INCOMPLETE_TRACE', '仍有已确认需求未被方案章节响应。')
       const artifact = { ...this.ctx.fields(projectId), name: 'Solution.md', type: 'solution' as const,
         format: 'markdown' as const, content: renderSolution(s, sections), workflowRunId: run.id, reviewStatus: 'draft' as const }
-      s.artifacts.push(artifact)
+      s.artifacts.push({ ...artifact, dependencies: captureArtifactDependencies(s, artifact.type) })
       // A finished solution moves the stage baseline to 投标检查 — no stale
       // "当前阶段：方案生成" hint after success.
       advanceProjectStatus(s, 'solution_ready', this.ctx.now())

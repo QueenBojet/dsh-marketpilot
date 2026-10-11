@@ -56,6 +56,14 @@ describe('MarketPilot Phase 4 projection routes', () => {
     const policies = await call(`/marketpilot/api/projects/${project.id}/policies`)
     expect((policies.body.policies as Record<string, unknown>[])[0]).toMatchObject({ title: '海洋监测规范', mandatoryLevel: 'mandatory' })
 
+    const design = await call(`/marketpilot/api/projects/${project.id}/design`)
+    expect(design.status).toBe(200)
+    expect(design.body).toMatchObject({ projectId: project.id, activeDecisionId: null })
+    expect(typeof design.body.reviewVersion).toBe('string')
+    expect((design.body.alternatives as unknown[])).toHaveLength(1)
+    expect((design.body.artifacts as Record<string, unknown>[]).every(row => !('content' in row))).toBe(true)
+    expect((design.body.documents as Record<string, unknown>[]).every(row => !('textContent' in row))).toBe(true)
+
     const allEvidence = await call(`/marketpilot/api/projects/${project.id}/evidence`)
     expect((allEvidence.body as { total: number }).total).toBe(2)
     expect((allEvidence.body as { counts: Record<string, number> }).counts['draft']).toBe(2)

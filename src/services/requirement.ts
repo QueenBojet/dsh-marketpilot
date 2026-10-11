@@ -1,3 +1,4 @@
+import { captureArtifactDependencies } from './artifact-context.ts'
 import { z } from 'zod'
 import { ids, ensure } from '../domain/common.ts'
 import { requirementInput } from '../domain/requirement.ts'
@@ -82,7 +83,7 @@ export class RequirementService extends RecordService<'requirements'> {
       const now = this.ctx.now()
       const artifact = { ...this.ctx.fields(projectId), name: 'Requirement Baseline.md', type: 'requirement_baseline' as const,
         content: renderBaseline(s, selected), format: 'markdown' as const, workflowRunId: runId, reviewStatus: 'draft' as const }
-      s.artifacts.push(artifact)
+      s.artifacts.push({ ...artifact, dependencies: captureArtifactDependencies(s, artifact.type) })
       run.humanWaitMs += Math.max(0, Date.parse(now) - Date.parse(run.waitingSince!))
       delete run.waitingSince
       Object.assign(run, { status: 'completed', currentStep: 'COMPLETED', completedAt: now, updatedAt: now,

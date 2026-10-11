@@ -8,19 +8,20 @@
  * through the guarded `marketpilot_artifact_export` tool (a real human gate)
  * with an explicit new absolute path; the browser never writes files itself.
  */
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { MarkdownText, Tag } from '@deepseek-ai/dsh-client-ui-primitives'
-import type { ArtifactMetaRow } from '../api.ts'
 import { CodeMapPanel } from '../components/CodeMapPanel.tsx'
 import { EmptyState, ErrorState, LoadingState } from '../components/States.tsx'
 import { WorkflowSurface } from '../components/WorkflowSurface.tsx'
 import { formatTime } from '../format.ts'
 import { executionStore } from '../hooks/executionStore.ts'
-import { useArtifact, useArtifacts } from '../hooks/useExecution.ts'
-import { useProjectDetail } from '../hooks/useProjects.ts'
+import { useArtifact } from '../hooks/useExecution.ts'
+import { useDesignOverview } from '../hooks/useDesignOverview.ts'
+import { ArtifactContextNotice, DesignSyntheticNotice } from '../components/ArtifactContextNotice.tsx'
+import type { MarketPilotActions, ProjectFocus } from '../stores.ts'
+import { buildShortCodeIndex } from '../../domain/shortcodes.ts'
 import { useDrawerKeys } from '../hooks/useDrawerKeys.ts'
 import { useToolWorkflow } from '../hooks/usePhase4.ts'
-import { projectShortCodeIndex } from '../shortCodes.ts'
 import type { MarketPilotText, MarketPilotTextKey } from '../locales.ts'
 
 /** reviewStatus → Tag tone; draft stays amber until the human review. */
@@ -29,21 +30,22 @@ function reviewTone(reviewStatus: string): 'warning' | 'success' {
 }
 
 /** Render the artifacts list for one project. */
-export function ArtifactsPage({ t, projectId }: { t: MarketPilotText; projectId: string }) {
-  const [openId, setOpenId] = useState<string | null>(null)
+export function ArtifactsPage({ t, projectId, actions, focus }: { t: MarketPilotText; projectId: string; actions?: MarketPilotActions | undefined; focus?: ProjectFocus | undefined }) {
+  const [openId, setOpenId] = useState<string | null>(focus?.kind === 'artifact' ? focus.id : null)
+  useEffect(() => { if (focus?.kind === 'artifact') setOpenId(focus.id) }, [focus])
   const readerRef = useDrawerKeys(openId !== null, () => { setOpenId(null) })
   const [exportPath, setExportPath] = useState('')
   const [exportBusy, setExportBusy] = useState(false)
   const [notice, setNotice] = useState('')
-  const list = useArtifacts(projectId)
+  const list = useDesignOverview(projectId)
   const detail = useArtifact(projectId, openId)
-  const project = useProjectDetail(projectId)
-  const codeIndex = useMemo(() => project.detail === null ? null : projectShortCodeIndex(project.detail), [project.detail])
+  const snapshot = list.snapshot
+  const codeIndex = useMemo(() => snapshot === null ? null : buildShortCodeIndex({ ...snapshot, codeBook: { seq: {}, codes: snapshot.recordCodes } }), [snapshot])
   const workflow = useToolWorkflow(projectId, ['marketpilot_artifact_export'], 'artifact_export',
     t, list.refresh)
   if (list.error !== '') return <ErrorState t={t} message={list.error} onRetry={list.refresh} />
-  if (list.loading) return <LoadingState t={t} />
-  const artifacts = list.artifacts ?? []
+  if (snapshot === null) return <LoadingState t={t} />
+  const artifacts = snapshot.artifacts
   const startExport = (): void => {
     const target = artifacts.find(row => row.id === openId)
     if (target === undefined || exportPath.trim() === '' || exportBusy || workflow.busy) return
@@ -60,6 +62,7 @@ export function ArtifactsPage({ t, projectId }: { t: MarketPilotText; projectId:
   return (
     <div>
       <h2 className="mp-sectionTitle" style={{ marginTop: 0 }}>{t('artifactsTitle')}</h2>
+      <DesignSyntheticNotice t={t} snapshot={snapshot} />
       {artifacts.length === 0 ? (
         <EmptyState title={t('noArtifacts')} body={t('plannedBody')} />
       ) : (
@@ -76,9 +79,9 @@ export function ArtifactsPage({ t, projectId }: { t: MarketPilotText; projectId:
               </tr>
             </thead>
             <tbody>
-              {artifacts.map((artifact: ArtifactMetaRow) => (
+              {artifacts.map(artifact => (
                 <tr key={artifact.id}>
-                  <td className="mp-cellMain">{artifact.name}</td>
+                  <td className="mp-cellMain">{snapshot.recordCodes[artifact.id]} · {artifact.name}<p className="mp-caption" data-context={artifact.context.status}>{t(`design.context.${artifact.context.status}` as MarketPilotTextKey)}</p></td>
                   <td className="mp-muted">{artifact.type}</td>
                   <td><Tag tone={reviewTone(artifact.reviewStatus)}>{t(`reviewStatus.${artifact.reviewStatus}` as MarketPilotTextKey)}</Tag></td>
                   <td className="mp-muted">{formatTime(artifact.createdAt)}</td>
@@ -108,6 +111,7 @@ export function ArtifactsPage({ t, projectId }: { t: MarketPilotText; projectId:
               <h2 className="mp-drawerTitle">{detail.artifact?.name ?? t('loading')}</h2>
               <button type="button" className="mp-link" onClick={() => { setOpenId(null) }}>{t('close')}</button>
             </div>
+            {artifacts.find(row => row.id === openId) === undefined ? null : <ArtifactContextNotice t={t} artifact={artifacts.find(row => row.id === openId)!} codes={snapshot.recordCodes} actions={actions} />}
             <div className="mp-exportBar">
               <span className="mp-caption">{t('exportHint')}</span>
               <input

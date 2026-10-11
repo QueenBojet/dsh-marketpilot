@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 /** Phase 4 page render tests: research, evidence, alternatives, solution, tender. */
 import { act } from 'react'
+import { designClientFixture } from './design-client-fixture.ts'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -368,6 +369,7 @@ describe('AlternativesPage', () => {
     const postedTools: { name: string; args: Record<string, unknown> }[] = []
     fetchMock.mockImplementation(async (input: unknown, init?: { method?: string; body?: string }) => {
       const url = String(input)
+      if (url.endsWith('/design')) return jsonResponse(designClientFixture({ alternatives: alternativesPayload.alternatives, requirements: requirementsPayload.requirements, evidence: evidencePayload.evidence }))
       if (url.includes('/alternatives')) return jsonResponse(alternativesPayload)
       if (url.includes('/requirements')) return jsonResponse(requirementsPayload)
       if (url.includes('/runs')) return jsonResponse({ runs: [] })
@@ -401,7 +403,7 @@ describe('AlternativesPage', () => {
     expect(submit!.disabled).toBe(true)
     expect(text()).toContain(t('altNoneSelected'))
     // Selecting a card + rationale enables the real decision submission.
-    act(() => { card!.click() })
+    act(() => { (card!.querySelector('input[type=radio]') as HTMLInputElement).click() })
     await flush()
     expect((card!.querySelector('input[type=radio]') as HTMLInputElement).checked).toBe(true)
     const textarea = container!.querySelector('textarea.mp-decisionInput') as HTMLTextAreaElement
@@ -415,6 +417,9 @@ describe('AlternativesPage', () => {
     expect(submit!.disabled).toBe(false)
     act(() => { submit!.click() })
     await flush()
+    await flush()
+    expect(postedTools).toHaveLength(0)
+    act(() => { [...container!.querySelectorAll('button')].find(b => b.textContent === t('design.openHumanGate'))!.click() })
     await flush()
     const post = postedTools.find(entry => entry.name === 'marketpilot_decision_confirm')
     expect(post).toBeDefined()
@@ -445,6 +450,7 @@ describe('AlternativesPage', () => {
     }
     fetchMock.mockImplementation(async (input: unknown) => {
       const url = String(input)
+      if (url.endsWith('/design')) return jsonResponse(designClientFixture({ alternatives: payload.alternatives, requirements: uuidRequirements.requirements }))
       if (url.includes('/alternatives')) return jsonResponse(payload)
       if (url.includes('/requirements')) return jsonResponse(uuidRequirements)
       if (url.includes('/runs')) return jsonResponse({ runs: [] })
@@ -467,12 +473,12 @@ describe('AlternativesPage', () => {
     expect(card.getAttribute('data-expanded')).toBe('true')
     expect(toggle!.getAttribute('aria-expanded')).toBe('true')
     expect(toggle!.textContent).toBe(t('altCollapseAll'))
-    // Expanding never selects the route — only the card body or radio does.
+    // Expanding never selects the route — only the radio does.
     expect((card.querySelector('input[type=radio]') as HTMLInputElement).checked).toBe(false)
-    // Card-body click selects. (Earlier tests in this file can leave a waiting
+    // Radio selects. (Earlier tests in this file can leave a waiting
     // decision execution in the shared registry, which keeps the card busy and
     // the radio disabled; busy-or-selected covers both worlds honestly.)
-    act(() => { card.click() })
+    act(() => { (card.querySelector('input[type=radio]') as HTMLInputElement).click() })
     await flush()
     const radio = card.querySelector('input[type=radio]') as HTMLInputElement
     expect(radio.checked || radio.disabled).toBe(true)
@@ -483,6 +489,7 @@ describe('SolutionPage', () => {
   it('disables generation without a decision and shows the hint', async () => {
     fetchMock.mockImplementation(async (input: unknown) => {
       const url = String(input)
+      if (url.endsWith('/design')) return jsonResponse(designClientFixture({}))
       if (url === '/marketpilot/api/projects/p1') return jsonResponse(projectDetailDraft)
       if (url.includes('/artifacts')) return jsonResponse({ artifacts: [] })
       if (url.includes('/runs')) return jsonResponse({ runs: [] })
@@ -508,6 +515,7 @@ describe('SolutionPage', () => {
     const content = '# 总体方案\n\n引言\n\n# 系统构成\n\n构成说明\n\n# UNKNOWN 待确认\n\n待确认内容'
     fetchMock.mockImplementation(async (input: unknown) => {
       const url = String(input)
+      if (url.endsWith('/design')) return jsonResponse(designClientFixture({ ...detail, artifacts: [artifactMeta('s-old', '2026-10-09T06:00:00.000Z'), artifactMeta('s-new', '2026-10-09T07:00:00.000Z')] }))
       if (url === '/marketpilot/api/projects/p1') return jsonResponse(detail)
       if (url.includes('/artifacts/s-old')) return jsonResponse({ artifact: { ...artifactMeta('s-old', '2026-10-09T06:00:00.000Z'), content: '# 旧版\n\n旧正文' } })
       if (url.includes('/artifacts/s-new')) return jsonResponse({ artifact: { ...artifactMeta('s-new', '2026-10-09T07:00:00.000Z'), content } })
@@ -671,6 +679,7 @@ describe('TenderPage', () => {
     fetchMock.mockImplementation(async (input: unknown) => {
       const url = String(input)
       if (url.includes('/documents')) return jsonResponse(documentsPayload)
+      if (url.endsWith('/design')) return jsonResponse(designClientFixture({ documents: documentsPayload.documents, tenderItems: tenderItemsPayload.tenderItems }))
       if (url.includes('/tender-items')) return jsonResponse(tenderItemsPayload)
       if (url.includes('/runs')) return jsonResponse({ runs: [] })
       if (url.includes('/executions')) return jsonResponse({ executions: [] })
@@ -695,6 +704,7 @@ describe('TenderPage', () => {
     fetchMock.mockImplementation(async (input: unknown, init?: { method?: string; body?: string }) => {
       const url = String(input)
       if (url.includes('/documents')) return jsonResponse(documentsPayload)
+      if (url.endsWith('/design')) return jsonResponse(designClientFixture({ documents: documentsPayload.documents, tenderItems: twoItems.tenderItems }))
       if (url.includes('/tender-items')) return jsonResponse(twoItems)
       if (url.includes('/runs')) return jsonResponse({ runs: [] })
       if (url.includes('/executions')) return jsonResponse({ executions: [] })
@@ -756,6 +766,7 @@ describe('TenderPage', () => {
       const url = String(input)
       if (url === '/marketpilot/api/projects/p1') return jsonResponse(detail)
       if (url.includes('/documents')) return jsonResponse(documentsPayload)
+      if (url.endsWith('/design')) return jsonResponse(designClientFixture({ ...detail, documents: documentsPayload.documents, tenderItems: linked.tenderItems }))
       if (url.includes('/tender-items')) return jsonResponse(linked)
       if (url.includes('/runs')) return jsonResponse({ runs: [] })
       if (url.includes('/executions')) return jsonResponse({ executions: [] })

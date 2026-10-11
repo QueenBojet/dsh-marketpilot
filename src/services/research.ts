@@ -1,3 +1,4 @@
+import { captureArtifactDependencies } from './artifact-context.ts'
 import { z } from 'zod'
 import { ensure, ids, text } from '../domain/common.ts'
 import type { Evidence } from '../domain/evidence.ts'
@@ -87,7 +88,7 @@ export class ResearchService {
             `- 证据：${r.evidenceIds.map(id => codes.codeOf(id) ?? id).join('、')}`, '']), '## UNKNOWN / 研究缺项', '', ...data.gaps.map(g => `- ${g}`), '',
             renderCodeAppendix(codes),
           ].join('\n') }
-      s.artifacts.push(artifact)
+      s.artifacts.push({ ...artifact, dependencies: captureArtifactDependencies(s, artifact.type) })
       advanceProjectStatus(s, 'researching', this.ctx.now())
       completeRun(run, this.ctx.now(), { competitorIds: rows.map(r => r.id), artifactId: artifact.id })
     })

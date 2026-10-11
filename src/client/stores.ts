@@ -13,7 +13,7 @@ export type ProjectSection =
   | 'alternatives' | 'solution' | 'tender' | 'artifacts'
 
 /** A cross-module jump target: land on a section and highlight one record. */
-export type ProjectFocus = { readonly kind: 'requirement' | 'evidence'; readonly id: string }
+export type ProjectFocus = { readonly kind: 'requirement' | 'evidence' | 'artifact'; readonly id: string }
 export type WorkflowMode = 'guided' | 'professional'
 
 /** Which page the main panel shows. */
@@ -35,7 +35,7 @@ type NavigationActionsDecl = {
   goTasks: (draft: MarketPilotNavigationState) => void
   openProject: (draft: MarketPilotNavigationState, projectId: string) => void
   setSection: (draft: MarketPilotNavigationState, section: ProjectSection) => void
-  focusRecord: (draft: MarketPilotNavigationState, section: ProjectSection, kind: 'requirement' | 'evidence', id: string) => void
+  focusRecord: (draft: MarketPilotNavigationState, section: ProjectSection, kind: 'requirement' | 'evidence' | 'artifact', id: string) => void
   setWorkflowMode: (draft: MarketPilotNavigationState, mode: WorkflowMode) => void
 } & ActionsDecl<MarketPilotNavigationState>
 
@@ -46,7 +46,7 @@ export type MarketPilotActions = {
   goTasks(): void
   openProject(projectId: string): void
   setSection(section: ProjectSection): void
-  focusRecord(section: ProjectSection, kind: 'requirement' | 'evidence', id: string): void
+  focusRecord(section: ProjectSection, kind: 'requirement' | 'evidence' | 'artifact', id: string): void
   setWorkflowMode?(mode: WorkflowMode): void
 }
 

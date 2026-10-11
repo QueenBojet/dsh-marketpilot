@@ -1,3 +1,4 @@
+import { captureArtifactDependencies } from './artifact-context.ts'
 import { tenderInput, validateTenderStatus } from '../domain/tender.ts'
 import { RecordService, requiredRecord } from './records.ts'
 import type { ServiceContext } from './project.ts'
@@ -67,7 +68,7 @@ export class TenderService extends RecordService<'tenderItems'> {
       const rows = selected.map(id => requiredRecord(s, 'tenderItems', id))
       const artifact = { ...this.ctx.fields(projectId), name: 'Compliance Matrix.md', type: 'compliance_matrix' as const,
         format: 'markdown' as const, content: renderCompliance(s, rows), workflowRunId: run.id, reviewStatus: 'draft' as const }
-      s.artifacts.push(artifact)
+      s.artifacts.push({ ...artifact, dependencies: captureArtifactDependencies(s, artifact.type) })
       advanceProjectStatus(s, 'tender_review', this.ctx.now())
       completeRun(run, this.ctx.now(), { tenderItemIds: selected, artifactId: artifact.id })
     })

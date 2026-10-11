@@ -51,5 +51,6 @@ export function registerProjectTools(ctx: Context) {
   register(ctx, 'marketpilot_decision_confirm', '向真实用户提交候选路线，明确确认后生成 Decision。', {
     projectId: projectIdParam, alternativeId: { type: 'string', required: true }, decision: { type: 'string', required: true },
     rationale: { type: 'string', required: true }, evidenceIds: stringIds, requirementIds: stringIds,
+    expectedVersion: { type: 'string', description: '决策摘要读取时的真实项目输入版本；变化时拒绝提交。' },
   }, async ({ projectId, ...data }, s) => s.decisions.confirm(projectId, data))
 }

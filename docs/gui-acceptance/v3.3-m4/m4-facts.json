@@ -1,0 +1,159 @@
+{
+  "mode": "real-desktop-hosted-web-cdp",
+  "date": "2026-10-11T06:28:30.113Z",
+  "newModelCalls": 0,
+  "screenshots": [
+    {
+      "name": "m4-empty-routes-light-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m4-empty-solution-light-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m4-optional-tender-light-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m4-optional-tender-dark-1024.png",
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "name": "m4-calm-summary-light-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m4-calm-matrix-light-1366.png",
+      "width": 1366,
+      "height": 768
+    },
+    {
+      "name": "m4-calm-matrix-dark-1024.png",
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "name": "m4-calm-decision-preview-light-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m4-calm-solution-versions-light-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m4-calm-solution-reader-light-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m4-calm-solution-reader-light-1366.png",
+      "width": 1366,
+      "height": 768
+    },
+    {
+      "name": "m4-calm-solution-reader-dark-1024.png",
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "name": "m4-solution-to-evidence-light-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m4-calm-tender-light-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m4-compliance-export-reader-light-1440.png",
+      "width": 1440,
+      "height": 900
+    }
+  ],
+  "checks": [
+    {
+      "mustResponseCoverage": {
+        "full": 7,
+        "total": 10
+      },
+      "previewRoute": "路线 A：水面雷达主导＋视觉确认（水面单域先行，暂不含水下）",
+      "previewOnlyNoGateAnswer": true,
+      "legacyContentKept": true,
+      "bodyTraceLinks": 38,
+      "issueJumpCode": "EVD-13",
+      "tenderFilterClearsSelection": true,
+      "complianceFocusCode": "ART-03"
+    },
+    {
+      "persistedSnapshotsUnchanged": true,
+      "noNewExecution": true,
+      "pageOverflow": false
+    }
+  ],
+  "gaps": [
+    "No real GLM/search/fetch invocation or Human Gate answer. Stored CALM artifacts predate dependency snapshots and honestly show untracked; new snapshots, stale rejection, version switching and real gated writes are proved by regression tests and the isolated offline CALM smoke."
+  ],
+  "capabilities": {
+    "model": {
+      "available": true,
+      "mode": "live",
+      "reason": "已注册模型路由；调用可用性仍以实际任务为准。",
+      "provider": "zai",
+      "model": "glm-5.3-flash",
+      "reasoningEffort": "max"
+    },
+    "research": {
+      "available": false,
+      "mode": "unverified",
+      "reason": "Harness Web 已加载，但此宿主无只读 Provider 检测接口；联网能力未验证，可使用本地资料研究。"
+    }
+  },
+  "projects": [
+    {
+      "name": "V3.3 M1 GUI 空项目 · synthetic QA",
+      "revision": 0,
+      "artifactContexts": []
+    },
+    {
+      "name": "CALM 漏油监测桌面版演示",
+      "revision": 157,
+      "artifactContexts": [
+        {
+          "code": "ART-01",
+          "type": "requirement_baseline",
+          "status": "untracked"
+        },
+        {
+          "code": "ART-02",
+          "type": "competitor_matrix",
+          "status": "untracked"
+        },
+        {
+          "code": "ART-03",
+          "type": "compliance_matrix",
+          "status": "untracked"
+        },
+        {
+          "code": "ART-04",
+          "type": "alternative_comparison",
+          "status": "untracked"
+        },
+        {
+          "code": "ART-05",
+          "type": "solution",
+          "status": "untracked"
+        }
+      ]
+    }
+  ],
+  "pageErrors": []
+}

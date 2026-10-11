@@ -13,6 +13,7 @@ export const alternativeSchema = alternativeInput.extend({
 export const decisionInput = z.strictObject({
   alternativeId: id, decision: text, rationale: text, evidenceIds: ids, requirementIds: ids.min(1),
 })
+export const decisionRequest = decisionInput.extend({ expectedVersion: z.string().regex(/^[a-f0-9]{64}$/).optional() })
 export const decisionSchema = decisionInput.extend({
   ...recordFields, confirmedBy: text, confirmedAt: timestamp, review: reviewSchema,
 })

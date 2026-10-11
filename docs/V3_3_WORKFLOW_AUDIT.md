@@ -140,3 +140,28 @@ M3 以 `d1ebb325` 的 M2 为基线。采用直接计划：扩展现有提取契�
 数据兼容：旧 `performance`、UUID、codeBook、SOURCE/UNKNOWN、Decision 和 Artifact 保留。新字段可省略，新代码可读取旧项目；没有迁移、删除或隐式覆盖。已产生 M3 parameterContexts 的新数据不能直接交给 M2 的 strict schema，回退 UI 时必须保留新字段读取能力，不能靠删除数据回退。
 
 验证与停止条件见 `V3_3_M3_ACCEPTANCE.md`。联网不标记完成；M3 交付后停止，用户验收后再实施 M4。
+
+## 11. M4 路线、方案与可选投标设计复核（2026-10-11）
+
+基线为 `main @ a9865eedb74ec7781201b2f782e709575f5240a4`，开始时工作区干净。重新核对总提示词 M4、M3 验收及 V3.2.1 记录，沿用直接计划，按现有工具、工作流和原子保存路径实施；不拆分 SolutionWorkflow，不引入新依赖。
+
+| 用户操作 / 设计决定 | 实际代码与服务端依据 |
+|---|---|
+| 同一次读取的路线、方案、招标事实 | `services/design-overview.ts` / `MarketPilotService.designOverview` / GET `/projects/:id/design` 从一个 repository revision 返回路线、需求、证据、Decision、成果元数据、最小 Run、资料元数据和永久编号；不返回成果正文或资料正文 |
+| 真实状态刷新 | `useDesignOverview` 每3秒读取，不重叠请求；卸载隔离，校验 projectId / 记录归属，失败明确显示并阻断写操作 |
+| 摘要与矩阵 | `AlternativesPage` 保留展开卡、需求覆盖矩阵，增加实际字段矩阵、真实 completed Run 批次和全部历史入口；卡片正文和展开按钮不选择，radio 明确选择，无自造分数 |
+| 人工决策摘要 | `routeReview` 区分 confirmed MUST 的 full / 不足、未确认 MUST、风险 / UNKNOWN、有效 verified FACT / SOURCE 引用；人工理由原样呈现，full 是存储响应，不代表工程性能或已核验合规 |
+| 摘要后的真实 Gate | 打开摘要不调用工具；第二步调用原 `marketpilot_decision_confirm`。新增 optional expectedVersion 由原 businessVersion 派生；Gate 前拒绝 STALE_CONTEXT，Gate 后保留 STALE_REVIEW，防快速重复提交；旧调用可省略 |
+| 方案版本与来源 | `SolutionPage` 以 createdAt / id 排序，审批 updatedAt 不重排生成版本；目录以 heading occurrence 跳转，忽略 fenced code 中假标题；正文引用排除编号附录，永久 EVD 编号跳精确证据详情 |
+| 存档与当前补证的关系 | 方案展示当前台账待复核清单并明确其可能晚于存档；历史 Decision 优先读成果 dependencies，缺省读对应 Run.output.decisionId，不用当前 Decision 冒充历史 |
+| 成果输入指纹 | `Artifact.dependencies` optional / server-owned，保存 requirementsVersion、decisionVersion、decisionId、sourcesVersion。`artifact-context.ts` 对对象键及记录集合排序后 SHA256；在原需求、研究、路线、方案、符合性事务和通用保存中捕获，不另起写事务 |
+| 可能过期 / 历史缺口 | 只读 `current / possibly_stale / untracked`，显示变化范围，链接回需求、证据、路线。旧成果无快照则 untracked，不补写推测版本、不改原文；手动修改内容后移除无法证明的快照 |
+| 可选招标 | 没有带正文 tender 资料时 skipped_optional，可去成果或上传区；条款搜索、状态筛选、12行分页；切筛选/页清选择，审查所选仅提交可见项，审查全部使用全部真实条款；原 compliant 证据闸门不变 |
+| 矩阵导出 | 既有导航 store 增加 artifact focus，招标按钮定位真实符合性成果；再输入新绝对路径，经既有 guarded export / Human Gate，不在页面直接写文件 |
+| 合成来源与小屏 | 路线、方案、成果和招标提示 synthetic；复用宿主主题变量。真实原生验收发现长路线表头相互重叠，已限定矩阵表头换行，1024仍使用表格内滚动 |
+
+指纹排除 Artifact、codeBook、Run telemetry、project.status / updatedAt，包含需求、人工 Decision、资料、非 DECISION 证据、研究和适用的选定路线 / 招标条款。每个成果类型在单次投影中只计算一次当前指纹。来源变化采用保守的“可能过期”，不自动撤销人工 Decision、审核或存量成果；指纹也不等于可重放的完整旧输入快照。
+
+持久化、UUID、永久 codeBook、原生 main slot、Cordis、Provider、Evidence Ledger 和 Human Gate 保持。新代码可读旧项目；已写 dependencies 的新数据不能交给 M3 的旧 strict schema，回退 UI 须保留新字段读取契约并先备份，不能靠删除持久化字段回退。
+
+真实 GUI、249项回归、离线 CALM smoke、存量一致性和限制见 `V3_3_M4_ACCEPTANCE.md`。M4 后停止；M5 才执行真实 GLM 关键工作流、全局 GUI / 演示 / 发布终验。

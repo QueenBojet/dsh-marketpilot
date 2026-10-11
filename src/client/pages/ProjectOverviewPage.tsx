@@ -68,10 +68,10 @@ export function ProjectOverviewPage({ t, actions, view, mode = 'guided' }: {
               {view.section === 'requirements' ? <RequirementsPage t={t} projectId={view.projectId} focus={view.focus} actions={actions} /> : null}
               {view.section === 'research' ? <ResearchPage t={t} projectId={view.projectId} actions={actions} /> : null}
               {view.section === 'evidence' ? <EvidencePage t={t} projectId={view.projectId} actions={actions} focus={view.focus} /> : null}
-              {view.section === 'alternatives' ? <AlternativesPage t={t} projectId={view.projectId} /> : null}
-              {view.section === 'solution' ? <SolutionPage t={t} projectId={view.projectId} /> : null}
+              {view.section === 'alternatives' ? <AlternativesPage t={t} projectId={view.projectId} actions={actions} /> : null}
+              {view.section === 'solution' ? <SolutionPage t={t} projectId={view.projectId} actions={actions} /> : null}
               {view.section === 'tender' ? <TenderPage t={t} projectId={view.projectId} actions={actions} onGoEvidence={() => { onGo('evidence') }} /> : null}
-              {view.section === 'artifacts' ? <ArtifactsPage t={t} projectId={view.projectId} /> : null}
+              {view.section === 'artifacts' ? <ArtifactsPage t={t} projectId={view.projectId} actions={actions} focus={view.focus} /> : null}
             </div>
           </>}
         </>}

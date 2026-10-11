@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 /** Phase 3 render tests: task center, artifact reader, and phase-bar navigation. */
 import { act } from 'react'
+import { designClientFixture } from './design-client-fixture.ts'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -300,6 +301,7 @@ describe('ArtifactsPage', () => {
   function artifactFetchMock(content: string): void {
     fetchMock.mockImplementation(async (input: unknown) => {
       const url = String(input)
+      if (url.endsWith('/design')) return jsonResponse(designClientFixture({ ...artifactsDetail, artifacts: artifactsList.artifacts }))
       if (url === '/marketpilot/api/projects/p1') return jsonResponse(artifactsDetail)
       if (url === '/marketpilot/api/projects/p1/artifacts') return jsonResponse(artifactsList)
       if (url === '/marketpilot/api/projects/p1/artifacts/a1') {
@@ -314,6 +316,7 @@ describe('ArtifactsPage', () => {
   it('lists review badges and opens the markdown reader', async () => {
     fetchMock.mockImplementation(async (input: unknown) => {
       const url = String(input)
+      if (url.endsWith('/design')) return jsonResponse(designClientFixture({ ...detailPayload, artifacts: artifactsList.artifacts }))
       if (url === '/marketpilot/api/projects/p1') return jsonResponse(detailPayload)
       if (url === '/marketpilot/api/projects/p1/artifacts') return jsonResponse(artifactsList)
       if (url === '/marketpilot/api/projects/p1/artifacts/a1') {
@@ -380,6 +383,7 @@ describe('ArtifactsPage', () => {
     const postedTools: { name: string; args: Record<string, unknown> }[] = []
     fetchMock.mockImplementation(async (input: unknown, init?: { method?: string; body?: string }) => {
       const url = String(input)
+      if (url.endsWith('/design')) return jsonResponse(designClientFixture({ ...detailPayload, artifacts: artifactsList.artifacts }))
       if (url === '/marketpilot/api/projects/p1') return jsonResponse(detailPayload)
       if (url === '/marketpilot/api/projects/p1/artifacts') return jsonResponse(artifactsList)
       if (url === '/marketpilot/api/projects/p1/artifacts/a1') {
@@ -434,6 +438,7 @@ describe('ProjectOverviewPage stage navigation', () => {
     state.workflowRuns.push({ ...run('run-1', 'requirement_analysis', 'waiting_human'), output: { requirementIds: ['req1'] } })
     fetchMock.mockImplementation(async (input: unknown) => {
       const url = String(input)
+      if (url.endsWith('/design')) return jsonResponse(designClientFixture({ ...detailPayload, artifacts: artifactsList.artifacts }))
       if (url === '/marketpilot/api/projects/p1') return jsonResponse(detailPayload)
       if (url === '/marketpilot/api/projects/p1/workflow') return jsonResponse(projectWorkflowOverview(state, capabilities, []))
       if (url.startsWith('/marketpilot/api/projects/p1/runs')) return jsonResponse(runsPayload)
