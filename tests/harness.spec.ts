@@ -1,28 +1,34 @@
 import { randomUUID } from 'node:crypto'
-import { join } from 'node:path'
-import { readFile, writeFile } from 'node:fs/promises'
+import { join, resolve, sep } from 'node:path'
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { describe, expect, it, vi } from 'vitest'
 import SystemPrompt from '@deepseek-ai/dsh-system-prompt'
+import type { Context } from '@deepseek-ai/cordis'
 import Tools from '@deepseek-ai/dsh-tools'
+import type { ToolRunContext } from '@deepseek-ai/dsh-tools'
 import { ToolCallId } from '@deepseek-ai/dsh-llm'
 import UserQuestions from '@deepseek-ai/dsh-user-questions'
 import LocalFs from '@deepseek-ai/dsh-fs-local'
 import * as Plugin from '../src/harness/plugin.ts'
 import { setup, addCleanup, requirement } from './helpers.ts'
 
-async function harness() {
+type ExportPolicy = NonNullable<Parameters<Context['fs']['writeText']>[4]>
+type ExportSession = NonNullable<ToolRunContext['agent']>['session']
+
+async function harness(fsPlugin = LocalFs, policy?: { defaultMode: ExportPolicy['mode']; resolve(request?: { session?: ExportSession }): ExportPolicy }) {
   const storage = await setup()
   await storage.repository.close()
   const { root } = storage
   await root.plugin(SystemPrompt)
   await root.plugin(Tools)
-  await root.plugin(LocalFs, { cwd: storage.directory })
+  if (policy) root.provide('sandboxPolicy', policy)
+  await root.plugin(fsPlugin, { cwd: storage.directory })
   await root.plugin(UserQuestions)
   const config = new Plugin.Config({ maxDocumentBytes: 512, structuredProvider: 'spawn', modelTimeoutMs: 10000 })
   const plugin = await root.plugin(Plugin, config)
   addCleanup(() => root.fiber.dispose())
-  const call = (name: string, args: Record<string, unknown>, signal = new AbortController().signal) => root.tools.execute({
-    callId: ToolCallId(randomUUID()), name, arguments: args, signal,
+  const call = (name: string, args: Record<string, unknown>, signal = new AbortController().signal, agent?: ToolRunContext['agent']) => root.tools.execute({
+    callId: ToolCallId(randomUUID()), name, arguments: args, signal, ...agent === undefined ? {} : { agent },
   })
   return { ...storage, config, plugin, call, services: root.marketpilot.services }
 }
@@ -111,6 +117,59 @@ describe('MarketPilot Harness integration', () => {
     await writeFile(path, 'existing user content')
     expect((await call('marketpilot_artifact_export', args)).isError).toBe(true)
     expect(await readFile(path, 'utf8')).toBe('existing user content')
+  })
+  it('exports under the calling session policy while retaining sandbox denials and approval after a failed write', async () => {
+    // Runtime alias resolves the official backend without adding a production dependency.
+    const sandboxModule = '@deepseek-ai/dsh-fs-sandbox'
+    const { default: SandboxedFs } = await import(sandboxModule) as { default: typeof LocalFs }
+    // Outside platform temp roots, so an omitted per-call policy really denies this target.
+    const base = resolve('.marketpilot')
+    await mkdir(base, { recursive: true })
+    const fixture = await mkdtemp(join(base, 'export-policy-test-'))
+    addCleanup(async () => {
+      if (!fixture.startsWith(base + sep) || !fixture.split(sep).at(-1)?.startsWith('export-policy-test-')) throw new Error('Unsafe export fixture cleanup')
+      await rm(fixture, { recursive: true, force: true })
+    })
+    const workspace = join(fixture, 'workspace'), fallback = join(fixture, 'deployment')
+    await mkdir(workspace); await mkdir(fallback)
+    let sessionMode: ExportPolicy['mode'] = 'workspace-write'
+    const policy = { defaultMode: 'workspace-write' as const, resolve({ session }: { session?: ExportSession } = {}): ExportPolicy {
+      return { mode: session ? sessionMode : 'workspace-write', workspaceRoot: session?.header.cwd ?? fallback }
+    } }
+    const { root, call, services: s, project: p } = await harness(SandboxedFs, policy)
+    const artifact = await s.artifacts.save(p.id, { name: 'Baseline.md', type: 'requirement_baseline', format: 'markdown', content: '# Approved snapshot\nUNKNOWN: 未冻结性能。' })
+    const review = vi.fn(async () => ({ answers: [{ id: 'marketpilot-review', selected: ['确认'] }] }))
+    root.on('user-questions/request', review)
+    const path = join(workspace, 'Baseline.md')
+    const args = { projectId: p.id, artifactId: artifact.id, path }
+    const denied = await call('marketpilot_artifact_export', args)
+    expect(denied.isError).toBe(true)
+    expect(denied.content).toEqual([{ type: 'text', text: expect.stringContaining('workspace-write mode') }])
+    await expect(readFile(path)).rejects.toMatchObject({ code: 'ENOENT' })
+    const approved = s.artifacts.get(p.id, artifact.id)
+    expect(approved.reviewStatus).toBe('approved')
+    const agent = { session: { header: { cwd: workspace } } } as NonNullable<ToolRunContext['agent']>
+    const exported = await call('marketpilot_artifact_export', args, undefined, agent)
+    expect(exported.isError, JSON.stringify(exported.content)).toBeFalsy()
+    expect(await readFile(path, 'utf8')).toBe(artifact.content)
+    expect(exported.value).toMatchObject({ data: { path, review: approved.review } })
+    await writeFile(path, 'existing user content')
+    expect((await call('marketpilot_artifact_export', args, undefined, agent)).isError).toBe(true)
+    expect(await readFile(path, 'utf8')).toBe('existing user content')
+    const outside = join(fixture, 'outside.md')
+    expect((await call('marketpilot_artifact_export', { ...args, path: outside }, undefined, agent)).isError).toBe(true)
+    await expect(readFile(outside)).rejects.toMatchObject({ code: 'ENOENT' })
+    sessionMode = 'read-only'
+    const readOnly = join(workspace, 'read-only.md')
+    const deniedReadOnly = await call('marketpilot_artifact_export', { ...args, path: readOnly }, undefined, agent)
+    expect(deniedReadOnly.isError).toBe(true)
+    expect(deniedReadOnly.content).toEqual([{ type: 'text', text: expect.stringContaining('read-only mode') }])
+    await expect(readFile(readOnly)).rejects.toMatchObject({ code: 'ENOENT' })
+    const agentless = join(fallback, 'agentless.md')
+    expect((await call('marketpilot_artifact_export', { ...args, path: agentless })).isError).toBeFalsy()
+    expect(await readFile(agentless, 'utf8')).toBe(artifact.content)
+    expect(review).toHaveBeenCalledOnce()
+    expect(s.artifacts.get(p.id, artifact.id)).toEqual(approved)
   })
   it('unregisters Tools, removes its service and releases the domain on unload', async () => {
     const { root, call, plugin, config } = await harness()

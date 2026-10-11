@@ -1,0 +1,17 @@
+{
+  "observedAt": "2026-10-11T08:47:17.796Z",
+  "mode": "native-computer-use",
+  "screenshot": "m5-native-export-approved-2560.jpg",
+  "width": 2560,
+  "height": 1392,
+  "project": "CALM 漏油监测桌面版演示",
+  "artifactCode": "ART-06",
+  "checks": [
+    "approved-artifact-visible",
+    "input-version-unchanged-visible",
+    "S7-completed-visible"
+  ],
+  "note": "Native snapshot shows approval and current input status. Actual export completion is proved separately by the official tool result, file bytes and hosted task screenshot.",
+  "newModelCalls": 0,
+  "newHumanAnswers": 0
+}

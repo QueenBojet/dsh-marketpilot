@@ -4,16 +4,94 @@
   "artifactId": "83afd799-90ac-4f33-ae0d-e2fca06e991a",
   "artifactCode": "ART-06",
   "artifactHash": "208cd7fa067ae6d5146ea64ce5b216a9d928ad9fd64dc346a4b839df314d1014",
-  "path": "E:\\PythonProjects\\Work_Platform\\marketpilot\\docs\\gui-acceptance\\v3.3-m5\\exports\\CALM-M5-ART-06.md",
-  "callId": "c422dd64-a2f5-491d-979a-bd96b548813f",
-  "status": "waiting_human",
-  "humanApproval": "pending",
+  "path": "C:\\Users\\zjdzc\\AppData\\Roaming\\dsh-desktop\\launch-root\\marketpilot-exports\\CALM-M5-ART-06.md",
+  "callId": "63bbe9c3-1796-4bf5-8b44-827c9ab9613d",
+  "status": "completed",
+  "humanApproval": "approved",
   "checks": [
     "one-gate-on-double-click",
     "export-reader-closes-for-human-gate",
     "draft-until-human-answer",
-    "no-file-before-human-approval"
+    "no-file-before-human-approval",
+    "actual-export-bytes-match-approved-snapshot",
+    "approval-does-not-invalidate-dependencies",
+    "retry-reuses-original-human-approval",
+    "all-project-records-and-codes-unchanged",
+    "repository-archive-bytes-match-official-export"
   ],
   "question": "是否确认 approve_artifact？",
-  "observedAt": "2026-10-11T08:11:55.219Z"
+  "observedAt": "2026-10-11T08:44:51.806Z",
+  "review": {
+    "reviewer": "Harness human (c422dd64-a2f5-491d-979a-bd96b548813f)",
+    "reviewedAt": "2026-10-11T08:25:41.645Z",
+    "reason": "用户通过 Harness 人工审核入口明确确认。"
+  },
+  "attempts": [
+    {
+      "callId": "c422dd64-a2f5-491d-979a-bd96b548813f",
+      "status": "failed",
+      "observedAt": "2026-10-11T08:35:03.578Z",
+      "humanApproval": "approved",
+      "error": "Error: cannot write \"E:\\PythonProjects\\Work_Platform\\marketpilot\\docs\\gui-acceptance\\v3.3-m5\\exports\\CALM-M5-ART-06.md\": file access denied under workspace-write mode",
+      "review": {
+        "reviewer": "Harness human (c422dd64-a2f5-491d-979a-bd96b548813f)",
+        "reviewedAt": "2026-10-11T08:25:41.645Z",
+        "reason": "用户通过 Harness 人工审核入口明确确认。"
+      },
+      "path": "E:\\PythonProjects\\Work_Platform\\marketpilot\\docs\\gui-acceptance\\v3.3-m5\\exports\\CALM-M5-ART-06.md"
+    },
+    {
+      "callId": "3a9066ca-da5e-43b6-8fbe-2cef3ae4d955",
+      "path": "E:\\PythonProjects\\Work_Platform\\marketpilot\\docs\\gui-acceptance\\v3.3-m5\\exports\\CALM-M5-ART-06.md",
+      "status": "failed",
+      "observedAt": "2026-10-11T08:37:44.664Z",
+      "humanApproval": "approved",
+      "error": "Error: cannot write \"E:\\PythonProjects\\Work_Platform\\marketpilot\\docs\\gui-acceptance\\v3.3-m5\\exports\\CALM-M5-ART-06.md\": file access denied under workspace-write mode",
+      "review": {
+        "reviewer": "Harness human (c422dd64-a2f5-491d-979a-bd96b548813f)",
+        "reviewedAt": "2026-10-11T08:25:41.645Z",
+        "reason": "用户通过 Harness 人工审核入口明确确认。"
+      }
+    },
+    {
+      "callId": "63bbe9c3-1796-4bf5-8b44-827c9ab9613d",
+      "path": "C:\\Users\\zjdzc\\AppData\\Roaming\\dsh-desktop\\launch-root\\marketpilot-exports\\CALM-M5-ART-06.md",
+      "status": "completed",
+      "observedAt": "2026-10-11T08:44:51.806Z",
+      "humanApproval": "approved",
+      "review": {
+        "reviewer": "Harness human (c422dd64-a2f5-491d-979a-bd96b548813f)",
+        "reviewedAt": "2026-10-11T08:25:41.645Z",
+        "reason": "用户通过 Harness 人工审核入口明确确认。"
+      }
+    }
+  ],
+  "retryBaseline": {
+    "observedAt": "2026-10-11T08:39:40.042Z",
+    "review": {
+      "reviewer": "Harness human (c422dd64-a2f5-491d-979a-bd96b548813f)",
+      "reviewedAt": "2026-10-11T08:25:41.645Z",
+      "reason": "用户通过 Harness 人工审核入口明确确认。"
+    },
+    "projectDetailHashes": {
+      "83fd7e7e-d068-49e0-bf60-ffbd0496ce47": "0a252802623a23731455b521f0a48da3ac5bf8ab26ffc151bf0f733da91b0933",
+      "111ef82b-262c-497c-a82a-50769ee33e03": "dd768d117808d63185e4a1cdd622c414172fde2086700a3fc7afcf4597f6aedb",
+      "8f7369be-7e36-4c5c-ab2a-2de1e1b81353": "bca3bfcefbb371e6505ca7df1922f3e70451c215e4e1d83f28c60aa376737c22",
+      "39f8a281-1092-4d95-b6b6-17ed0259d99c": "3ec3c699e35d8f1ebc23cb3ec61a8f755da4a275e5922b2d6e16f6873249af4a",
+      "be8ebe99-75de-486b-9789-d503ad9f358d": "6c9a58078bc41cecc93536435af00782c214f37430d16a9a7bd58e92cc61f754",
+      "68cc89d0-119a-4a53-80e3-62ad630c8775": "ddd8bca99eb24973c3eb1ca4f82e5a673b4e65bfde54267058961ddd988d40e1",
+      "c55a8910-ca03-4645-8b9a-7dd3005603a5": "ca453eda735e8140b9d1235f671b7eb3bedc58d8feda48060a2fc2285b9c2604",
+      "71d11329-2e2a-4b35-9285-0eea6844fe2a": "d30dbc9092ce3002d4664a9b871fa2b320d9eb7920718b8b0a29b2161fe1b030",
+      "2cde69d7-5eb8-4f79-b923-8d1745f0d51c": "ae19d39e09d144d170080b3603c140eb9793b16d816cd1f24a18c05fd64d0242"
+    }
+  },
+  "retriedAt": "2026-10-11T08:39:41.623Z",
+  "originalRequestedPath": "E:\\PythonProjects\\Work_Platform\\marketpilot\\docs\\gui-acceptance\\v3.3-m5\\exports\\CALM-M5-ART-06.md",
+  "bytes": 56486,
+  "fileSha256": "fbc55a94bf7bf2f9a36e7613299bd555ce12f1b14246cbaf2c98797824ed17ed",
+  "operation": "create",
+  "archivePath": "E:\\PythonProjects\\Work_Platform\\marketpilot\\docs\\gui-acceptance\\v3.3-m5\\exports\\CALM-M5-ART-06.md",
+  "preparedCallId": "c422dd64-a2f5-491d-979a-bd96b548813f",
+  "sessionWorkspace": "C:\\Users\\zjdzc\\AppData\\Roaming\\dsh-desktop\\launch-root",
+  "artifactReviewStatus": "approved"
 }

@@ -13,11 +13,11 @@
 | CALM需求→方案→可选投标全链路 | 离线通过 | 官方Cordis、SQLite、guarded工具；模型替身和显式模拟人工。没有在存量项目重跑全新在线全链路 |
 | 本轮真实模型关键流程 | 通过当前路由 | 官方 zai / **glm-5.3-flash / max**，方案7次调用、702523 ms；不能替代指定非Flash `glm-5.3` 的新复验 |
 | 三尺寸 / 两主题真实GUI | 通过 | 31张最终宿主截图，原生窗口另留证；无mock / jsdom冒充Desktop |
-| 正式导出 / 样例人审 | 待真实人批准 | ART-06仍为draft；审阅副本不是正式导出。准备门与实际完成分别记录 |
+| 正式导出 / 样例人审 | 已获人工批准并正式导出 | ART-06 approved；官方工具 create，56486字节与存档逐字一致；不等于逐条技术质量已充分核验 |
 | 10分钟演示 | 脚本完成，实测待补 | 预算8分30秒 / 硬截止10分钟；没有把自动导航时长当人类完整口述彩排 |
 | 联网研究 | 未验收 | `available=false, mode=unverified`，没有公开URL / 抓取原文证明 |
 
-发布指引已交付，但本轮没有对外发布、推送Git或更改模型 / Provider凭据。正式演示前须完成真实人审与口述计时；若严格要求非Flash模型及全新在线全链路，也须安排对应验证并更新报告。
+发布指引已交付；用户明确授权本次正式导出、Git提交与推送至 GitHub main。正式导出和人工批准已完成，未更改模型 / Provider凭据；对外演示前仍须完成人类口述计时。严格非Flash模型及全新在线全链路仍须另行验证。
 
 ## 基线与环境
 
@@ -42,7 +42,7 @@ V3.2.1 的178项是历史基线，M5起点实测为249项。历史真实GLM全�
 
 测试变更：`tests/workbench-routes.spec.ts`、`tests/model-failures-m5.spec.ts`、`tests/phase3-client.spec.tsx`、`tests/shortcodes.spec.ts`。新增启动失败 / 重试 / 卸载、官方结构化适配器缺服务 / Provider失败 / 无效输出 / 超时 / 取消后迟到结果与子Agent释放覆盖；已有人工中断、STALE_CONTEXT、跨项目、superseded等待、null-codeBook等回归保留。
 
-验收工具：`scripts/desktop-session.mjs`、`acceptance-v33-m5.mjs`、`acceptance-v33-m5-live.mjs`、`acceptance-v33-m5-export.mjs`。只有live的 `--start` 发起模型任务；export脚本只准备 / 核验门，不能回答门。Session token仅在内存，未保存到facts或报告。
+验收工具：`scripts/desktop-session.mjs`、`acceptance-v33-m5.mjs`、`acceptance-v33-m5-live.mjs`、`acceptance-v33-m5-export.mjs`。只有live的 `--start` 发起模型任务；export脚本可准备 / 核验门、重试已批准快照和归档正式文件，不能回答门。Session token仅在内存，未保存到facts或报告。
 
 ## 最终验证记录
 
@@ -77,10 +77,10 @@ V3.2.1 的178项是历史基线，M5起点实测为249项。历史真实GLM全�
 | 耗时 / 调用 / 重试 | 702523 ms，约11分43秒；7模型调用 / 1工作流工具调用；0重试 |
 | 人工等待 | 本次方案生成0 ms / 0应答，复用已有人工Decision；正式成果人审另计 |
 | 新成果 | **ART-06**，`83afd799-90ac-4f33-ae0d-e2fca06e991a`；56486 UTF-8 bytes |
-| 审核 / 依赖 | draft / current，关联既有DEC-01；不是已批准工程结论 |
+| 审核 / 依赖 | 生成时 draft / current；本次已明确批准并正式导出，关联既有DEC-01；批准不替代工程技术核验 |
 | 审阅副本 | `gui-acceptance/v3.3-m5/m5-CALM-solution-review.md`，不是受控正式导出 |
 
-审阅副本与存档正文的哈希、56486字节已对齐；`.gitattributes`仅为这份副本固定LF，避免Windows的autocrlf在后续checkout时改动原文字节。
+审阅副本与存档正文的哈希、56486字节已对齐；`.gitattributes`为审阅副本和正式导出归档固定LF，避免Windows的autocrlf在后续checkout时改动原文字节。
 
 真实Run步骤为 START → VALIDATE_PREREQUISITES → BUILD_PROJECT_CONTEXT → GENERATE_OUTLINE → GENERATE_SECTIONS → TRACE_REQUIREMENTS → TRACE_EVIDENCE → REVIEW → SAVE_ARTIFACT → COMPLETED。只展示实际记录，不构造百分比。
 
@@ -109,8 +109,8 @@ V3.2.1 的178项是历史基线，M5起点实测为249项。历史真实GLM全�
 | 投标 / 符合性成果导出入口 | 1440×900 / 浅 | `m5-calm-tender-1440.png`、`m5-compliance-export-entry-1440.png` |
 | 持久化任务历史 | 1440×900 / 浅 | `m5-persisted-task-history-1440.png` |
 | 原生最终窗口 | 2560×1392 / 浅 | `m5-native-overview-2560.png`、`m5-native-solution-2560.png` |
-| 最终真实导出门（未应答） | 1440×900 / 浅 | `m5-real-export-awaiting-human-1440.png` |
-| 原生真实导出门（未应答） | 2560×1392 / 浅 | `m5-native-export-awaiting-human-2560.png` |
+| 最终真实导出门（准备时未应答） | 1440×900 / 浅 | `m5-real-export-awaiting-human-1440.png` |
+| 原生真实导出门（准备时未应答） | 2560×1392 / 浅 | `m5-native-export-awaiting-human-2560.png` |
 
 31张矩阵文件与精确尺寸见 `gui-acceptance/v3.3-m5/m5-gui-facts.json`，原生留证见 `m5-native-facts.json`；另有真实运行中截图 `m5-live-running-light-1440.png` 和正式导出待审批截图。每张托管截图断言页面无横向溢出，1024阶段导航保持紧凑横向，真实DOM当前阶段 / 八步状态与API逐项一致。长路线矩阵使用表格内滚动；小屏阅读器改为目录顶部 / 风险下方，正文内部滚动。
 
@@ -142,14 +142,25 @@ V3.2.1 的178项是历史基线，M5起点实测为249项。历史真实GLM全�
 
 针对性验证：`phase3-client` / `harness` / `workbench-routes` / `project-review` / `client-bundle` 共5文件39测试通过，包含人工审批、精确 Run 绑定、启动失败 / 卸载和禁止覆盖已有文件；typecheck / build通过。客户端382.95kB / gzip78.84kB，比初版M5增加0.27kB / 0.08kB，没有新增依赖。原33文件258测试记录保留，本次未重复全套测试。
 
-9项目完整detail前后哈希一致，0新execution / 模型调用 / 人工应答 / 页面异常。原导出callId、完整审批projection与ART-06正文哈希不变，成果仍draft，正式文件不存在。computer-use仅刷新原生客户端，未重启宿主；首页修复及原门可见另有2张2560×1392截图，见 `m5-display-fixed-native-facts.json`。修复不改变本报告其余验收边界。
+显示补修阶段9项目完整detail前后哈希一致，0新execution / 模型调用 / 人工应答 / 页面异常。当时原导出callId、完整审批projection与ART-06正文哈希不变，成果仍draft，正式文件不存在。computer-use仅刷新原生客户端，未重启宿主；首页修复及原门可见另有2张2560×1392截图，见 `m5-display-fixed-native-facts.json`。正式批准与导出结果见下节。
 
-## 人工收口
+## 正式导出补修与人工收口
 
-审阅ART-06正文和UNKNOWN / 合成来源边界后，使用真实 `marketpilot_artifact_export` / `approve_artifact` 门。具体门、路径与状态保存在 `m5-export-facts.json`；`--prepare`只启动一门，文件在批准前不存在，`--verify`只在实际完成后校验approved、原文字节、返回路径及依赖current。
+用户明确授权正式导出后，原门 `c422dd64-a2f5-491d-979a-bd96b548813f` 在真实原生审批窗确认，ART-06 于北京时间 **2026-10-11 16:25:41.645** 成为 approved。批准记录仍是该门的 Harness human，正文与依赖未改。审批成功与文件写入成功分别记录，不能把后续拒写误记成尚未批准。
 
-最终门准备于北京时间 **2026-10-11 15:48:37.988**，callId **`c422dd64-a2f5-491d-979a-bd96b548813f`**，状态 **waiting_human / pending**，成果仍 **draft**。目标为 `E:\PythonProjects\Work_Platform\marketpilot\docs\gui-acceptance\v3.3-m5\exports\CALM-M5-ART-06.md`，批准前不存在。立即双击仅一门，阅读器已关闭，真实审批弹窗可见。审阅副本 `m5-CALM-solution-review.md` 是供人审阅的原文副本，不能当作正式导出成功。
+原门准备于北京时间 **15:48:37.988**，当时 waiting_human / draft，仓库目标不存在，立即双击仅开一门。更早的准备门 `45e2eef1-66ce-4dd3-b0ee-044338520204` 因阅读器遮挡而明确取消，证据保存在 `m5-export-prepatch-facts.json`；准备过程没有自动应答。本次人工确认依据用户明确授权。
 
-首个验收准备门 `45e2eef1-66ce-4dd3-b0ee-044338520204` 因发现阅读器遮挡问题而明确取消；取消后成果逐字未变且无导出文件，事实保存在 `m5-export-prepatch-facts.json`。修复、回归与最终宿主重启后才准备上述新门；两门均未自动应答。
+原批准后的写入被官方 `workspace-write` 拒绝。新增 `tests/harness.spec.ts` 回归通过真实 Tools、人工审核、官方 SandboxedFileSystem 与原子写入复现：调用会话允许的目标仍被部署 fallback 根拒绝；连续两次运行红灯。`src/tools/artifact.ts` 从宿主可选 sandboxPolicy 服务解析当前 exec.agent.session，将策略传给官方 fs.writeText 第五参数。保持 session mode、workspace root、取消与 createIfAbsent；无新增依赖，不改变安全配置。
 
-未批准或中断时保留draft并如实记录。批准后须补充实际文件验证和人审记录，再按演示脚本进行人类全程口述计时；这两项完成前，本报告保持“技术验证通过，整体验收有缺口”。
+修复后第一次真实重试 `3a9066ca-da5e-43b6-8fbe-2cef3ae4d955` 仍拒绝仓库路径。读取实际工作台会话头确认 cwd 为 `C:\Users\zjdzc\AppData\Roaming\dsh-desktop\launch-root`；仓库路径在范围外，不能扩大权限或从目标反推授权根。改用该会话允许的目录后，真实 GUI 发起的重试 `63bbe9c3-1796-4bf5-8b44-827c9ab9613d` 在北京时间 **16:39:41.641** 完成，官方返回 **operation=create**：
+
+- 正式写入：`C:\Users\zjdzc\AppData\Roaming\dsh-desktop\launch-root\marketpilot-exports\CALM-M5-ART-06.md`。
+- 仓库归档：[`gui-acceptance/v3.3-m5/exports/CALM-M5-ART-06.md`](gui-acceptance/v3.3-m5/exports/CALM-M5-ART-06.md)，从已成功正式导出的文件复制，禁止覆盖不同内容；不是从审阅副本生成。
+- 三方逐字校验：成果存档正文 / 官方写入文件 / 仓库归档均为 **56486 UTF-8字节**，原始文件 SHA256 `fbc55a94bf7bf2f9a36e7613299bd555ce12f1b14246cbaf2c98797824ed17ed`；JSON.stringify(content) SHA256 仍为 `208cd7fa067ae6d5146ea64ce5b216a9d928ad9fd64dc346a4b839df314d1014`。
+- 原真实批准记录完全复用，无重复审批 / 模型调用；dependencies current，9项目完整 detail 哈希前后相同，历史记录和永久编号不变。
+
+`scripts/acceptance-v33-m5-export.mjs` 现在在失败时也读取真实 review，分别记录批准与导出状态；保留三次调用的路径、错误和批准记录。`--retry` 仅复用已批准且正文哈希未变的成果，`--archive` 仅归档已验证的正式文件。事实见 `m5-export-facts.json`，真实托管页面任务完成截图为 `m5-real-export-completed-1440.png`，原生 `m5-native-export-approved-2560.jpg` 显示 ART-06 已审核 / 输入版本未变化，事实见 `m5-export-native-facts.json`；原生截图仅证明批准与版本状态，实际写入由工具返回、文件字节及托管任务截图共同证明。首轮重启后的 CDP 脚本因旧端点而超时，没有创建导出调用；宿主就绪后才重试，不能将该探针超时记成成功导出。
+
+针对性验证 **5文件 / 33测试通过**：harness 9、workbench-routes 10、design-v33 / project-review 9、client-bundle 5。新增真实沙箱回归覆盖会话写入、只读与越界拒绝、不覆盖、agentless fallback和失败后批准保留；typecheck、build通过，客户端仍382.95kB / gzip78.84kB。没有新增依赖或修改上游。重启前确认无活动任务，实际业务 JSON 在本地忽略目录备份并核对哈希。
+
+正式导出与人工批准现已完成；用户批准不替代逐条技术质量审核。人类10分钟口述、非Flash指定模型复验、联网研究和全新在线链路仍未完成，整体验收继续保留这些缺口。

@@ -8,7 +8,7 @@
 
 实际插件路径为 `E:\PythonProjects\Work_Platform\marketpilot`，Desktop web profile的 `node_modules\dsh-marketpilot` junction指向该目录；构建产物是 `lib/` 和 `client/client.js`，均须更新。官方Provider、Agent Loop、Cordis与主面板不用修改。
 
-M5技术验证通过，正式成果人审、真实导出和人类10分钟口述计时未关闭；严格非Flash模型 / 全新在线全链路要求也未补测。对外演示不能说这些已全部通过。本轮没有执行对外发布或Git推送。
+M5技术验证通过；用户明确批准ART-06，官方正式导出已完成并逐字核对，归档见 `gui-acceptance/v3.3-m5/exports/CALM-M5-ART-06.md`。本次按用户授权提交并推送至 GitHub main。人类10分钟口述、严格非Flash模型 / 全新在线全链路和联网研究仍未验收，不能称整体验收全部通过。
 
 ## 发布前备份与任务处理
 
@@ -51,7 +51,7 @@ pnpm --config.verify-deps-before-run=false exec vitest run tests/client-bundle.s
 pnpm --config.verify-deps-before-run=false marketpilot:demo:smoke
 ```
 
-预期33文件 / 258测试，bundle5/5。smoke在隔离SQLite中创建数据、使用离线模型与明确模拟人工，不应指向或覆盖Desktop业务存储。验证通过后真正退出托盘并重新打开安装版exe：
+M5初轮33文件 / 258测试；导出补修新增1项，完整测试集应为259项，bundle5/5；本次补修实际跑了5文件 / 33项针对性测试，未重复全量。smoke在隔离SQLite中创建数据、使用离线模型与明确模拟人工，不应指向或覆盖Desktop业务存储。验证通过后真正退出托盘并重新打开安装版exe：
 
 ```powershell
 Start-Process -FilePath 'C:\Users\zjdzc\AppData\Local\Programs\DSH Desktop\DSH Desktop.exe' -WindowStyle Hidden
@@ -62,7 +62,8 @@ Start-Process -FilePath 'C:\Users\zjdzc\AppData\Local\Programs\DSH Desktop\DSH D
 ## 发布后核对
 
 - 打开空QA、仅需求案例与CALM，确认当前阶段来自真实数据；旧项目能打开，编号保持。
-- CALM最新ART-06显示current，旧方案untracked，未批准时draft；补证不会无声改写历史正文。
+- CALM最新ART-06显示current / approved，旧方案untracked；补证不会无声改写历史正文。
+- 正式导出必须在调用会话的授权目录内。本机工作台 cwd 是 `%APPDATA%\dsh-desktop\launch-root`，正式写入在其中 `marketpilot-exports`；仓库文件是成功导出后逐字核对的归档。不要扩大策略或用审阅副本冒充正式写入。
 - 没confirmed需求时路线禁用；没人工Decision时方案禁用；未核验事实不能形成compliant；招标无资料时可选跳过。
 - 小屏横向阶段导航、浅 / 深主题、目录 / 风险区 / 关闭按钮可操作。可运行 `node scripts/acceptance-v33-m5.mjs` 复查已准备的真实案例；脚本只读，不调用模型或回答门。
 - 在任务中心区分领域Run历史与当前进程execution，重启后不把旧waiting或superseded当可回答门。
@@ -70,7 +71,7 @@ Start-Process -FilePath 'C:\Users\zjdzc\AppData\Local\Programs\DSH Desktop\DSH D
 
 `node scripts/acceptance-v33-m5-live.mjs --start` 会花费模型额度并新建版本，**不要当健康检查重复运行**。本轮既有事实可直接审阅；必要时先明确新验收范围。
 
-正式导出使用一个尚不存在的新绝对路径。M5工具 `--prepare` 仅准备真实审批门；人类阅读并批准后运行 `--verify`。不要将审阅副本、预览或开启门称为正式导出成功。批准前保持Desktop进程，不要重启。
+正式导出使用一个尚不存在的新绝对路径。M5脚本 `--prepare` 仅准备真实审批门；人类阅读并批准后运行 `--verify`。已批准但拒写时可使用 `--retry --path <当前会话内的新绝对路径> --archive`，只复用原批准并归档实际正式文件，脚本不应答门。不要将审阅副本、预览或开启门称为正式导出成功。批准前保持Desktop进程，不要重启。
 
 ## 保留数据回退
 
