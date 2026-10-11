@@ -1,0 +1,13 @@
+{
+  "path": "C:/Users/zjdzc/AppData/Roaming/dsh-desktop/harness/storages/marketpilot.json",
+  "backend": "official-json",
+  "bytes": 703090,
+  "keys": [
+    "unit",
+    "global",
+    "tables"
+  ],
+  "containsM5Artifact": true,
+  "containsM5Run": true,
+  "checkedAt": "2026-10-11T07:52:36.207Z"
+}

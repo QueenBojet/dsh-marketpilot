@@ -1,6 +1,6 @@
 # MarketPilot V3.3 — M0 工作流设计与源码审查
 
-日期：2026-10-11（Asia/Shanghai）。范围：M0 + M1；不进入 M2—M5。
+日期：2026-10-11（Asia/Shanghai）。初始审查范围为M0 + M1；后续获授权的M2—M5补充见第9—12节。
 
 ## 1. 重查基线与约束
 
@@ -165,3 +165,17 @@ M3 以 `d1ebb325` 的 M2 为基线。采用直接计划：扩展现有提取契�
 持久化、UUID、永久 codeBook、原生 main slot、Cordis、Provider、Evidence Ledger 和 Human Gate 保持。新代码可读旧项目；已写 dependencies 的新数据不能交给 M3 的旧 strict schema，回退 UI 须保留新字段读取契约并先备份，不能靠删除持久化字段回退。
 
 真实 GUI、249项回归、离线 CALM smoke、存量一致性和限制见 `V3_3_M4_ACCEPTANCE.md`。M4 后停止；M5 才执行真实 GLM 关键工作流、全局 GUI / 演示 / 发布终验。
+
+## 12. M5 全局质量收口（2026-10-11）
+
+用户明确要求接续 M4 后执行 M5；起点为 `main @ 8b9bf5a4b2df7718bf85382bbe46910775808699`，工作区干净，上游仍只读。沿用现有存储、模型、Agent、Cordis 与 Human Gate，仅修已复现的回归并补充验证。
+
+- `WorkbenchManager.start` 在默认模型缺失 / Agent 创建失败时删除未返回 callId 的执行记录并传播错误；准备期间仍保留记录，让插件卸载能通过 signal 中止创建。避免不可轮询、不可取消的幽灵 running 任务。
+- `ArtifactsPage.startExport` 增加同步 ref，立即双击也只启动一次导出门；React busy 状态继续负责视觉反馈。任务成功启动后关闭成果阅读器，避免遮住真实审批弹窗；启动失败时保留阅读器。
+- 原生新方案复核发现旧 Harness 的 `call_…|item_…` 审核人格式未被 UUID 格式器缩短。共享 `reviewerLabel` 与阅读器 `ShortCodeIndex.replace` 只压缩明确的 Harness human 标签，保留8位追溯片段；存档正文、主键与永久编号不改。
+- 对上述四项先写 / 加强失败回归后修复；官方结构化适配器新增缺服务、Provider错误、无效输出、超时、取消后迟到结果及子Agent释放回归。M4 249项增至258项，旧用例保留。
+- 真实CALM方案 ART-06 使用既有 confirmed需求 / 人工Decision，在官方 zai / glm-5.3-flash / max 路径生成；7调用、702523 ms。双击一次执行，切页 / 重载不中断，旧记录哈希不变，新依赖current。并未重跑新的在线全链路或改变模型设置。
+- 只读GUI矩阵覆盖空项目、仅需求项目、完整CALM，三尺寸 / 两主题；新增 / 历史版本、待审批次、无联网Provider、投标与导出入口。所有项目detail哈希不变，旧无codeBook项目首次写入后与原派生编号逐条对账。
+- 演示脚本预算8分30秒，预留至10分钟；长方案任务提前生成，现场仅保留一个人工节点。正式导出须真实人审；人类完整口述彩排和非Flash模型指定验收仍有缺口。
+
+最终事实、截图、验证命令与交付状态见 `V3_3_FINAL_ACCEPTANCE.md`；保留数据的上线 / 回退说明见 `V3_3_RELEASE_GUIDE.md`。技术验证通过不自动授予正式成果批准或对外发布权限。

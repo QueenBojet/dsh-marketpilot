@@ -1,6 +1,6 @@
 /** Short-code index: deterministic codes, display replacement, trace appendix. */
 import { describe, expect, it } from 'vitest'
-import { applyShortCodeBook, buildShortCodeIndex, renderCodeAppendix, shortFragment, UUID_PATTERN } from '../src/domain/shortcodes.ts'
+import { applyShortCodeBook, buildShortCodeIndex, renderCodeAppendix, reviewerLabel, shortFragment, UUID_PATTERN } from '../src/domain/shortcodes.ts'
 
 const reqA = { id: '11111111-1111-4111-8111-111111111111', normalizedText: '系统连续监测', createdAt: '2026-10-01T00:00:00.000Z' }
 const reqB = { id: '22222222-2222-4222-8222-222222222222', normalizedText: '数据留存 90 天', createdAt: '2026-10-02T00:00:00.000Z' }
@@ -46,6 +46,16 @@ describe('buildShortCodeIndex', () => {
 })
 
 describe('ShortCodeIndex.replace', () => {
+  it('compacts a legacy Harness gate identity without changing record references or other identifiers', () => {
+    const identity = 'Harness human (call_01a119fdde7970de900a86c6|item_f7f63e55d9cfbac002192f07)'
+    const unrelated = 'call_1234567890abcdef'
+    const index = buildShortCodeIndex({ requirements: [reqA] })
+    expect(reviewerLabel(identity)).toBe('Harness human (#01a119fd)')
+    expect(index.replace(`${identity} / ${reqA.id} / ${unrelated}`)).toBe(`Harness human (#01a119fd) / REQ-01 / ${unrelated}`)
+    expect(reviewerLabel('test-engineer')).toBe('test-engineer')
+    expect(reviewerLabel('Harness human (0f0e1d2c-3b4a-4c5d-8e9f-0a1b2c3d4e5f)')).toBe('Harness human (#0f0e1d2c)')
+  })
+
   it('replaces known UUIDs case-insensitively and leaves unknown ids untouched', () => {
     const index = buildShortCodeIndex({ requirements: [reqA] })
     const text = `需求 [${reqA.id.toUpperCase()}] 与未知记录 44444444-4444-4444-8444-444444444444 保持原样。`

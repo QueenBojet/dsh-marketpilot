@@ -1,14 +1,14 @@
 # MarketPilot
 
-继续开发请先阅读[项目说明与续开发指南](docs/README.workspace.md)，其中记录交接基线、未完成验收和下一步顺序；仓库核查与分阶段验证见[实施记录](docs/IMPLEMENTATION_NOTES.md)，UI V3 重构见[实施日志](docs/UI_V3_IMPLEMENTATION_LOG.md)。本文件侧重插件安装、运行与使用；以下测试结果来自 2026-10-09 的验证记录。
+继续开发先读 [V3.3 终验报告](docs/V3_3_FINAL_ACCEPTANCE.md)和[上线 / 回退指引](docs/V3_3_RELEASE_GUIDE.md)。历史基线见[项目说明与续开发指南](docs/README.workspace.md)、[实施记录](docs/IMPLEMENTATION_NOTES.md)和[UI V3 实施日志](docs/UI_V3_IMPLEMENTATION_LOG.md)；旧日期的结果不代表本轮复验。
 
 DeepSeek Harness 的独立业务插件：需求基线 → 证据台账 → 竞品/候选路线 → 人工 Decision → 技术方案 → 投标符合性矩阵。业务代码位于本包，不修改 Harness 核心或 agent loop。
 
-本地业务闭环已打通：官方 Cordis Loader 读取 bundle patch、加载构建后的插件，使用官方 SQLite、guarded Tools、Human Gate 和 Markdown Artifact。120 个测试、strict typecheck、build 通过，CALM 离线演示可重复执行，且完整 Golden Case 已通过工作台 HTTP 点击路径（含 HTTP 应答人工门）在进程内验证；真实 GLM-5.3（zai Provider，max effort）已在线验收**全链路**——需求提取→人工确认→候选路线生成→人工 Decision→方案生成→投标条款抽取与符合性审查（V3 主面板 CDP + flash 双通道核验）。生成层使用短句柄（R#/E#/D1）降低真实模型抄错 UUID 的失败率。联网搜索与 GUI 全流程截图留证仍待完成；离线替身和模拟人工确认不代表这些验收通过。
+2026-10-11 的 V3.3 M5 回归为 **33 文件 / 258 测试通过**，typecheck、build、最终客户端 bundle 和离线 CALM smoke 通过。M1—M4 的导航、批次审阅、本地研究、路线矩阵、方案版本与依赖提示已接入原生主面板。本轮真实路由为 **zai / glm-5.3-flash / max**：CALM 新方案 ART-06 经7次模型调用、702523 ms（11分43秒）生成；未重新验证非 Flash `glm-5.3` 或全新在线需求→路线→投标链路。三尺寸 / 两主题真实宿主截图见终验报告，旧记录保留。联网仍 unavailable / unverified；新方案正式导出与人类10分钟口述彩排尚待完成，不把离线替身或自动断言当作人的批准。
 
 ## 0. 项目工作台（Web UI V3 主面板）
 
-本包自带 Web 客户端插件（`dsh.client`）与受控 HTTP API。**V3.0 起 MarketPilot 是全宽主工作区**：左侧边栏「MarketPilot 智策」图标 → `main` keyed 槽的 `marketpilot` 面板。**八个分区全部真实页面化**：项目概览（六阶段条 + 统计卡）→ 01 资料与需求（上传/提取/确认/表格/抽屉）→ 02 情报研究（竞品/政策）→ 03 证据审查（核验 Gate）→ 04 技术路线（候选/覆盖矩阵/Decision）→ 05 方案生成（Markdown 安全预览）→ 06 投标检查（条款/审查）→ 项目成果（reviewStatus + MarkdownText）→ 任务中心（跨项目执行索引 + 步骤时间线）。
+本包自带 Web 客户端插件（`dsh.client`）与受控 HTTP API。MarketPilot 使用左侧「MarketPilot 智策」→ 官方 `main` keyed 槽。项目概览按真实事实投影 S0—S7，支持引导 / 专业模式；八个分区保留资料与需求、情报研究、证据审查、技术路线、方案、可选投标与成果工作区，任务中心展示实际执行及持久化 Run 历史。
 
 ### 加载与打开
 
@@ -31,6 +31,7 @@ pnpm build          # 产出 lib/ + client/client.js
 
 ### 验收与演示
 
+- V3.3 当前终验：[docs/V3_3_FINAL_ACCEPTANCE.md](docs/V3_3_FINAL_ACCEPTANCE.md)；[上线 / 回退](docs/V3_3_RELEASE_GUIDE.md)。技术验证与真实人审 / 演示缺口分别记录。
 - 正式验收文档：[docs/UI_V3_GUI_ACCEPTANCE.md](docs/UI_V3_GUI_ACCEPTANCE.md)（九项截图 + 真实 GLM 耗时 + 安全审计 + 人工门记录）。
 - 比赛演示脚本：[docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md)（含备用方案与关键数据）。
 - 实施日志：[docs/UI_V3_IMPLEMENTATION_LOG.md](docs/UI_V3_IMPLEMENTATION_LOG.md)（V3.0 四阶段完整记录 + 3 个真实缺陷修复）。

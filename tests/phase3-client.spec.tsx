@@ -379,7 +379,7 @@ describe('ArtifactsPage', () => {
     expect(codeMap?.textContent).toContain('系统需 24 h 连续监测')
   })
 
-  it('submits artifact export through the guarded tool with the typed path', async () => {
+  it('submits artifact export through the guarded tool once on rapid duplicate clicks', async () => {
     const postedTools: { name: string; args: Record<string, unknown> }[] = []
     fetchMock.mockImplementation(async (input: unknown, init?: { method?: string; body?: string }) => {
       const url = String(input)
@@ -418,14 +418,17 @@ describe('ArtifactsPage', () => {
     })
     await flush()
     expect(exportButton!.disabled).toBe(false)
-    act(() => { exportButton!.click() })
+    act(() => { exportButton!.click(); exportButton!.click() })
     await flush()
     await flush()
     const post = postedTools.find(entry => entry.name === 'marketpilot_artifact_export')
+    expect(postedTools.filter(entry => entry.name === 'marketpilot_artifact_export')).toHaveLength(1)
     expect(post).toBeDefined()
     expect(post!.args.artifactId).toBe('a1')
     expect(post!.args.path).toBe('E:\\exports\\baseline.md')
     expect(post!.args.projectId).toBe('p1')
+    // The reader closes so it cannot cover or trap focus away from the gate.
+    expect(container!.querySelector('.mp-reader')).toBeNull()
     // The export parks on the real human gate — nothing is auto-approved.
     expect(container!.querySelector('.mp-dialog')?.textContent).toContain('导出成果')
   })

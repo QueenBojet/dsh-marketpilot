@@ -1,0 +1,502 @@
+{
+  "date": "2026-10-11T07:47:49.947Z",
+  "mode": "real-installed-desktop-hosted-react",
+  "screenshots": [
+    {
+      "name": "m5-empty-light-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m5-empty-light-1366.png",
+      "width": 1366,
+      "height": 768
+    },
+    {
+      "name": "m5-empty-light-1024.png",
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "name": "m5-empty-dark-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m5-empty-dark-1366.png",
+      "width": 1366,
+      "height": 768
+    },
+    {
+      "name": "m5-empty-dark-1024.png",
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "name": "m5-requirements-light-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m5-requirements-light-1366.png",
+      "width": 1366,
+      "height": 768
+    },
+    {
+      "name": "m5-requirements-light-1024.png",
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "name": "m5-requirements-dark-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m5-requirements-dark-1366.png",
+      "width": 1366,
+      "height": 768
+    },
+    {
+      "name": "m5-requirements-dark-1024.png",
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "name": "m5-calm-light-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m5-calm-light-1366.png",
+      "width": 1366,
+      "height": 768
+    },
+    {
+      "name": "m5-calm-light-1024.png",
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "name": "m5-calm-dark-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m5-calm-dark-1366.png",
+      "width": 1366,
+      "height": 768
+    },
+    {
+      "name": "m5-calm-dark-1024.png",
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "name": "m5-empty-routes-blocked-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m5-empty-solution-blocked-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m5-requirements-waiting-batch-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m5-calm-research-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m5-calm-evidence-1366.png",
+      "width": 1366,
+      "height": 768
+    },
+    {
+      "name": "m5-calm-route-matrix-1024.png",
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "name": "m5-calm-new-version-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m5-calm-live-solution-reader-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m5-calm-historical-version-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m5-calm-solution-reader-dark-1024.png",
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "name": "m5-calm-tender-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m5-compliance-export-entry-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m5-persisted-task-history-1440.png",
+      "width": 1440,
+      "height": 900
+    }
+  ],
+  "checks": [
+    "legacy-derived-codes-preserved-on-first-write",
+    {
+      "project": "V3.3 M1 GUI 空项目 · synthetic QA",
+      "projectId": "2cde69d7-5eb8-4f79-b923-8d1745f0d51c",
+      "theme": "浅色",
+      "currentStage": "S0",
+      "stages": [
+        {
+          "id": "S0",
+          "status": "ready"
+        },
+        {
+          "id": "S1",
+          "status": "not_started"
+        },
+        {
+          "id": "S2",
+          "status": "not_started"
+        },
+        {
+          "id": "S3",
+          "status": "not_started"
+        },
+        {
+          "id": "S4",
+          "status": "not_started"
+        },
+        {
+          "id": "S5",
+          "status": "not_started"
+        },
+        {
+          "id": "S6",
+          "status": "skipped_optional"
+        },
+        {
+          "id": "S7",
+          "status": "not_started"
+        }
+      ],
+      "model": {
+        "available": true,
+        "mode": "live",
+        "reason": "已注册模型路由；调用可用性仍以实际任务为准。",
+        "provider": "zai",
+        "model": "glm-5.3-flash",
+        "reasoningEffort": "max"
+      },
+      "research": {
+        "available": false,
+        "mode": "unverified",
+        "reason": "Harness Web 已加载，但此宿主无只读 Provider 检测接口；联网能力未验证，可使用本地资料研究。"
+      }
+    },
+    {
+      "project": "V3.3 M1 GUI 空项目 · synthetic QA",
+      "projectId": "2cde69d7-5eb8-4f79-b923-8d1745f0d51c",
+      "theme": "深色",
+      "currentStage": "S0",
+      "stages": [
+        {
+          "id": "S0",
+          "status": "ready"
+        },
+        {
+          "id": "S1",
+          "status": "not_started"
+        },
+        {
+          "id": "S2",
+          "status": "not_started"
+        },
+        {
+          "id": "S3",
+          "status": "not_started"
+        },
+        {
+          "id": "S4",
+          "status": "not_started"
+        },
+        {
+          "id": "S5",
+          "status": "not_started"
+        },
+        {
+          "id": "S6",
+          "status": "skipped_optional"
+        },
+        {
+          "id": "S7",
+          "status": "not_started"
+        }
+      ],
+      "model": {
+        "available": true,
+        "mode": "live",
+        "reason": "已注册模型路由；调用可用性仍以实际任务为准。",
+        "provider": "zai",
+        "model": "glm-5.3-flash",
+        "reasoningEffort": "max"
+      },
+      "research": {
+        "available": false,
+        "mode": "unverified",
+        "reason": "Harness Web 已加载，但此宿主无只读 Provider 检测接口；联网能力未验证，可使用本地资料研究。"
+      }
+    },
+    {
+      "project": "CALM 现场演示（10 分钟版）",
+      "projectId": "111ef82b-262c-497c-a82a-50769ee33e03",
+      "theme": "浅色",
+      "currentStage": "S4",
+      "stages": [
+        {
+          "id": "S0",
+          "status": "completed"
+        },
+        {
+          "id": "S1",
+          "status": "completed"
+        },
+        {
+          "id": "S2",
+          "status": "ready"
+        },
+        {
+          "id": "S3",
+          "status": "needs_attention"
+        },
+        {
+          "id": "S4",
+          "status": "ready"
+        },
+        {
+          "id": "S5",
+          "status": "not_started"
+        },
+        {
+          "id": "S6",
+          "status": "ready"
+        },
+        {
+          "id": "S7",
+          "status": "ready"
+        }
+      ],
+      "model": {
+        "available": true,
+        "mode": "live",
+        "reason": "已注册模型路由；调用可用性仍以实际任务为准。",
+        "provider": "zai",
+        "model": "glm-5.3-flash",
+        "reasoningEffort": "max"
+      },
+      "research": {
+        "available": false,
+        "mode": "unverified",
+        "reason": "Harness Web 已加载，但此宿主无只读 Provider 检测接口；联网能力未验证，可使用本地资料研究。"
+      }
+    },
+    {
+      "project": "CALM 现场演示（10 分钟版）",
+      "projectId": "111ef82b-262c-497c-a82a-50769ee33e03",
+      "theme": "深色",
+      "currentStage": "S4",
+      "stages": [
+        {
+          "id": "S0",
+          "status": "completed"
+        },
+        {
+          "id": "S1",
+          "status": "completed"
+        },
+        {
+          "id": "S2",
+          "status": "ready"
+        },
+        {
+          "id": "S3",
+          "status": "needs_attention"
+        },
+        {
+          "id": "S4",
+          "status": "ready"
+        },
+        {
+          "id": "S5",
+          "status": "not_started"
+        },
+        {
+          "id": "S6",
+          "status": "ready"
+        },
+        {
+          "id": "S7",
+          "status": "ready"
+        }
+      ],
+      "model": {
+        "available": true,
+        "mode": "live",
+        "reason": "已注册模型路由；调用可用性仍以实际任务为准。",
+        "provider": "zai",
+        "model": "glm-5.3-flash",
+        "reasoningEffort": "max"
+      },
+      "research": {
+        "available": false,
+        "mode": "unverified",
+        "reason": "Harness Web 已加载，但此宿主无只读 Provider 检测接口；联网能力未验证，可使用本地资料研究。"
+      }
+    },
+    {
+      "project": "CALM 漏油监测桌面版演示",
+      "projectId": "83fd7e7e-d068-49e0-bf60-ffbd0496ce47",
+      "theme": "浅色",
+      "currentStage": "S6",
+      "stages": [
+        {
+          "id": "S0",
+          "status": "completed"
+        },
+        {
+          "id": "S1",
+          "status": "completed"
+        },
+        {
+          "id": "S2",
+          "status": "completed"
+        },
+        {
+          "id": "S3",
+          "status": "needs_attention"
+        },
+        {
+          "id": "S4",
+          "status": "completed"
+        },
+        {
+          "id": "S5",
+          "status": "completed"
+        },
+        {
+          "id": "S6",
+          "status": "needs_attention"
+        },
+        {
+          "id": "S7",
+          "status": "ready"
+        }
+      ],
+      "model": {
+        "available": true,
+        "mode": "live",
+        "reason": "已注册模型路由；调用可用性仍以实际任务为准。",
+        "provider": "zai",
+        "model": "glm-5.3-flash",
+        "reasoningEffort": "max"
+      },
+      "research": {
+        "available": false,
+        "mode": "unverified",
+        "reason": "Harness Web 已加载，但此宿主无只读 Provider 检测接口；联网能力未验证，可使用本地资料研究。"
+      }
+    },
+    {
+      "project": "CALM 漏油监测桌面版演示",
+      "projectId": "83fd7e7e-d068-49e0-bf60-ffbd0496ce47",
+      "theme": "深色",
+      "currentStage": "S6",
+      "stages": [
+        {
+          "id": "S0",
+          "status": "completed"
+        },
+        {
+          "id": "S1",
+          "status": "completed"
+        },
+        {
+          "id": "S2",
+          "status": "completed"
+        },
+        {
+          "id": "S3",
+          "status": "needs_attention"
+        },
+        {
+          "id": "S4",
+          "status": "completed"
+        },
+        {
+          "id": "S5",
+          "status": "completed"
+        },
+        {
+          "id": "S6",
+          "status": "needs_attention"
+        },
+        {
+          "id": "S7",
+          "status": "ready"
+        }
+      ],
+      "model": {
+        "available": true,
+        "mode": "live",
+        "reason": "已注册模型路由；调用可用性仍以实际任务为准。",
+        "provider": "zai",
+        "model": "glm-5.3-flash",
+        "reasoningEffort": "max"
+      },
+      "research": {
+        "available": false,
+        "mode": "unverified",
+        "reason": "Harness Web 已加载，但此宿主无只读 Provider 检测接口；联网能力未验证，可使用本地资料研究。"
+      }
+    },
+    {
+      "waitingProject": "8f7369be-7e36-4c5c-ab2a-2de1e1b81353",
+      "batches": [
+        {
+          "runId": "553d28cc-f1b9-4b13-89bd-b4622fc062aa",
+          "status": "waiting_human",
+          "proposed": 16
+        }
+      ]
+    },
+    "all-project-detail-hashes-unchanged",
+    "no-new-executions",
+    "new-and-historical-solution-readers",
+    "unverified-search-blocked",
+    "theme-restored-light"
+  ],
+  "modelCalls": 0,
+  "humanAnswers": 0,
+  "pageErrors": [],
+  "completedAt": "2026-10-11T07:48:16.481Z",
+  "durationMs": 26534
+}

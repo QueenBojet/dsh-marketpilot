@@ -140,25 +140,32 @@ export class WorkbenchManager {
     // model tools fail inside the adapter while confirm tools still work.
     const agents = this.ctx.get('agents') as AgentsLike | undefined
     let handle: { agent: Agent; dispose(): Promise<void> } | undefined
-    if (agents !== undefined) {
-      // A root agent with no route fails before its first request (the persona
-      // prefix cannot render {{model}}), so the default selection is applied
-      // here exactly as the headless bundle does for its own agents.
-      const defaultModel = this.ctx.get('agentDefaultModel') as AgentDefaultModelLike | undefined
-      ensure(defaultModel !== undefined, 'WORKBENCH_NO_MODEL', '工作台需要默认模型配置（agentDefaultModel）才能运行模型步骤。')
-      const selection = defaultModel.currentSelection()
-      handle = await agents.create({
-        sessionId: randomUUID(),
-        meta: await this.sessionMeta(),
-        agentOptions: {
-          provider: selection.provider, model: selection.model,
-          ...selection.reasoningEffort === undefined ? {} : { reasoningEffort: selection.reasoningEffort },
-        },
-        signal: record.controller.signal,
-        // Scoped to the workbench agent: questions raised by tools executing
-        // with this agent reach this listener and nobody else.
-        setup: agentCtx => { agentCtx.on('user-questions/request', async request => this.ask(record, request)) },
-      })
+    try {
+      if (agents !== undefined) {
+        // A root agent with no route fails before its first request (the persona
+        // prefix cannot render {{model}}), so the default selection is applied
+        // here exactly as the headless bundle does for its own agents.
+        const defaultModel = this.ctx.get('agentDefaultModel') as AgentDefaultModelLike | undefined
+        ensure(defaultModel !== undefined, 'WORKBENCH_NO_MODEL', '工作台需要默认模型配置（agentDefaultModel）才能运行模型步骤。')
+        const selection = defaultModel.currentSelection()
+        handle = await agents.create({
+          sessionId: randomUUID(),
+          meta: await this.sessionMeta(),
+          agentOptions: {
+            provider: selection.provider, model: selection.model,
+            ...selection.reasoningEffort === undefined ? {} : { reasoningEffort: selection.reasoningEffort },
+          },
+          signal: record.controller.signal,
+          // Scoped to the workbench agent: questions raised by tools executing
+          // with this agent reach this listener and nobody else.
+          setup: agentCtx => { agentCtx.on('user-questions/request', async request => this.ask(record, request)) },
+        })
+      }
+    } catch (error) {
+      // No callId was returned, so the client cannot cancel or poll this setup.
+      // Retaining it during setup still lets plugin unload abort agent creation.
+      this.executions.delete(callId)
+      throw error
     }
     void this.drive(record, handle, name, args)
     return { callId }

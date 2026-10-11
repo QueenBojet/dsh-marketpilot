@@ -64,7 +64,7 @@ export interface ShortCodeIndex {
   codeOf(id: string): string | undefined
   /** All entries in code order — the mapping table behind traceability. */
   entries(): readonly ShortCodeEntry[]
-  /** Replace every known full UUID in free text with its short code. Unknown ids stay untouched. */
+  /** Replace known UUIDs and compact legacy Harness reviewer labels. Other ids stay untouched. */
   replace(text: string): string
 }
 
@@ -82,9 +82,15 @@ function clampLabel(label: string, max = 42): string {
   return trimmed.length <= max ? trimmed : `${trimmed.slice(0, max - 1)}…`
 }
 
-/** Reviewer identities arrive as `name (uuid)`; keep a trace fragment, never a raw UUID. */
+/** Older Harness gates used a call/item pair instead of a canonical UUID. */
+function compactGateIdentity(text: string): string {
+  return text.replace(/Harness human \(call_([0-9a-f]{16,64})(?:\|item_[0-9a-f]{16,64})?\)/gi,
+    (_match, callId: string) => `Harness human (#${callId.slice(0, 8)})`)
+}
+
+/** Keep a trace fragment for both UUID and legacy call/item reviewer identities. */
 export function reviewerLabel(reviewer: string): string {
-  return reviewer.replace(UUID_PATTERN, match => `#${match.slice(0, 8)}`)
+  return compactGateIdentity(reviewer).replace(UUID_PATTERN, match => `#${match.slice(0, 8)}`)
 }
 
 interface Seed { kind: ShortCodeKind; id: string; time: string; label: string }
@@ -158,7 +164,7 @@ export function buildShortCodeIndex(collections: ShortCodeCollections): ShortCod
     },
     replace(text: string): string {
       if (typeof text !== 'string' || text === '') return text
-      return text.replace(UUID_PATTERN, match => {
+      return compactGateIdentity(text).replace(UUID_PATTERN, match => {
         const code = byId.get(match.toLowerCase())?.code
         return code ?? match
       })

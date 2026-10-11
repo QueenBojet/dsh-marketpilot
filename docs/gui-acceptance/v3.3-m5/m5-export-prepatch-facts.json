@@ -1,0 +1,19 @@
+{
+  "preparedAt": "2026-10-11T07:42:30.329Z",
+  "projectId": "83fd7e7e-d068-49e0-bf60-ffbd0496ce47",
+  "artifactId": "83afd799-90ac-4f33-ae0d-e2fca06e991a",
+  "artifactCode": "ART-06",
+  "artifactHash": "208cd7fa067ae6d5146ea64ce5b216a9d928ad9fd64dc346a4b839df314d1014",
+  "path": "E:\\PythonProjects\\Work_Platform\\marketpilot\\docs\\gui-acceptance\\v3.3-m5\\exports\\CALM-M5-ART-06.md",
+  "callId": "45e2eef1-66ce-4dd3-b0ee-044338520204",
+  "status": "cancelled",
+  "humanApproval": "not-approved",
+  "checks": [
+    "one-gate-on-double-click",
+    "draft-until-human-answer",
+    "no-file-before-human-approval"
+  ],
+  "question": "是否确认 approve_artifact？",
+  "cancelledAt": "2026-10-11T07:46:06.228Z",
+  "reason": "Acceptance preparation cancelled to repair the reader covering the human gate; no domain data changed."
+}

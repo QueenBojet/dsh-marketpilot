@@ -1,0 +1,25 @@
+{
+  "savedAt": "2026-10-11T07:54:15.206Z",
+  "source": "installed-DSH-Desktop/native-window/computer-use",
+  "humanGateAnswered": false,
+  "screenshots": [
+    {
+      "file": "m5-native-overview-2560.png",
+      "width": 2560,
+      "height": 1392,
+      "scene": "CALM project overview, final build, light theme; export waiting for human approval"
+    },
+    {
+      "file": "m5-native-solution-2560.png",
+      "width": 2560,
+      "height": 1392,
+      "scene": "ART-06 solution reader, final build, light theme; compact legacy reviewer label"
+    },
+    {
+      "file": "m5-native-export-awaiting-human-2560.png",
+      "width": 2560,
+      "height": 1392,
+      "scene": "Real approve_artifact gate visible, ART-06 still draft; no answer"
+    }
+  ]
+}

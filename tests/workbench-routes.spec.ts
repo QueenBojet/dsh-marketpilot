@@ -93,6 +93,47 @@ async function click(call: ApiCall, name: string, args: Record<string, unknown>,
 }
 
 describe('MarketPilot workbench routes', () => {
+  it('M5 rejects missing model setup without leaving a phantom running execution', async () => {
+    const { call } = await workbenchHarness({}, { agents: { create: () => { throw new Error('must not create') } } })
+    const response = await call('POST', '/marketpilot/api/tools', { name: 'marketpilot_project_create', args: { name: 'not created' } })
+    expect(response).toMatchObject({ status: 400, body: { code: 'WORKBENCH_NO_MODEL' } })
+    expect((await call('GET', '/marketpilot/api/executions')).body.executions).toEqual([])
+  })
+
+  it('M5 reports agent startup failure and permits retry without a phantom task', async () => {
+    let attempts = 0
+    const agents = { async create() {
+      if (++attempts === 1) throw new Error('M5 agent startup failed')
+      return { agent: { id: 'retry-agent' }, async dispose() {} }
+    } }
+    const defaultModel = { currentSelection: () => ({ provider: 'zai', model: 'glm-5.3', reasoningEffort: 'max' }) }
+    const { call } = await workbenchHarness({}, { agents, defaultModel })
+    const failed = await call('POST', '/marketpilot/api/tools', { name: 'marketpilot_project_create', args: { name: 'retry project' } })
+    expect(failed).toMatchObject({ status: 500, body: { error: 'M5 agent startup failed' } })
+    expect((await call('GET', '/marketpilot/api/executions')).body.executions).toEqual([])
+    await click(call, 'marketpilot_project_create', { name: 'retry project' })
+    const projects = (await call('GET', '/marketpilot/api/projects')).body.projects as { name: string }[]
+    expect(projects.filter(p => p.name === 'retry project')).toHaveLength(1)
+  })
+
+  it('M5 plugin unload aborts an agent that is still starting', async () => {
+    let entered!: () => void
+    const ready = new Promise<void>(resolve => { entered = resolve })
+    let aborted = false
+    const agents = { create: (options: { signal: AbortSignal }) => new Promise((_, reject) => {
+      options.signal.addEventListener('abort', () => { aborted = true; reject(options.signal.reason) }, { once: true })
+      entered()
+    }) }
+    const defaultModel = { currentSelection: () => ({ provider: 'zai', model: 'glm-5.3', reasoningEffort: 'max' }) }
+    const { call, root } = await workbenchHarness({}, { agents, defaultModel })
+    const starting = call('POST', '/marketpilot/api/tools', { name: 'marketpilot_project_create', args: { name: 'unloaded during startup' } })
+    await ready
+    await root.fiber.dispose()
+    expect(aborted).toBe(true)
+    expect((await starting).status).toBe(500)
+    expect((await call('GET', '/marketpilot/api/executions')).status).toBe(503)
+    expect(root.get('marketpilot')).toBeUndefined()
+  })
   it.each(['UNKNOWN', 'REJECT'])('M2 %s remains gated, cancellation preserves UNKNOWN and action groups reflect persisted review', async targetKind => {
     const { call, services, project } = await workbenchHarness()
     const row = await services.evidence.add(project.id, { kind: 'UNKNOWN', title: 'M2 open parameter', statement: 'Test parameter remains unknown', sourceType: 'model' })

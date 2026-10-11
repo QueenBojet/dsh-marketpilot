@@ -8,7 +8,7 @@
  * through the guarded `marketpilot_artifact_export` tool (a real human gate)
  * with an explicit new absolute path; the browser never writes files itself.
  */
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { MarkdownText, Tag } from '@deepseek-ai/dsh-client-ui-primitives'
 import { CodeMapPanel } from '../components/CodeMapPanel.tsx'
 import { EmptyState, ErrorState, LoadingState } from '../components/States.tsx'
@@ -36,6 +36,7 @@ export function ArtifactsPage({ t, projectId, actions, focus }: { t: MarketPilot
   const readerRef = useDrawerKeys(openId !== null, () => { setOpenId(null) })
   const [exportPath, setExportPath] = useState('')
   const [exportBusy, setExportBusy] = useState(false)
+  const exportStarting = useRef(false)
   const [notice, setNotice] = useState('')
   const list = useDesignOverview(projectId)
   const detail = useArtifact(projectId, openId)
@@ -48,13 +49,15 @@ export function ArtifactsPage({ t, projectId, actions, focus }: { t: MarketPilot
   const artifacts = snapshot.artifacts
   const startExport = (): void => {
     const target = artifacts.find(row => row.id === openId)
-    if (target === undefined || exportPath.trim() === '' || exportBusy || workflow.busy) return
+    if (target === undefined || exportPath.trim() === '' || exportStarting.current || workflow.busy) return
+    exportStarting.current = true
     setExportBusy(true)
     setNotice('')
     executionStore.start('marketpilot_artifact_export',
       { projectId, artifactId: target.id, path: exportPath.trim() })
+      .then(() => { setOpenId(null) })
       .catch(() => { setNotice(t('exportFailed')) })
-      .finally(() => { setExportBusy(false) })
+      .finally(() => { exportStarting.current = false; setExportBusy(false) })
   }
   const displayContent = detail.artifact === null || detail.artifact.format !== 'markdown'
     ? null

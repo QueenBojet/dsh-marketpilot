@@ -1,0 +1,309 @@
+{
+  "mode": "real-desktop-react-click-official-glm",
+  "startedAt": "2026-10-11T07:08:28.534Z",
+  "projectId": "83fd7e7e-d068-49e0-bf60-ffbd0496ce47",
+  "projectName": "CALM 漏油监测桌面版演示",
+  "model": {
+    "available": true,
+    "mode": "live",
+    "reason": "已注册模型路由；调用可用性仍以实际任务为准。",
+    "provider": "zai",
+    "model": "glm-5.3-flash",
+    "reasoningEffort": "max"
+  },
+  "research": {
+    "available": false,
+    "mode": "unverified",
+    "reason": "Harness Web 已加载，但此宿主无只读 Provider 检测接口；联网能力未验证，可使用本地资料研究。"
+  },
+  "humanAnswers": 0,
+  "retries": 0,
+  "activeDecisionId": "bccdb744-6681-4651-99f5-06fa8dd9c4d5",
+  "preserved": {
+    "documents": {
+      "290def59-2db3-41b5-9e8d-f8a70bdcf5a1": "417b290c3a234fbec7324ad398dbe7cb74934b1255b603a725946d5d65c4efdb",
+      "6dfd7f81-3e0e-45eb-8210-2277c984d3a5": "612d7007e4430d5a350c41af5c3bcd70f1bda7f1c4297735dcfebb50c6e4a98a",
+      "b233dac8-aa8e-4a6d-800e-521f12b5d8df": "760784138e27939bb3c2841c1bea00dfb0553d8473f6631f9e085faf8f911142",
+      "192d9632-b7da-453c-ad9e-d8416e7a5e4a": "5a9597647ea3ee136518f3971c6c82f8013786385af8a9ee35efa5bbad55369f"
+    },
+    "requirements": {
+      "f4b772d5-cb52-41a2-9a7a-719009ef83fb": "fe986a5b0c3471fad303245554004bc0102e7f541df17b54f8141fde90e8ea84",
+      "604aabb4-a414-4437-8f5d-9ce07ba2cb13": "fab0ca5437bdefbe6d96dd257e21c7a25bf9d263efd753900519da705bc4128e",
+      "121d76f0-49e8-4c8a-874c-105b20d19fb9": "a672237a8c9039b69ab06abfaced84ee49e8e59834e62f6a678d74957de948f0",
+      "aa9a8393-51d9-45ff-9fdd-1e2ae45322a2": "c8456f6d7c3cdd641d48f46734fdfe5636f92c0ada43479eae3152f1ebc64369",
+      "b36be71e-fc3d-4806-a386-3a6ae3d20981": "d59afcae8ca1cf29ff42f11c6494e4b752928a25f890f6f24d9831d5b769f52f",
+      "b29fa8b7-31c2-4563-b8ff-1c4cb3a26f53": "6b7fde3d512b0c9812fc61d9f2b4c22b148b0665e6653f7a53fc5ba1a3e15e1b",
+      "aa2810a8-6497-411c-b620-e614993da1c3": "e29a1ac4ea1f588842eb650389a3824e3eeaef1686ec0cf6e806fd802844b020",
+      "1753b7a3-fadc-4d28-b914-80ea72ad20cd": "ac716a2d1442f19fb69a06806d2f48b35d68e343a334c81e409a436e0d78a8d2",
+      "666b93f8-4f9d-4d0c-a157-2fc0e50c0bc3": "b89275edb77bb2383ecfbcfb4aafdf31de3a50116336148f906874d50b8f0459",
+      "49bb4178-a1e0-4c00-b479-4040e647c639": "500c5b31217fb735ad1f05a8b87036b95c1dd6f3b2c07611b14f4e0e3478d968",
+      "6bb78453-f29f-491c-b647-5d6d566e088a": "18c30e10bb5d728187b75cc4fbd9fdfa75e4afc22d0f304d1d15d647fdb33573",
+      "b73adf17-e84a-439f-862d-eebfedc4c671": "a00a28434c9826edade8eb0155edf20449df78d0cece2b2531f737343a107a6a",
+      "68b85179-291b-486b-a84c-55bd552e2cf5": "1735c9a651bff2b76a440dbc1b1077007744e7e9e642facc406fe7aaa00c3de7",
+      "c03612fb-e094-4fa3-98e7-d6e082c932f4": "2f38a6828b4f7946fd03f4f87f7fc7f05714dd2d776bc99a9ad8048d1f016f68",
+      "1416a742-7610-4ee0-9e45-7949942adcf3": "c969e51855548249a9e75e46adc209f468c54d912507e87f39f3b27c53487c0f",
+      "67d6f046-8f8a-4824-8a63-7b9df9d8dc3a": "31e542290933776c0b3c7e989dc1fccb6001dee8d6a1550a393a9cdb05648c24",
+      "77e6496d-d32d-4a66-837c-b60f03a6995f": "55218674a66ec5fb0e6a5161cc6145f80ee2a619dcade977a806f4895243e17f",
+      "bccba4fc-ddcf-4685-af9a-e5183f330b8b": "a591255e1ab32ef73c55452355450edb3ca7c2d645f015103e6929e42d11622f",
+      "ecc6a587-3939-454a-86b7-5171c78b2fc9": "ce8cd5a931f51f93a26ad6c6327c66f812546b4a9d7fe86424cdd9f1ae50a5e6"
+    },
+    "evidence": {
+      "dff2549b-f144-4a5a-8881-2e99a21fd4eb": "788fbb89beee99cbdddec09bf7ef4e8558cba421ed3c6f7dd7dd98c13a7fd3a6",
+      "8227e2e6-1fe9-49b4-8606-e70365e93544": "2156f09e25529d1079b902101d7589aeb26ae47b009258b794b7e2d79269fccc",
+      "a50f3f8e-9f91-49eb-b3b8-1c94a41ef9f1": "624677d8311cfe963cd71e8bbe86edea68529f8cb8c436680197b46a7b4b67c0",
+      "bfcdeb7f-e17b-4863-bde9-1bef9c38443a": "40725b682d46ea006405386c47225cb170f2b0998e554b0a7e8bd2120afb7bd1",
+      "dc6c8271-1a70-4651-b422-00524a11bad2": "da467dc35b088cf5f7f568ec7ded77176627816ec758c2639b1adec6238866ec",
+      "56ce5b8f-732f-4dee-9639-dbaef06d9b49": "4fe3a167b0953cc321ef64c96f40d2ace3a8c42c9dd9fd1674f3085e41b2d04e",
+      "186f4baf-36c8-40ec-b55c-e9b527289627": "d9e62b83544c70ce12777ff24d70e56db89625d77cb89933c31af2fdf03c9cac",
+      "88cb095b-b7b2-480a-a01f-65198f6d8899": "70342b721d32d43f6a8b28a116e803161619981e5d0bee7039daec71cb6dfa53",
+      "eaad2554-2166-4372-9f43-a076e3b71106": "7f87cd4064a8c01dc7b9eaf2802cdd58e2d590c1cbc56d02a61bc58555901426",
+      "4b866e84-c1cd-4f9a-8ba7-a41c5bba7ac2": "812898ada556f977139463f6458e870c72690fcb3add4696742dc31f0f5b7e54",
+      "884275c2-75d4-4f77-8005-a440f07927fa": "e32dacf09a1f8708b5cd63008080ad529b8656805c898a14c3a417bd98c4abae",
+      "7df297d8-43a6-4222-a4af-7d160d74c748": "8385ccdec49dbb7854bafd05efe31323aa12d69155890bee89aacf7b0054816c",
+      "33f946d8-dc04-49e3-9de8-c047d8400c68": "20f98ce3322282f40d279445cdb3f81acd6165304c5aae917bf2fda9de99ca50",
+      "2c54390c-aed6-4f23-b9d1-50243a146ead": "6d9586575bb809b5ef0e51d2a9eae70c2e94bd942558a713349cc5d1fe574e44",
+      "e5c51307-2ad9-4381-a867-d9f38e6e3efe": "663cf93e4b2e41719181fe13f09bf415ecaf14761eeae0bd9e8a632e071507a0",
+      "315eab1b-3ace-4c14-87d4-57dd31ddd1aa": "3126189021f4bf2dfc54924050cdde11263ff496be8563dc61d819ecb051d710",
+      "e7a76b56-df57-4823-bec2-e227252b8219": "cfe25473bec9c8dbf9b4fd991d117224225459701f641ab0e2dfdad8340e10e8",
+      "d9916c9d-4c88-445c-99c5-7dd82b28162b": "64a49bee75d89ca64f9f63a3b651e71718c1fb9f0f13fe444d2521441d369073",
+      "1c3cfcf7-e4cc-4ec4-82f9-31e33076aac1": "1ca433190c44e73e9a3c2352712d1b712bff4bf2f596439b68790ab9d398ce23",
+      "7a4554a7-3e76-4017-ad3a-356a97744478": "5a0a5b3ec8ce0abdd7c3d7d8456dd95e8e51d1fe845e37c1cf20f2fefa67de92",
+      "dcb37ba2-d6c1-473f-878f-9b46d6d2ff3c": "810c63206013f580800c8d709376f74b1bb333096536696af86247f875e48cfa",
+      "ba5e8143-9b14-4912-919f-ab2df9e5617e": "20e6b26a79bfec4838e5c567512734b3ee1cb0a5fbdd91d06ae6e11f10e22452",
+      "d851adec-8dc2-4a6e-bcdc-09e198ae2f3f": "f30a2d0d429d2b94fb13bdef33309f2362856dea140a01e3f8b32bb5cd6aec31",
+      "7d957aa7-b9ea-419c-a2eb-0fbbc9b25ce8": "20c1a40ece933d5acf4bac990e35d09a9fe5031683a0a12f39489ec7aecd0bd4",
+      "91c739c0-2cd4-43f7-af9d-cc2359928995": "5b54fe5068145a7540fc7cdad64f9789f0977af50139d0f86b4ac14ec9088dac",
+      "9f3c18bc-117f-485e-a71c-a8fbe25d23bc": "382df3281d220920af818a0a830ca77fd391a4c5e92c964314249a92597fb4f2",
+      "602b4c9d-e45a-42e0-b09a-f1419b239b06": "019f1e1e1bf08b15d2d23f25d6cd6b38ead111e7835b2bb6dd2932d44c5eba5c",
+      "e31506fa-148d-4d93-a11e-94f40f3f3db8": "2cca9ce023549a8ad62f24e444da7168f75a8cddaab27637ffea5fd5ad55427f",
+      "e84d9111-a4a1-4ad6-b9d0-ebd75058705b": "f30091e8843656e34f49ec7bfaff274f88b1f56244a13caf35cb728caab4c921",
+      "0d35283a-3fc2-4abd-b29c-de03f9b57a84": "e9e8842b256ee044f153245b36d18b60ff81022d6bf6884e714770b0eda53524",
+      "2c34a817-5c46-4006-84e3-d4a481ebc374": "af070b2a0521c3c37a365591b47b42df46a4cf7361bdf3e24de5be68d0e7d6e8",
+      "a82424d8-5959-415b-a680-e27859af91f6": "edf05d5302a8900225861fc5e34822f0650ceb43c788810967f31caa3e709a05",
+      "35262204-da88-4c62-9c7f-89f3d693f7a0": "b11fc3b9dcc3670afdfc3877f057b1060341231c7b9290695fe405f192e3e590",
+      "0f0cb893-1128-43aa-8058-58abad44e040": "b712c3dc35e4b8257467f2a5ae8d7de18d37beadf965872b31fbfd8056b47e74",
+      "6559de35-effd-454a-acb1-ec1328931a8d": "b73c240194f0dae8a50e3809f672e415535623fb2a17e9ff233872f526c88c3c",
+      "c1916f2b-a336-4d0a-9da8-e1e638af03c4": "cbd2902d148101dc394deaef5eb146e5bb8111a9e4ff736048e6124467cc4b7b",
+      "dd3f950b-c693-447c-92e3-b795e66cab1b": "61309a9740f0700df3e30400b533eff70573ae7da61333ce52e5b825c271b7b3",
+      "ead8f3b6-c8d9-498b-ab7b-1135a660a5ba": "557a1c76e2c810f2b1e4187adbc50a9b6a48de7cc9bc6045fe87ffabf8ea34ce"
+    },
+    "competitors": {
+      "cbfc62d1-4045-435a-8372-dad597e61266": "064f5a1a91d11dd20c9b242b7bddd5bdeaddb1d12643ee4188e74cb3f6eac44b",
+      "489e9ae0-f1bf-403f-b7c9-b321d7ade1cb": "f687614a47b00904acd088872e330a94bb5e2c43e9d6c888774d2f664b3f4b96"
+    },
+    "policies": {},
+    "alternatives": {
+      "7ce339a3-47d7-465f-873f-aff1a2accf05": "abf8080d4695b1cd91966701af93e66dad1761ec24b66f3b2eb1a468c95c7bd8",
+      "e021a9fc-8dfb-44be-823e-df7f77e72f03": "60b86f2f2f8452538ae301efcb0dbc2a17722d464b33a74792020d56899f0e0c",
+      "185e23ea-9380-4bfa-8e79-c0f353290b06": "781dea1382eadc03a2799018f983e4b1c895d21171d64ee921a38159ffe5ac84"
+    },
+    "decisions": {
+      "bccdb744-6681-4651-99f5-06fa8dd9c4d5": "b6a980500bb619ab728d02a40ff8702bee9e6cd0906403e0377b8c29cfc7240e"
+    },
+    "tenderItems": {
+      "b3afb3d6-1ff5-4ab3-900f-b840e49851b2": "9ddd8bee904c4f1dfcd3433d79fdf31bc5c94e1ad55ad65cdf574a0f90a25ed7",
+      "35b9d1e8-1e60-4260-9a49-1e82fe9e1fdf": "f8d143b9a522a6091cd1afdd5067cf6fb9ae84f6c8249dca1a65c8c71fd7eef4",
+      "2393b40a-dc28-45c3-bc16-fbcdff1b242f": "c08a5f31e00f3506e2bea0f29419632af73a1bc7d3387d0bcf46f3bea6281707"
+    },
+    "artifacts": {
+      "d8d1aeb2-cfe4-4eb6-95fa-8092710d05e5": "6eae8315acdec2037a9004495e5272643ba449463356736ec52b239067b6d25e",
+      "8a48318b-61a1-4060-a174-7388b3628339": "f338e2cdbaaf51c4e7affa275c0a3499654efbb5b85e137c7b28e8f14a5cf610",
+      "588fda37-8e8b-4335-b8a1-be59c5817427": "943428df89f950ad72d15fbc7a684c9729647a3703144b0f2dbf7dfc077632c5",
+      "1545d835-7545-4163-ae32-1a5a578ea66e": "e8fa75525976c825a4a8b4c8cf6044deb6ab61371674d92fb49714fa600fe921",
+      "320125de-2b41-481c-b837-8da0906f88ed": "b841d900a735f98d85d2a29a8ba545a3e0b38b4ccb17acd4f150c97a658d3c44"
+    },
+    "workflowRuns": {
+      "522d6527-7bea-452d-8839-0fb6bca44c91": "9cda78d14d3112f3edbdb96aa8b36b22a01fb5eac6d3d08a8c8d1078f3bf4838",
+      "9d687b3c-b075-4f67-8130-078288a4e8c6": "6b0d8347bc214213655908be7c929828122e8d8e2e08b74bbc3b263daa592a87",
+      "0d360c95-2ab2-4542-8c42-963c7bad47fe": "09a0468c016a9fa4c969283bace64b50a99f1ea135a8998fd3dc12c90842e94f",
+      "bacd8a2a-5d55-4f65-99a1-7a67842da394": "53d8e82f03f2361fa67fc14c440c7813e8fd2005e012034c48c7daaa393a6361",
+      "2308dce7-ca2a-4984-a5ab-6f5899f4fbda": "5a01729161275ba5187dd76ba71820c9d0ef3a09982639468895f370b531e714",
+      "4d36b517-1a2d-4f16-8441-a5f0f67dfa21": "a9b30c80cbecb5d4a7c33eb530520b47d39d43e38add179019ff6b14479fe2ab",
+      "a7e9a88a-00f3-47c4-a98d-d1311af43ae0": "6db36e1262dab92e14fc22c7194e540fe5341f0409709b732666ba5057963802",
+      "42cbe185-56be-49d0-a22e-88012b904f19": "445b6136ff5cc1ecdd9318e4a0d7c162c6bb6678bea53ca5b2cd4e7dba22c677",
+      "c0f46b25-e8b2-47b9-8871-a8fcb469db03": "4ceeb371bc67c20f007cba7eeda2fa7f1c096c271ba43a0a966256ed60dc69d8",
+      "05d76760-07ef-47fd-b07c-45436408944c": "da7d5ac33cc46f653db7a7fbeea7586c071c891ce3b882415852f63517993567",
+      "2101185b-967a-46ce-b4ec-d63163ed69e6": "6058dfaec9dc46bc77ab393f2f57fbcd8f4a28f6a2f5f3150cc8553855de6843",
+      "5907aa6d-b6bb-41f6-bcd3-149aa1dbd038": "da44eb2762eff392c0740ddad3268715d4df6486acabf4333fda84b9526c8f30",
+      "4d162b82-bd5b-4a97-9cf6-dfc1bcf78656": "f82607609a5b1f7d9009c8770a84adc5e8f4a2fe276040e103b741714e1a883e",
+      "9fa7bc8a-203d-434f-b19e-773179ac4f40": "6990972bcfe6eecb089f62abc05bb4907e65bb218ce275af8e319294473ea810",
+      "e5e0299c-da9c-4fb8-8790-f50a79343730": "1f07e4b698c76d7685cbc1085f0843cda195d7e66284ffa628cfb0b9d3bb3caf",
+      "b9fbb4c7-1df9-47d6-b788-77af624738a0": "5f8b040e83f312bf3293e06cb19aa8e614fb025b39b695447c1bd40ce19a9a23",
+      "e6a482a2-09f1-4ee9-aa6f-df5ecfb773e5": "fd2305c90e556c90b6c43a6f6ef3fb03fc9b38ce1324febe4cd97669ce82942c"
+    }
+  },
+  "oldCodes": {},
+  "confirmed": 14,
+  "unknowns": 28,
+  "executionIdsBefore": [],
+  "checks": [
+    "rapid-double-click-one-execution",
+    "navigate-and-reload-preserve-host-execution",
+    "old-records-and-codes-preserved",
+    "dependency-current",
+    "summary-ledger-reconciled",
+    "citations-resolve",
+    "no-raw-uuid",
+    "new-version-still-draft"
+  ],
+  "status": "completed",
+  "callId": "b39259a7-d80a-4e60-a28a-55fa0f74c645",
+  "pageErrors": [],
+  "run": {
+    "type": "solution_generation",
+    "input": {},
+    "id": "ad8dfeac-3d24-48d8-ac66-d067646b542c",
+    "projectId": "83fd7e7e-d068-49e0-bf60-ffbd0496ce47",
+    "createdAt": "2026-10-11T07:08:29.513Z",
+    "updatedAt": "2026-10-11T07:20:12.057Z",
+    "status": "completed",
+    "currentStep": "COMPLETED",
+    "startedAt": "2026-10-11T07:08:29.513Z",
+    "completedAt": "2026-10-11T07:20:12.036Z",
+    "durationMs": 702523,
+    "modelCalls": 7,
+    "toolCalls": 1,
+    "humanWaitMs": 0,
+    "steps": [
+      {
+        "step": "START",
+        "at": "2026-10-11T07:08:29.513Z"
+      },
+      {
+        "step": "VALIDATE_PREREQUISITES",
+        "at": "2026-10-11T07:08:29.545Z"
+      },
+      {
+        "step": "BUILD_PROJECT_CONTEXT",
+        "at": "2026-10-11T07:08:29.561Z"
+      },
+      {
+        "step": "GENERATE_OUTLINE",
+        "at": "2026-10-11T07:08:29.581Z"
+      },
+      {
+        "step": "solution-outline",
+        "at": "2026-10-11T07:08:29.607Z"
+      },
+      {
+        "step": "GENERATE_SECTIONS",
+        "at": "2026-10-11T07:09:11.344Z"
+      },
+      {
+        "step": "solution-section",
+        "at": "2026-10-11T07:09:11.363Z"
+      },
+      {
+        "step": "solution-section",
+        "at": "2026-10-11T07:11:29.455Z"
+      },
+      {
+        "step": "solution-section",
+        "at": "2026-10-11T07:12:38.368Z"
+      },
+      {
+        "step": "solution-section",
+        "at": "2026-10-11T07:14:03.620Z"
+      },
+      {
+        "step": "solution-section",
+        "at": "2026-10-11T07:16:13.655Z"
+      },
+      {
+        "step": "solution-section",
+        "at": "2026-10-11T07:17:31.495Z"
+      },
+      {
+        "step": "TRACE_REQUIREMENTS",
+        "at": "2026-10-11T07:20:11.952Z"
+      },
+      {
+        "step": "TRACE_EVIDENCE",
+        "at": "2026-10-11T07:20:11.970Z"
+      },
+      {
+        "step": "REVIEW",
+        "at": "2026-10-11T07:20:11.992Z"
+      },
+      {
+        "step": "SAVE_ARTIFACT",
+        "at": "2026-10-11T07:20:12.011Z"
+      },
+      {
+        "step": "COMPLETED",
+        "at": "2026-10-11T07:20:12.036Z"
+      }
+    ],
+    "output": {
+      "artifactId": "83afd799-90ac-4f33-ae0d-e2fca06e991a",
+      "decisionId": "bccdb744-6681-4651-99f5-06fa8dd9c4d5"
+    }
+  },
+  "runId": "ad8dfeac-3d24-48d8-ac66-d067646b542c",
+  "lastObservedAt": "2026-10-11T07:20:49.935Z",
+  "completedAt": "2026-10-11T07:20:50.021Z",
+  "artifactId": "83afd799-90ac-4f33-ae0d-e2fca06e991a",
+  "artifactCode": "ART-06",
+  "reviewPath": "E:\\PythonProjects\\Work_Platform\\marketpilot\\docs\\gui-acceptance\\v3.3-m5\\m5-CALM-solution-review.md",
+  "artifactHash": "208cd7fa067ae6d5146ea64ce5b216a9d928ad9fd64dc346a4b839df314d1014",
+  "artifactBytes": 56486,
+  "citations": [
+    "DEC-01",
+    "ALT-03",
+    "REQ-19",
+    "REQ-05",
+    "REQ-01",
+    "REQ-12",
+    "REQ-14",
+    "REQ-13",
+    "REQ-11",
+    "REQ-15",
+    "REQ-08",
+    "REQ-17",
+    "REQ-02",
+    "REQ-07",
+    "REQ-10",
+    "REQ-16",
+    "EVD-13",
+    "EVD-07",
+    "EVD-10",
+    "EVD-11",
+    "EVD-12",
+    "EVD-05",
+    "EVD-01",
+    "EVD-09",
+    "EVD-15",
+    "EVD-04",
+    "EVD-08",
+    "EVD-06",
+    "EVD-03",
+    "EVD-02",
+    "EVD-14",
+    "EVD-34",
+    "EVD-30",
+    "EVD-32",
+    "EVD-26",
+    "EVD-36",
+    "EVD-37",
+    "EVD-18",
+    "EVD-21",
+    "EVD-29",
+    "EVD-19",
+    "EVD-24",
+    "EVD-31",
+    "EVD-35",
+    "EVD-16",
+    "EVD-17",
+    "EVD-27",
+    "EVD-22",
+    "DOC-01",
+    "DOC-02",
+    "EVD-33",
+    "DOC-03",
+    "EVD-20",
+    "EVD-25",
+    "EVD-28",
+    "EVD-23",
+    "EVD-38"
+  ]
+}
