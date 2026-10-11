@@ -13,6 +13,7 @@ import { ensure } from '../domain/common.ts'
 import { projectWorkflowOverview, type WorkflowExecutionFact } from '../domain/project-workflow.ts'
 import { workflowCapabilities } from './capabilities.ts'
 import { projectReviewOverview } from '../domain/project-review.ts'
+import { researchOverview } from '../domain/research-review.ts'
 
 export interface Config { maxDocumentBytes: number; structuredProvider: string; modelTimeoutMs: number }
 export const Config: Schema<Config> = Schema.object({
@@ -50,6 +51,12 @@ export class MarketPilotService extends Service {
     const state = this.repository.get(projectId)
     ensure(state, 'PROJECT_NOT_FOUND', '项目不存在。')
     return projectReviewOverview(state)
+  }
+
+  researchOverview(projectId: string) {
+    const state = this.repository.get(projectId)
+    ensure(state, 'PROJECT_NOT_FOUND', '项目不存在。')
+    return researchOverview(state)
   }
 
   protected async [Service.init]() {

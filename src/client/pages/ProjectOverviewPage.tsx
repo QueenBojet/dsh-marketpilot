@@ -66,7 +66,7 @@ export function ProjectOverviewPage({ t, actions, view, mode = 'guided' }: {
             {snapshot.capabilities.model.available ? null : <p className="mp-capability" role="note">{snapshot.capabilities.model.reason}</p>}
             <div id="mp-stage-controls" tabIndex={-1}>
               {view.section === 'requirements' ? <RequirementsPage t={t} projectId={view.projectId} focus={view.focus} actions={actions} /> : null}
-              {view.section === 'research' ? <ResearchPage t={t} projectId={view.projectId} /> : null}
+              {view.section === 'research' ? <ResearchPage t={t} projectId={view.projectId} actions={actions} /> : null}
               {view.section === 'evidence' ? <EvidencePage t={t} projectId={view.projectId} actions={actions} focus={view.focus} /> : null}
               {view.section === 'alternatives' ? <AlternativesPage t={t} projectId={view.projectId} /> : null}
               {view.section === 'solution' ? <SolutionPage t={t} projectId={view.projectId} /> : null}

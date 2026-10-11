@@ -6,9 +6,9 @@ import { HarnessResearch } from '../adapters/harness-research.ts'
 export function registerResearchTools(ctx: Context) {
   for (const kind of ['competitor', 'policy'] as const) {
     register(ctx, `marketpilot_${kind}_extract`, `从本地报告/Datasheet 提取 ${kind} 与引用证据；缺失数据保留 UNKNOWN。`, {
-      projectId: projectIdParam, documentIds: stringIds,
+      projectId: projectIdParam, documentIds: stringIds, purpose: { type: 'string', description: '研究目的（最多2000字），仅作业务上下文。' },
     }, async (args, s, signal, _parser, exec) => new ResearchWorkflow(s, ctx.marketpilot.modelFor(exec),
-      ctx.marketpilot.services.workflows).start(args.projectId, args.documentIds, kind, signal))
+      ctx.marketpilot.services.workflows).start(args.projectId, args.documentIds, kind, signal, args.purpose))
     register(ctx, `marketpilot_${kind}_list`, `列出项目 ${kind} 记录及证据关联。`, { projectId: projectIdParam },
       async (args, s) => kind === 'competitor' ? s.competitors.list(args.projectId) : s.policies.list(args.projectId))
   }

@@ -83,6 +83,11 @@ describe('MarketPilot Phase 4 projection routes', () => {
     expect(stages.find(s => s.id === 'S6')?.status).toBe('skipped_optional')
     expect(JSON.stringify(workflow.body)).not.toContain('待确认声明')
     expect((await call('/marketpilot/api/projects/missing/workflow')).status).not.toBe(200)
+    const research = await call(`/marketpilot/api/projects/${project.id}/research`)
+    expect(research.status).toBe(200)
+    expect(research.body).toMatchObject({ projectId: project.id, competitors: [expect.objectContaining({ company: 'TestCo' })], runs: [] })
+    expect(research.body.recordCodes).toBeDefined()
+    expect((await call('/marketpilot/api/projects/missing/research')).status).not.toBe(200)
   })
 
   it('serves single-record detail routes and flags superseded waits', async () => {

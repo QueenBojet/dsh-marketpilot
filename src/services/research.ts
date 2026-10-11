@@ -51,6 +51,10 @@ export class ResearchService {
             this.source(s, documentIds, claim.sourceDocumentId, claim.quote)
             ensure(claim.quote.includes(candidate.product) && claim.quote.includes(claim.value),
               'MODEL_PARAMETER_INHERITANCE', '参数引用必须包含本型号及对应值，不能继承同系列其他型号参数。')
+            ensure([claim.unit, claim.conditions].every(value => value == null || claim.quote!.includes(value)),
+              'PARAMETER_CONTEXT_UNSUPPORTED', '单位与测试条件必须逐字出现在该型号的参数引用中。')
+          } else {
+            ensure(claim.unit == null && claim.conditions == null, 'PARAMETER_CONTEXT_UNSUPPORTED', '未知参数不能带有推测的单位或测试条件。')
           }
           const source = this.evidence(projectId, `${candidate.product} ${claim.name}`,
             claim.value === null ? `${candidate.product} 的 ${claim.name} 未找到，待补证。` : claim.quote!,
@@ -58,7 +62,11 @@ export class ResearchService {
           source.relatedCompetitorIds = [row.id]
           s.evidence.push(source)
           row.evidenceIds.push(source.id)
-          if (claim.category === 'performance') row.performance[claim.name] = claim.value
+          if (claim.category === 'performance') {
+            row.performance[claim.name] = claim.value
+            row.parameterContexts ??= {}
+            row.parameterContexts[claim.name] = { unit: claim.unit ?? null, conditions: claim.conditions ?? null, evidenceId: source.id }
+          }
           else if (claim.value !== null) {
             if (claim.category === 'technology') row.technology = [row.technology, claim.value].filter(Boolean).join('；')
             else row[({ interface: 'interfaces', certification: 'certifications', case: 'cases', strength: 'strengths', limitation: 'limitations' } as const)[claim.category]].push(claim.value)
@@ -92,14 +100,19 @@ export class ResearchService {
       const run = requiredRecord(s, 'workflowRuns', runId)
       ensure(run.type === 'policy_analysis' && run.status === 'running', 'RUN_NOT_RUNNING', '标准提取工作流已停止。')
       const documentIds = ids.min(1).parse(run.input.documentIds)
-      const rows = data.policies.map(({ quote, sourceDocumentId, sourceLocator, issuer, documentNumber, version, ...policy }) => {
+      const rows = data.policies.map(({ quote, sourceDocumentId, sourceLocator, issuer, documentNumber, version, scope, ...policy }) => {
         this.source(s, documentIds, sourceDocumentId, quote)
         ensure(quote.includes(policy.title) && policy.keyRequirements.every(k => quote.includes(k)),
           'SOURCE_MISMATCH', '标准标题与关键条款须能追溯到原文。')
+        ensure([issuer, documentNumber, version, scope].every(value => value == null || quote.includes(value)),
+          'POLICY_METADATA_UNSUPPORTED', '发行方、文号、版本及适用范围必须能逐字追溯到引用原文。')
+        ensure(policy.mandatoryLevel === 'unknown' || (policy.mandatoryLevel === 'mandatory'
+          ? /强制|mandatory/i.test(quote) && !/非强制|不强制|not mandatory/i.test(quote)
+          : /推荐|建议|recommended/i.test(quote)), 'POLICY_FORCE_UNSUPPORTED', '原文未明确标示强制性，请保留 unknown。')
         const source = this.evidence(projectId, policy.title, quote, 'SOURCE', sourceDocumentId, sourceLocator)
         s.evidence.push(source)
         return { ...policy, ...this.ctx.fields(projectId), ...(issuer ? { issuer } : {}),
-          ...(documentNumber ? { documentNumber } : {}), ...(version ? { version } : {}), evidenceIds: [source.id] }
+          ...(documentNumber ? { documentNumber } : {}), ...(version ? { version } : {}), ...(scope ? { scope } : {}), evidenceIds: [source.id] }
       })
       s.policies.push(...rows)
       for (const gap of data.gaps) s.evidence.push(this.evidence(projectId, '标准研究缺项', gap, 'UNKNOWN'))

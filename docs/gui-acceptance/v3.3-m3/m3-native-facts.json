@@ -1,0 +1,17 @@
+{
+  "mode": "native-desktop-computer-use",
+  "date": "2026-10-11T05:55:21.308Z",
+  "file": "m3-native-desktop-research-2560.png",
+  "width": 2560,
+  "height": 1392,
+  "project": "CALM 漏油监测桌面版演示",
+  "section": "02 情报研究",
+  "actions": [
+    "打开插件主面板",
+    "我的项目",
+    "打开CALM",
+    "进入情报研究"
+  ],
+  "modelCalls": 0,
+  "source": "actual native DSH Desktop window"
+}

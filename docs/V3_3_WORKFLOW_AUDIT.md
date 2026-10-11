@@ -119,3 +119,24 @@ DSH main[key=marketpilot] → MarketPilotPanel（原注册）
 一次性只读 projection 是最小新增 API，3 秒轮询仍是本地单用户工作台方案；后续可在宿主支持时改事件订阅。输入时间戳不能替代持久化依赖版本；不会自动失效/覆盖旧成果。联网只读检测与导出历史缺口明确留后续。M1 结束后停止，须用户验收才推进 M2。
 
 M2 建议：将批次审阅与证据补证队列作为第一目标；保持正确 runId、过滤选择范围、旧编号和 Gate 不变，增加输入变化的只读下游影响清单。独立设计持久化依赖版本后再考虑提纲确认或单章重生成。
+
+## 10. M3 研究中心设计复核（2026-10-11）
+
+M3 以 `d1ebb325` 的 M2 为基线。采用直接计划：扩展现有提取契约和只读快照，保留工具、工作流及服务端原子保存；不增加第二套研究引擎。没有现存 graphify 索引，未为本阶段安装依赖或创建全仓图。
+
+| 用户操作 / 设计决定 | 实际代码路径与事实 |
+|---|---|
+| 本地 / 在线两个入口 | `src/client/pages/ResearchPage.tsx`：本地选择资料后调用原 guarded tool；在线展示真实 capability reason 和本地替代路径 |
+| 官方能力重新核查 | 上游 `packages/web/web/src/index.ts` 的 Provider 注册接口公开，但注册表、配置选择及 resolveProvider 私有；官方 settings 的凭据 configured 标志不能证明 search/fetch 选择可用。现有 `src/harness/capabilities.ts` 的 unverified 结论保持，不探查私有属性、不更改 Profile |
+| 研究目的 | `ResearchWorkflow.start`：可选 purpose trim/min/max(2000) 验证后写入 Run.input，并传入原结构化提示词；旧调用可省略 |
+| 同一版本的结果与来源 | `researchOverview` / `MarketPilotService.researchOverview` / GET `/projects/:id/research`：一次 repository 快照的 revision、两路结果、关联证据、文档元数据、研究 Run 和永久编号 |
+| 页面刷新 | `useResearchOverview` 每 3 秒读真实快照，有明确错误、项目归属校验和卸载后响应隔离；没有本地伪状态写入 |
+| 两路执行 | 两个 `useToolWorkflow` 分别追踪 competitor_analysis / policy_analysis；为避免同时修改项目造成 STALE_CONTEXT，当前页面一次启动一个研究任务，切方向仍可查看各自状态 |
+| 参数口径 | 可选 `Competitor.parameterContexts[name]={unit,conditions,evidenceId}`；提取字段缺失为 null。保存前校验准确型号、值、单位、条件在同一原文引用，状态校验关联证据属于该产品 |
+| 对照 | `parameterComparison` 按参数名/单位/条件的精确值分行；至少两个产品的 SOURCE/FACT 引用有效、未驳回/废止、属于该型号且含所展示字段时标为同口径摘录。保留 draft 含义，不转换单位、不打分、不排名 |
+| 政策 | 可选 scope 进入原提取服务；发行方/文号/版本/范围须在引用原文中，强制/推荐须有文本标示。UI 始终提示版本和现行效力待核验；文本校验不取代法务或工程审核 |
+| 补证环 | `ResearchSources` → `actions.focusRecord` → 原 EvidencePage 精确详情；原文复用 `DocumentSource`，补充来源仍导航到已有上传区 |
+
+数据兼容：旧 `performance`、UUID、codeBook、SOURCE/UNKNOWN、Decision 和 Artifact 保留。新字段可省略，新代码可读取旧项目；没有迁移、删除或隐式覆盖。已产生 M3 parameterContexts 的新数据不能直接交给 M2 的 strict schema，回退 UI 时必须保留新字段读取能力，不能靠删除数据回退。
+
+验证与停止条件见 `V3_3_M3_ACCEPTANCE.md`。联网不标记完成；M3 交付后停止，用户验收后再实施 M4。

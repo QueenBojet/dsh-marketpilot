@@ -9,6 +9,12 @@
 const STYLE_TAG = 'dsh-marketpilot'
 
 const PANEL_CSS = `
+.mp-researchFilters{display:flex;gap:12px;flex-wrap:wrap}.mp-researchFilters label,.mp-researchPurpose{display:flex;flex-direction:column;gap:6px;flex:1;min-width:180px}
+.mp-researchPurpose{margin-top:10px}.mp-researchPage input:not([type=checkbox]),.mp-researchPage select,.mp-researchPage textarea{font:inherit;color:inherit;background:var(--dsw-alias-bg-base);border:1px solid var(--dsw-alias-border-l2);border-radius:var(--dsw-radius-sm);padding:8px;max-width:100%;box-sizing:border-box}
+.mp-researchPage textarea{resize:vertical}.mp-researchPage h3{font-size:14px;margin:8px 0}.mp-researchPage .mp-toolbar{flex-wrap:wrap}.mp-researchPage [aria-pressed=true]{background:var(--dsw-alias-bg-multi-select);font-weight:600}
+.mp-researchDocs{max-height:180px;overflow:auto}.mp-researchMatrix .mp-table{min-width:760px}.mp-researchMatrix .mp-table td,.mp-researchMatrix .mp-table th{min-width:120px;white-space:normal;overflow-wrap:anywhere}
+.mp-researchDocs .mp-docItem{padding:6px 0;margin:0}.mp-researchMatrix .mp-table{width:100%}
+.mp-researchSources .mp-reviewBlock{padding:10px}.mp-sourceQuote{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px}.mp-researchResults{scroll-margin-top:12px}.mp-researchInput{margin-top:8px}
 .mp-reviewBlock{border:1px solid var(--dsw-alias-border-l2);border-radius:var(--dsw-radius-md);padding:12px;margin:12px 0}
 .mp-reviewBlock summary{font-weight:600;cursor:pointer}.mp-reviewBlock li{margin:8px 0;overflow-wrap:anywhere}
 .mp-reviewFilters{flex-wrap:wrap}.mp-sourcePreview{margin:8px 0}.mp-sourcePreview pre{white-space:pre-wrap;overflow-wrap:anywhere;font-family:inherit;font-size:12px;line-height:1.7;max-height:320px;overflow:auto;padding:12px;border:1px solid var(--dsw-alias-border-l2);border-radius:var(--dsw-radius-md)}

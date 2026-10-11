@@ -59,6 +59,10 @@ export const stateSchema = z.strictObject({
     }
   }
   for (const c of [...s.competitors, ...s.policies, ...s.alternatives, ...s.decisions, ...s.tenderItems]) refs(c.evidenceIds, 'evidence')
+  for (const c of s.competitors) for (const [name, context] of Object.entries(c.parameterContexts ?? {})) {
+    if (!(name in c.performance) || !c.evidenceIds.includes(context.evidenceId)
+      || !s.evidence.some(e => e.id === context.evidenceId && e.relatedCompetitorIds.includes(c.id))) fail('Parameter context requires its own product evidence')
+  }
   for (const a of s.alternatives) refs(Object.keys(a.requirementCoverage), 'requirements')
   for (const d of s.decisions) { refs([d.alternativeId], 'alternatives'); refs(d.requirementIds, 'requirements') }
   for (const t of s.tenderItems) {

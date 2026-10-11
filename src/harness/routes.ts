@@ -242,6 +242,9 @@ export function mountWorkbenchRoutes(ctx: Context, workbench: WorkbenchManager):
           if (method === 'GET' && segments.length === 3 && segments[0] === 'projects' && segments[2] === 'review') {
             return sendJson(response, 200, marketpilot.reviewOverview(segments[1]!))
           }
+          if (method === 'GET' && segments.length === 3 && segments[0] === 'projects' && segments[2] === 'research') {
+            return sendJson(response, 200, marketpilot.researchOverview(segments[1]!))
+          }
           if (method === 'GET' && segments.length === 4 && segments[0] === 'projects' && segments[2] === 'documents') {
             const doc = (marketpilot.services.documents.list(segments[1]!) as DocumentRow[]).find(d => d.id === segments[3])
             ensure(doc, 'DOCUMENT_NOT_FOUND', '来源资料不存在。')

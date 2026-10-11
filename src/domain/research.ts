@@ -1,9 +1,10 @@
 import { z } from 'zod'
-import { ids, text, recordFields } from './common.ts'
+import { id, ids, text, recordFields } from './common.ts'
 
 export const competitorInput = z.strictObject({
   company: text, product: text.optional(), technology: text.optional(), targetScenario: text.optional(),
   performance: z.record(text, z.union([z.string(), z.number().finite(), z.boolean(), z.null()])),
+  parameterContexts: z.record(text, z.strictObject({ unit: text.nullable(), conditions: text.nullable(), evidenceId: id })).optional(),
   interfaces: z.array(text), certifications: z.array(text), cases: z.array(text),
   strengths: z.array(text), limitations: z.array(text), evidenceIds: ids,
 })

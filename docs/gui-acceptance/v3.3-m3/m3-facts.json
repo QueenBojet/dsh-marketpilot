@@ -1,0 +1,115 @@
+{
+  "mode": "real-desktop-hosted-web-cdp",
+  "date": "2026-10-11T05:50:30.591Z",
+  "newModelCalls": 0,
+  "screenshots": [
+    {
+      "name": "m3-empty-local-light-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m3-empty-local-dark-1024.png",
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "name": "m3-online-blocker-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m3-calm-local-light-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m3-calm-local-light-1024.png",
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "name": "m3-calm-matrix-light-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m3-calm-matrix-light-1366.png",
+      "width": 1366,
+      "height": 768
+    },
+    {
+      "name": "m3-calm-matrix-dark-1024.png",
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "name": "m3-calm-source-drawer-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m3-research-to-evidence-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m3-calm-policy-light-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m3-policy-history-1366.png",
+      "width": 1366,
+      "height": 768
+    }
+  ],
+  "checks": [
+    {
+      "kindFilterMatchesBackend": true,
+      "filterClearsSelection": true
+    },
+    {
+      "project": "CALM 漏油监测桌面版演示",
+      "revision": 157,
+      "competitors": 2,
+      "policies": 0,
+      "comparedExactProducts": [
+        {
+          "company": "DemoVendor",
+          "product": "DEMO-A"
+        },
+        {
+          "company": "DemoVendor",
+          "product": "DEMO-B"
+        }
+      ],
+      "sourceBodyMatchesBackend": true,
+      "evidenceJumpId": "d9916c9d-4c88-445c-99c5-7dd82b28162b"
+    },
+    {
+      "persistedSnapshotsUnchanged": true,
+      "noNewExecution": true,
+      "pageOverflow": false
+    }
+  ],
+  "gaps": [
+    "No real search/fetch or GLM invocation in this GUI run. Online capability remains unverified. Exact-basis synthetic comparisons, purpose submission and stale/error paths are covered by local workflow and React tests; existing CALM data is read-only."
+  ],
+  "capabilities": {
+    "model": {
+      "available": true,
+      "mode": "live",
+      "reason": "已注册模型路由；调用可用性仍以实际任务为准。",
+      "provider": "zai",
+      "model": "glm-5.3-flash",
+      "reasoningEffort": "max"
+    },
+    "research": {
+      "available": false,
+      "mode": "unverified",
+      "reason": "Harness Web 已加载，但此宿主无只读 Provider 检测接口；联网能力未验证，可使用本地资料研究。"
+    }
+  },
+  "pageErrors": []
+}

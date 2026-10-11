@@ -1,15 +1,17 @@
 import type { createServices } from '../services/index.ts'
 import type { ModelStructuredOutputAdapter } from '../adapters/contracts.ts'
-import { ids } from '../domain/common.ts'
+import { ids, text } from '../domain/common.ts'
 import { competitorExtraction, policyExtraction } from '../domain/research-analysis.ts'
 import { WorkflowExecution } from './execution.ts'
 
 export class ResearchWorkflow {
   constructor(private readonly services: ReturnType<typeof createServices>, private readonly model: ModelStructuredOutputAdapter,
     private readonly lifecycle = services.workflows) {}
-  async start(projectId: string, documentIds: string[], kind: 'competitor' | 'policy', signal: AbortSignal) {
+  async start(projectId: string, documentIds: string[], kind: 'competitor' | 'policy', signal: AbortSignal, purpose?: string) {
     const selected = ids.min(1).parse(documentIds)
-    const run = await this.lifecycle.start(projectId, { type: kind === 'competitor' ? 'competitor_analysis' : 'policy_analysis', input: { documentIds: selected } })
+    const researchPurpose = purpose === undefined ? null : text.max(2000).parse(purpose)
+    const run = await this.lifecycle.start(projectId, { type: kind === 'competitor' ? 'competitor_analysis' : 'policy_analysis',
+      input: { documentIds: selected, ...(researchPurpose === null ? {} : { purpose: researchPurpose }) } })
     const exec = new WorkflowExecution(projectId, run.id, this.lifecycle, this.model, signal)
     try {
       await exec.step('LOAD_DOCUMENTS')
@@ -17,11 +19,11 @@ export class ResearchWorkflow {
       const documents = selected.map(id => this.services.documents.get(projectId, id))
       await exec.step('EXTRACT_CANDIDATES')
       if (kind === 'competitor') {
-        const result = await exec.generate('competitor-extract', competitorExtraction, { documents })
+        const result = await exec.generate('competitor-extract', competitorExtraction, { documents, purpose: researchPurpose })
         await exec.step('VALIDATE_SOURCES_AND_SAVE')
         return await this.services.research.competitors(projectId, run.id, version, result)
       }
-      const result = await exec.generate('policy-extract', policyExtraction, { documents })
+      const result = await exec.generate('policy-extract', policyExtraction, { documents, purpose: researchPurpose })
       await exec.step('VALIDATE_SOURCES_AND_SAVE')
       return await this.services.research.policies(projectId, run.id, version, result)
     } catch (error) { return exec.failed(error) }

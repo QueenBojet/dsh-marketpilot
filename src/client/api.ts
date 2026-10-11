@@ -153,10 +153,11 @@ export interface RequirementsQuery { status?: string; q?: string; page?: number;
 export interface CompetitorItem {
   id: string
   company: string
-  product?: string
-  technology?: string
-  targetScenario?: string
+  product?: string | undefined
+  technology?: string | undefined
+  targetScenario?: string | undefined
   performance: Record<string, string | number | boolean | null>
+  parameterContexts?: Record<string, { unit: string | null; conditions: string | null; evidenceId: string }> | undefined
   interfaces: string[]
   certifications: string[]
   cases: string[]
@@ -300,6 +301,7 @@ export const api = {
   requestArtifacts: (projectId: string) => request<{ artifacts: ArtifactMetaRow[] }>('GET', `/marketpilot/api/projects/${projectId}/artifacts`),
   artifact: (projectId: string, artifactId: string) => request<{ artifact: ArtifactFullRow }>('GET', `/marketpilot/api/projects/${projectId}/artifacts/${artifactId}`),
   competitors: (projectId: string) => request<{ competitors: CompetitorItem[] }>('GET', `/marketpilot/api/projects/${projectId}/competitors`),
+  research: (projectId: string) => request<import('../domain/research-review.ts').ResearchOverview>('GET', `/marketpilot/api/projects/${projectId}/research`),
   policies: (projectId: string) => request<{ policies: PolicyItem[] }>('GET', `/marketpilot/api/projects/${projectId}/policies`),
   evidence: (projectId: string, query: { status?: string; kind?: string; q?: string; pageSize?: number; page?: number; review?: string } = {}) => {
     const params = new URLSearchParams()
