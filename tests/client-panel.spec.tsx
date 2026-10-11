@@ -18,6 +18,8 @@ import { MarketPilotPanel } from '../src/client/MarketPilotPanel.tsx'
 import { StatusTag } from '../src/client/components/StatusTag.tsx'
 import { marketpilotLocales } from '../src/client/locales.ts'
 import { createMarketPilotStore, type MarketPilotActions } from '../src/client/stores.ts'
+import { projectWorkflowOverview } from '../src/domain/project-workflow.ts'
+import { capabilities, withInputs, workflowState } from './workflow-fixtures.ts'
 
 const t = (key: keyof typeof marketpilotLocales.zh) => marketpilotLocales.zh[key]
 
@@ -166,6 +168,7 @@ describe('MarketPilot main panel', () => {
       const url = String(input)
       if (url === '/marketpilot/api/projects') return jsonResponse(projectsPayload)
       if (url === '/marketpilot/api/projects/p1') return jsonResponse(detailPayload)
+      if (url === '/marketpilot/api/projects/p1/workflow') return jsonResponse(projectWorkflowOverview(withInputs(workflowState()), capabilities, []))
       throw new Error(`unexpected fetch: ${url}`)
     })
     const props = makePanelProps()
@@ -184,7 +187,7 @@ describe('MarketPilot main panel', () => {
     await flush()
     expect(fetchMock).toHaveBeenCalledWith('/marketpilot/api/projects/p1', { method: 'GET' })
     expect(text()).toContain('CALM 单点系泊监测')
-    expect(text()).toContain(marketpilotLocales.zh.nextStepLabel)
+    expect(text()).toContain(marketpilotLocales.zh['workflow.currentStage'])
     act(() => {
       const section = [...container!.querySelectorAll('button')].find(b => b.textContent === marketpilotLocales.zh.sectionRequirements)
       section!.click()

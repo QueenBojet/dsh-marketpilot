@@ -7,6 +7,8 @@
  */
 import type { MarketPilotText, MarketPilotTextKey } from '../locales.ts'
 import type { ProjectSection } from '../stores.ts'
+import type { ProjectWorkflowOverview } from '../../domain/project-workflow.ts'
+import { workflowText } from './ProjectWorkflowOverview.tsx'
 
 /** Which six-phase stage each project status maps to (0-5; 6 = archived/complete).
  * The baseline marks the stage the user should work in NEXT — requirements_ready
@@ -72,23 +74,28 @@ const NAV_ROWS: readonly { readonly section: ProjectSection; readonly key: Marke
  * @param props.section - the currently selected section.
  * @param props.onSelect - switches the project section.
  */
-export function ProjectStageNav({ t, status, runs, section, onSelect }: {
+export function ProjectStageNav({ t, status, runs, section, onSelect, workflow }: {
   t: MarketPilotText
   status: string
   runs: readonly { type: string; status: string }[] | null
   section: ProjectSection
   onSelect: (section: ProjectSection) => void
+  workflow?: ProjectWorkflowOverview | null
 }) {
   const currentStage = STAGE_BY_STATUS[status] ?? 0
   return (
     <nav className="mp-stageNav" aria-label={t('stageNavLabel')}>
       {NAV_ROWS.map(({ section: rowSection, key, stageIndex }) => {
-        const state = stageIndex === undefined ? undefined : stageState(stageIndex, currentStage, runs)
+        const projected = workflow?.stages.find(s => s.section === rowSection && (s.id !== 'S0' || workflow.currentStage === 'S0'))
+        const state = workflow === null ? undefined : projected === undefined ? stageIndex === undefined ? undefined : stageState(stageIndex, currentStage, runs)
+          : ({ completed: 'done', waiting_human: 'waiting', needs_attention: 'waiting', unavailable: 'waiting', running: 'running', failed: 'error' } as Record<string, StageState>)[projected.status]
+            ?? (projected.id === workflow?.currentStage ? 'current' : 'pending')
         return (
           <button
             key={rowSection} type="button" className="mp-stageItem"
             aria-current={section === rowSection ? 'page' : undefined}
             {...state === undefined ? {} : { 'data-state': state, title: t(STAGE_STATE_TITLE[state]) }}
+            {...projected === undefined ? {} : { 'data-stage': projected.id, 'data-status': projected.status, title: workflowText(t, `status.${projected.status}`) }}
             onClick={() => { onSelect(rowSection) }}
           >
             <span className="mp-stageDot" data-state={state ?? 'none'} aria-hidden="true" />

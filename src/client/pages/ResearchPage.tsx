@@ -13,6 +13,7 @@ import { useDrawerKeys } from '../hooks/useDrawerKeys.ts'
 import { useCompetitors, usePolicies, useToolWorkflow } from '../hooks/usePhase4.ts'
 import { useDocuments } from '../hooks/useExecution.ts'
 import type { MarketPilotText, MarketPilotTextKey } from '../locales.ts'
+import { useStageAccess, workflowText } from '../components/ProjectWorkflowOverview.tsx'
 
 /** Render one competitor matrix row; the drawer carries the parameter detail. */
 function CompetitorTable({ t, rows, onOpen }: {
@@ -68,6 +69,7 @@ function CompetitorTable({ t, rows, onOpen }: {
 
 /** Render the research page (competitor / policy tabs). */
 export function ResearchPage({ t, projectId }: { t: MarketPilotText; projectId: string }) {
+  const access = useStageAccess('S2')
   const [tab, setTab] = useState<'competitor' | 'policy'>('competitor')
   const [selectedDocs, setSelectedDocs] = useState<ReadonlySet<string>>(new Set())
   const [drawer, setDrawer] = useState<CompetitorItem | null>(null)
@@ -87,7 +89,7 @@ export function ResearchPage({ t, projectId }: { t: MarketPilotText; projectId: 
     () => { competitors.refresh(); policies.refresh() })
 
   const startExtract = (): void => {
-    if (selectedDocs.size === 0 || workflow.busy) return
+    if (selectedDocs.size === 0 || workflow.busy || !access.allowed || documents.error !== '') return
     void workflow.start(tab === 'competitor' ? 'marketpilot_competitor_extract' : 'marketpilot_policy_extract',
       { documentIds: [...selectedDocs] })
   }
@@ -103,12 +105,14 @@ export function ResearchPage({ t, projectId }: { t: MarketPilotText; projectId: 
         <span className="mp-toolbarSpacer" />
         <span className="mp-caption">{t('researchLocalMode')}</span>
         <button type="button" className="mp-primaryAction mp-headerNavItem"
-          disabled={workflow.busy || selectedDocs.size === 0}
+          disabled={workflow.busy || !access.allowed || documents.error !== '' || selectedDocs.size === 0}
           onClick={startExtract}
         >
           {tab === 'competitor' ? t('extractCompetitors') : t('extractPolicies')}
         </button>
       </div>
+      {selectedDocs.size === 0 ? <p className="mp-caption">{workflowText(t, 'selectDocuments')}</p> : null}
+      {documents.error === '' ? null : <ErrorState t={t} message={documents.error} onRetry={documents.refresh} />}
       {documents.loading ? <LoadingState t={t} />
         : (documents.documents ?? []).length === 0 ? <p className="mp-caption">{t('docsEmpty')}</p>
           : (

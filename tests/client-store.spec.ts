@@ -2,6 +2,17 @@ import { describe, expect, it } from 'vitest'
 import { createMarketPilotStore } from '../src/client/stores.ts'
 
 describe('MarketPilot navigation store', () => {
+  it('keeps workflow modes per project through section navigation and reopening', () => {
+    const instance = createMarketPilotStore().create()
+    instance.actions.openProject('p1')
+    instance.actions.setWorkflowMode('professional')
+    instance.actions.setSection('evidence')
+    expect(instance.getSnapshot().workflowModes?.p1).toBe('professional')
+    instance.actions.openProject('p2')
+    expect(instance.getSnapshot().workflowModes?.p2).toBeUndefined()
+    instance.actions.openProject('p1')
+    expect(instance.getSnapshot().workflowModes?.p1).toBe('professional')
+  })
   it('starts on home and walks home → projects → project → section', () => {
     const instance = createMarketPilotStore().create()
     expect(instance.getSnapshot().view).toEqual({ kind: 'home' })

@@ -1,5 +1,6 @@
 /** Typed same-origin client for the MarketPilot workbench HTTP API. */
 import type { ShortCodeBook } from '../domain/shortcodes.ts'
+import type { ProjectWorkflowOverview } from '../domain/project-workflow.ts'
 
 /** One project row as the list route returns it. */
 export interface ProjectRow {
@@ -258,6 +259,7 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
 export const api = {
   projects: () => request<{ projects: ProjectRow[] }>('GET', '/marketpilot/api/projects'),
   project: (id: string) => request<ProjectDetail>('GET', `/marketpilot/api/projects/${id}`),
+  workflow: (id: string) => request<ProjectWorkflowOverview>('GET', `/marketpilot/api/projects/${id}/workflow`),
   summary: (id: string) => request<Record<string, unknown>>('GET', `/marketpilot/api/summary/${id}`),
   documents: (projectId: string) => request<{ documents: DocumentMeta[] }>('GET', `/marketpilot/api/projects/${projectId}/documents`),
   upload: async (projectId: string, name: string, kind: string, text: string): Promise<{ document: DocumentMeta }> => {

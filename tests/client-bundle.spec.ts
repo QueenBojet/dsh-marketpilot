@@ -1,12 +1,14 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
+import { createContext } from 'react'
 import { describe, expect, it } from 'vitest'
 
 /**
- * Minimal react stand-in: the bundle must only reach createElement/jsx at
- * render time, never during module initialization.
+ * Minimal react stand-in: contexts may be created during initialization;
+ * createElement/jsx must only be reached at render time.
  */
 const reactStub = {
+  createContext,
   createElement: () => null,
   useCallback: (fn: unknown) => fn,
   useEffect: () => {},

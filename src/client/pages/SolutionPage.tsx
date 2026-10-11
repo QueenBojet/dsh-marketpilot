@@ -21,6 +21,7 @@ import { useProjectDetail } from '../hooks/useProjects.ts'
 import { useToolWorkflow } from '../hooks/usePhase4.ts'
 import { projectShortCodeIndex } from '../shortCodes.ts'
 import type { MarketPilotText } from '../locales.ts'
+import { useStageAccess } from '../components/ProjectWorkflowOverview.tsx'
 
 /** Split a markdown document into its heading outline. */
 function outline(markdown: string): { level: number; text: string; index: number }[] {
@@ -46,16 +47,16 @@ function byNewest(left: ArtifactMetaRow, right: ArtifactMetaRow): number {
 /** Render the solution page. */
 export function SolutionPage({ t, projectId }: { t: MarketPilotText; projectId: string }) {
   const [open, setOpen] = useState(false)
+  const access = useStageAccess('S5')
   const readerRef = useDrawerKeys(open, () => { setOpen(false) })
   const [versionId, setVersionId] = useState<string | null>(null)
   const detail = useProjectDetail(projectId)
   const artifacts = useArtifacts(projectId)
   const workflow = useToolWorkflow(projectId, ['marketpilot_solution_generate'], 'solution_generation',
     t, artifacts.refresh)
-  const status = detail.detail?.project.status
-  const decisionConfirmed = status !== undefined
-    && (['decision_confirmed', 'solution_ready', 'tender_review'].includes(status)
-      || detail.detail?.project.activeDecisionId !== undefined)
+  const decisionConfirmed = detail.error === '' && detail.detail?.project.activeDecisionId !== undefined
+    && detail.detail.decisions.some(d => d.id === detail.detail?.project.activeDecisionId)
+    && detail.detail.requirements.some(r => r.status === 'confirmed')
   const solutions = (artifacts.artifacts ?? []).filter(row => row.type === 'solution').sort(byNewest)
   const latest = solutions[0] ?? null
   const selected = solutions.find(row => row.id === versionId) ?? latest
@@ -71,8 +72,8 @@ export function SolutionPage({ t, projectId }: { t: MarketPilotText; projectId: 
       <div className="mp-toolbar">
         <button
           type="button" className="mp-primaryAction mp-headerNavItem"
-          disabled={!decisionConfirmed || workflow.busy}
-          onClick={() => { void workflow.start('marketpilot_solution_generate', {}) }}
+          disabled={!decisionConfirmed || !access.allowed || workflow.busy}
+          onClick={() => { if (decisionConfirmed && access.allowed) void workflow.start('marketpilot_solution_generate', access.stage?.action.args ?? {}) }}
         >
           {t('generateSolution')}
         </button>
@@ -82,6 +83,7 @@ export function SolutionPage({ t, projectId }: { t: MarketPilotText; projectId: 
           </button>
         )}
       </div>
+      {detail.error === '' ? null : <ErrorState t={t} message={detail.error} onRetry={detail.refresh} />}
       {solutions.length === 0 ? null : (
         <div className="mp-toolbar">
           <span className="mp-caption">{t('solutionVersions')}</span>

@@ -15,6 +15,7 @@ import { EmptyState, ErrorState, LoadingState } from '../components/States.tsx'
 import { WorkflowSurface } from '../components/WorkflowSurface.tsx'
 import { useAlternatives, useEvidencePage, useToolWorkflow } from '../hooks/usePhase4.ts'
 import { useRequirements } from '../hooks/useExecution.ts'
+import { useStageAccess, workflowText } from '../components/ProjectWorkflowOverview.tsx'
 import type { MarketPilotText, MarketPilotTextKey } from '../locales.ts'
 
 function coverageTone(level: string | undefined): 'success' | 'warning' | 'danger' | 'neutral' {
@@ -82,6 +83,7 @@ function CandidateCard({ t, row, selected, busy, onSelect, clean }: {
 export function AlternativesPage({ t, projectId }: { t: MarketPilotText; projectId: string }) {
   const [selected, setSelected] = useState<string>('')
   const [rationale, setRationale] = useState('')
+  const access = useStageAccess('S4')
   const alternatives = useAlternatives(projectId)
   const requirements = useRequirements(projectId, { pageSize: 100 })
   const evidence = useEvidencePage(projectId, {})
@@ -102,7 +104,7 @@ export function AlternativesPage({ t, projectId }: { t: MarketPilotText; project
   const clean = useCallback((text: string) => codeIndex.replace(text), [codeIndex])
   const chosen = rows.find(row => row.id === selected)
   const submit = (): void => {
-    if (chosen === undefined || rationale.trim() === '' || workflow.busy) return
+    if (chosen === undefined || rationale.trim() === '' || workflow.busy || !access.reviewAllowed || requirements.error !== '' || confirmed.length === 0) return
     void workflow.start('marketpilot_decision_confirm', {
       alternativeId: chosen.id, decision: 'selected', rationale: rationale.trim(),
       evidenceIds: chosen.evidenceIds, requirementIds: confirmed.map(row => row.id),
@@ -113,12 +115,14 @@ export function AlternativesPage({ t, projectId }: { t: MarketPilotText; project
       <h2 className="mp-sectionTitle" style={{ marginTop: 0 }}>{t('alternativesTitle')}</h2>
       <div className="mp-toolbar">
         <button
-          type="button" className="mp-primaryAction mp-headerNavItem" disabled={workflow.busy}
-          onClick={() => { void workflow.start('marketpilot_alternative_generate', {}) }}
+          type="button" className="mp-primaryAction mp-headerNavItem" disabled={workflow.busy || !access.allowed || confirmed.length === 0 || requirements.error !== ''}
+          onClick={() => { if (access.allowed && confirmed.length > 0) void workflow.start('marketpilot_alternative_generate', {}) }}
         >
           {t('generateAlternatives')}
         </button>
       </div>
+      {confirmed.length === 0 ? <p className="mp-caption" role="note">{workflowText(t, 'needConfirmed')}</p> : null}
+      {requirements.error === '' ? null : <p className="mp-errorText" role="alert">{requirements.error}</p>}
       <WorkflowSurface
         t={t} run={workflow.run} execution={workflow.latest} busy={workflow.busy} error={workflow.error}
         label={t('generateAlternatives')}
@@ -181,7 +185,7 @@ export function AlternativesPage({ t, projectId }: { t: MarketPilotText; project
           />
           <button
             type="button" className="mp-primaryAction mp-headerNavItem"
-            disabled={workflow.busy || chosen === undefined || rationale.trim() === ''}
+            disabled={workflow.busy || !access.reviewAllowed || requirements.error !== '' || confirmed.length === 0 || chosen === undefined || rationale.trim() === ''}
             title={chosen === undefined ? t('altNoneSelected') : rationale.trim() === '' ? t('rationale') : undefined}
             onClick={submit}
           >

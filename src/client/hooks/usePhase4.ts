@@ -81,11 +81,11 @@ export function useToolWorkflow(projectId: string, tools: readonly string[], run
   const toolSet = useMemo(() => new Set(tools), [tools])
   const mine = useMemo(() => executions.filter(execution => toolSet.has(execution.tool)),
     [executions, toolSet])
-  const busy = mine.some(execution => execution.status === 'running' || execution.status === 'waiting_human')
-  const gating = mine.find(execution => execution.status === 'waiting_human')
+  const busy = mine.some(execution => !execution.lost && (execution.status === 'running' || execution.status === 'waiting_human'))
+  const gating = mine.find(execution => !execution.lost && execution.status === 'waiting_human')
   const run = useActiveRun(projectId, runType, busy)
-  const latest = mine.find(execution => execution.status === 'running')
-    ?? mine.find(execution => execution.status === 'waiting_human')
+  const latest = mine.find(execution => !execution.lost && execution.status === 'running')
+    ?? gating ?? mine[0]
   const [error, setError] = useState('')
 
   const settleRef = useCallbackRef(onSettled)

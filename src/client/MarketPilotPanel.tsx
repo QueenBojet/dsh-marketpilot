@@ -26,6 +26,7 @@ export interface MarketPilotPanelProps {
  */
 export function MarketPilotPanel({ t, useStore, actions }: MarketPilotPanelProps) {
   const view = useStore(state => state.view)
+  const mode = useStore(state => state.view.kind === 'project' ? state.workflowModes?.[state.view.projectId] ?? 'guided' : 'guided')
   return (
     <div className="mp-root">
       <AppHeader t={t} view={view} actions={actions} />
@@ -34,7 +35,7 @@ export function MarketPilotPanel({ t, useStore, actions }: MarketPilotPanelProps
           {view.kind === 'home' ? <HomePage t={t} actions={actions} /> : null}
           {view.kind === 'projects' ? <ProjectsPage t={t} actions={actions} /> : null}
           {view.kind === 'tasks' ? <TasksPage t={t} actions={actions} /> : null}
-          {view.kind === 'project' ? <ProjectOverviewPage t={t} actions={actions} view={view} /> : null}
+          {view.kind === 'project' ? <ProjectOverviewPage key={view.projectId} t={t} actions={actions} view={view} mode={mode} /> : null}
         </div>
       </div>
     </div>

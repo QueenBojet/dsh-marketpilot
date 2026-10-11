@@ -18,7 +18,7 @@ import type { MarketPilotText } from '../locales.ts'
 export function ProjectHeader({ t, detail, waiting, onBack }: {
   t: MarketPilotText
   detail: ProjectDetail
-  waiting: number
+  waiting: number | undefined
   onBack: () => void
 }) {
   const { project } = detail
@@ -28,15 +28,15 @@ export function ProjectHeader({ t, detail, waiting, onBack }: {
   const unknown = requirements.filter(row => row.status === 'unknown').length
   const chips: { label: string; value: string; tone?: 'warn' }[] = [
     { label: t('countRequirements'), value: `${String(confirmed)} / ${String(requirements.length)}` },
-    { label: t('countUnknown'), value: String(unknown), ...unknown > 0 ? { tone: 'warn' as const } : {} },
-    { label: t('statWaiting'), value: String(waiting), ...waiting > 0 ? { tone: 'warn' as const } : {} },
+    { label: t('workflow.requirementUnknown'), value: String(unknown), ...unknown > 0 ? { tone: 'warn' as const } : {} },
+    { label: t('statWaiting'), value: waiting === undefined ? t('statUnavailable') : String(waiting), ...(waiting ?? 0) > 0 ? { tone: 'warn' as const } : {} },
   ]
   return (
     <header className="mp-projectHeader">
       <div className="mp-projectHeaderMain">
         <div className="mp-projectTitleRow">
           <h1 className="mp-pageTitle">{project.name}</h1>
-          <StatusTag t={t} kind="project" value={project.status} />
+          <span className="mp-caption">{t('workflow.recordStatus')}</span><StatusTag t={t} kind="project" value={project.status} />
         </div>
         <p className="mp-projectMeta mp-caption">
           {`${project.industry ?? t('valueUnset')} · ${project.scenario ?? t('valueUnset')} · ${t('fieldUpdated')} ${formatTime(project.updatedAt)}`}

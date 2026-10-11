@@ -14,6 +14,7 @@ export type ProjectSection =
 
 /** A cross-module jump target: land on a section and highlight one record. */
 export type ProjectFocus = { readonly kind: 'requirement' | 'evidence'; readonly id: string }
+export type WorkflowMode = 'guided' | 'professional'
 
 /** Which page the main panel shows. */
 export type MarketPilotView =
@@ -25,6 +26,7 @@ export type MarketPilotView =
 
 export interface MarketPilotNavigationState {
   view: MarketPilotView
+  workflowModes?: Record<string, WorkflowMode>
 }
 
 type NavigationActionsDecl = {
@@ -34,6 +36,7 @@ type NavigationActionsDecl = {
   openProject: (draft: MarketPilotNavigationState, projectId: string) => void
   setSection: (draft: MarketPilotNavigationState, section: ProjectSection) => void
   focusRecord: (draft: MarketPilotNavigationState, section: ProjectSection, kind: 'requirement' | 'evidence', id: string) => void
+  setWorkflowMode: (draft: MarketPilotNavigationState, mode: WorkflowMode) => void
 } & ActionsDecl<MarketPilotNavigationState>
 
 /** The bound (draft-peeled) action shape components receive. */
@@ -44,6 +47,7 @@ export type MarketPilotActions = {
   openProject(projectId: string): void
   setSection(section: ProjectSection): void
   focusRecord(section: ProjectSection, kind: 'requirement' | 'evidence', id: string): void
+  setWorkflowMode?(mode: WorkflowMode): void
 }
 
 /** Snapshot-selector hook the slot renderer synthesizes from the store seat. */
@@ -69,6 +73,11 @@ export function createMarketPilotStore(): EngineStoreHandle<MarketPilotNavigatio
       focusRecord: (draft, section, kind, id) => {
         if (draft.view.kind !== 'project') return
         draft.view = { kind: 'project', projectId: draft.view.projectId, section, focus: { kind, id } }
+      },
+      setWorkflowMode: (draft, mode) => {
+        if (draft.view.kind !== 'project') return
+        draft.workflowModes ??= {}
+        draft.workflowModes[draft.view.projectId] = mode
       },
     },
   })

@@ -21,6 +21,8 @@ import { TasksPage } from '../src/client/pages/TasksPage.tsx'
 import { executionStore } from '../src/client/hooks/executionStore.ts'
 import { marketpilotLocales } from '../src/client/locales.ts'
 import { createMarketPilotStore, type MarketPilotActions } from '../src/client/stores.ts'
+import { projectWorkflowOverview } from '../src/domain/project-workflow.ts'
+import { capabilities, run, withInputs, withSolution, workflowState } from './workflow-fixtures.ts'
 
 const t = (key: keyof typeof marketpilotLocales.zh) => marketpilotLocales.zh[key]
 
@@ -427,9 +429,13 @@ describe('ArtifactsPage', () => {
 
 describe('ProjectOverviewPage stage navigation', () => {
   it('derives live stage state and jumps to the section on click', async () => {
+    const state = withInputs(workflowState())
+    state.requirements[0]!.status = 'proposed'
+    state.workflowRuns.push({ ...run('run-1', 'requirement_analysis', 'waiting_human'), output: { requirementIds: ['req1'] } })
     fetchMock.mockImplementation(async (input: unknown) => {
       const url = String(input)
       if (url === '/marketpilot/api/projects/p1') return jsonResponse(detailPayload)
+      if (url === '/marketpilot/api/projects/p1/workflow') return jsonResponse(projectWorkflowOverview(state, capabilities, []))
       if (url.startsWith('/marketpilot/api/projects/p1/runs')) return jsonResponse(runsPayload)
       throw new Error(`unexpected fetch: ${url}`)
     })
@@ -454,6 +460,7 @@ describe('ProjectOverviewPage stage navigation', () => {
   })
 
   it('keeps the stage baseline consistent after a successful solution generation', async () => {
+    const state = withSolution()
     const solutionDetail = {
       ...detailPayload,
       project: { ...detailPayload.project, status: 'solution_ready' },
@@ -466,6 +473,7 @@ describe('ProjectOverviewPage stage navigation', () => {
     fetchMock.mockImplementation(async (input: unknown) => {
       const url = String(input)
       if (url === '/marketpilot/api/projects/p1') return jsonResponse(solutionDetail)
+      if (url === '/marketpilot/api/projects/p1/workflow') return jsonResponse(projectWorkflowOverview(state, capabilities, []))
       if (url.startsWith('/marketpilot/api/projects/p1/runs')) return jsonResponse(solutionRuns)
       throw new Error(`unexpected fetch: ${url}`)
     })
@@ -473,11 +481,10 @@ describe('ProjectOverviewPage stage navigation', () => {
     instance.actions.openProject('p1')
     render(<ProjectOverviewPage t={t} actions={instance.actions} view={{ kind: 'project', projectId: 'p1', section: 'overview' }} />)
     await flush()
-    // 方案生成 shows done; the current stage is 投标检查 — no stale "current" hint
-    // on a stage whose workflow already finished.
+    // Solution is done; without tender sources the optional branch is skipped.
     const stages = [...container!.querySelectorAll<HTMLButtonElement>('button.mp-stageItem')]
     expect(stages.find(b => b.textContent?.includes(t('sectionSolution')))?.getAttribute('data-state')).toBe('done')
-    expect(stages.find(b => b.textContent?.includes(t('sectionTender')))?.getAttribute('data-state')).toBe('current')
-    expect(text()).toContain(t('next.solution_ready'))
+    expect(stages.find(b => b.textContent?.includes(t('sectionTender')))?.getAttribute('data-status')).toBe('skipped_optional')
+    expect(text()).toContain(t('workflow.title.S7'))
   })
 })

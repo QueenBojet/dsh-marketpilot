@@ -238,6 +238,9 @@ export function mountWorkbenchRoutes(ctx: Context, workbench: WorkbenchManager):
           const pathname = parsedUrl.pathname
           const segments = pathname.slice(API_PREFIX.length).split('/').filter(Boolean)
           const method = request.method ?? 'GET'
+          if (method === 'GET' && segments.length === 3 && segments[0] === 'projects' && segments[2] === 'workflow') {
+            return sendJson(response, 200, marketpilot.workflowOverview(segments[1]!, workbench.list(segments[1]!)))
+          }
           // POST /tools → start one click-driven execution.
           if (method === 'POST' && segments.length === 1 && segments[0] === 'tools') {
             const body = await readJsonBody(request)

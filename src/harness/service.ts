@@ -10,6 +10,8 @@ import { HarnessDocumentParser } from '../adapters/document-parser.ts'
 import { HarnessStructuredModel } from '../adapters/harness-model.ts'
 import type { ModelStructuredOutputAdapter } from '../adapters/contracts.ts'
 import { ensure } from '../domain/common.ts'
+import { projectWorkflowOverview, type WorkflowExecutionFact } from '../domain/project-workflow.ts'
+import { workflowCapabilities } from './capabilities.ts'
 
 export interface Config { maxDocumentBytes: number; structuredProvider: string; modelTimeoutMs: number }
 export const Config: Schema<Config> = Schema.object({
@@ -35,6 +37,13 @@ export class MarketPilotService extends Service {
 
   /** The configured per-document byte ceiling, for the upload route's validation. */
   get maxDocumentBytes(): number { return this.config.maxDocumentBytes }
+
+  /** One synchronous repository snapshot feeds every stage in the project navigator. */
+  workflowOverview(projectId: string, executions: readonly WorkflowExecutionFact[]) {
+    const state = this.repository.get(projectId)
+    ensure(state, 'PROJECT_NOT_FOUND', '项目不存在。')
+    return projectWorkflowOverview(state, workflowCapabilities(this.ctx, this.config.structuredProvider), executions)
+  }
 
   protected async [Service.init]() {
     this.repository = await HarnessProjectRepository.open(this.ctx.storageDomain)

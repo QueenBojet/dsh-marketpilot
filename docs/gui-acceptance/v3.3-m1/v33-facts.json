@@ -1,0 +1,387 @@
+{
+  "mode": "real-desktop-hosted-web-cdp",
+  "newModelCalls": 0,
+  "screenshots": [
+    {
+      "name": "v33-empty-light-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "v33-empty-light-1024.png",
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "name": "v33-empty-dark-1024.png",
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "name": "v33-empty-dark-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "v33-calm-light-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "v33-calm-light-1024.png",
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "name": "v33-calm-dark-1024.png",
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "name": "v33-calm-dark-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "v33-empty-routes-blocked-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "v33-calm-light-1366.png",
+      "width": 1366,
+      "height": 768
+    },
+    {
+      "name": "v33-calm-evidence-feedback-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "v33-existing-solution-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "v33-professional-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "v33-existing-wait-landing-1440.png",
+      "width": 1440,
+      "height": 900
+    }
+  ],
+  "checks": [
+    {
+      "project": "V3.3 M1 GUI 空项目 · synthetic QA",
+      "projectId": "2cde69d7-5eb8-4f79-b923-8d1745f0d51c",
+      "revision": 0,
+      "currentStage": "S0",
+      "unknowns": 0,
+      "waiting": 0,
+      "stages": [
+        {
+          "id": "S0",
+          "status": "ready"
+        },
+        {
+          "id": "S1",
+          "status": "not_started"
+        },
+        {
+          "id": "S2",
+          "status": "not_started"
+        },
+        {
+          "id": "S3",
+          "status": "not_started"
+        },
+        {
+          "id": "S4",
+          "status": "not_started"
+        },
+        {
+          "id": "S5",
+          "status": "not_started"
+        },
+        {
+          "id": "S6",
+          "status": "skipped_optional"
+        },
+        {
+          "id": "S7",
+          "status": "not_started"
+        }
+      ],
+      "model": {
+        "available": true,
+        "mode": "live",
+        "reason": "已注册模型路由；调用可用性仍以实际任务为准。",
+        "provider": "zai",
+        "model": "glm-5.3-flash",
+        "reasoningEffort": "max"
+      },
+      "research": {
+        "available": false,
+        "mode": "unverified",
+        "reason": "Harness Web 已加载，但此宿主无只读 Provider 检测接口；联网能力未验证，可使用本地资料研究。"
+      },
+      "section": "项目概览"
+    },
+    {
+      "compactNavigation": {
+        "direction": "row",
+        "height": 35
+      },
+      "project": "empty"
+    },
+    {
+      "project": "CALM 漏油监测桌面版演示",
+      "projectId": "83fd7e7e-d068-49e0-bf60-ffbd0496ce47",
+      "revision": 157,
+      "currentStage": "S6",
+      "unknowns": 28,
+      "waiting": 0,
+      "stages": [
+        {
+          "id": "S0",
+          "status": "completed"
+        },
+        {
+          "id": "S1",
+          "status": "completed"
+        },
+        {
+          "id": "S2",
+          "status": "completed"
+        },
+        {
+          "id": "S3",
+          "status": "needs_attention"
+        },
+        {
+          "id": "S4",
+          "status": "completed"
+        },
+        {
+          "id": "S5",
+          "status": "completed"
+        },
+        {
+          "id": "S6",
+          "status": "needs_attention"
+        },
+        {
+          "id": "S7",
+          "status": "ready"
+        }
+      ],
+      "model": {
+        "available": true,
+        "mode": "live",
+        "reason": "已注册模型路由；调用可用性仍以实际任务为准。",
+        "provider": "zai",
+        "model": "glm-5.3-flash",
+        "reasoningEffort": "max"
+      },
+      "research": {
+        "available": false,
+        "mode": "unverified",
+        "reason": "Harness Web 已加载，但此宿主无只读 Provider 检测接口；联网能力未验证，可使用本地资料研究。"
+      },
+      "section": "项目概览"
+    },
+    {
+      "compactNavigation": {
+        "direction": "row",
+        "height": 35
+      },
+      "project": "calm"
+    },
+    {
+      "project": "CALM 漏油监测桌面版演示",
+      "projectId": "83fd7e7e-d068-49e0-bf60-ffbd0496ce47",
+      "revision": 157,
+      "currentStage": "S6",
+      "unknowns": 28,
+      "waiting": 0,
+      "stages": [
+        {
+          "id": "S0",
+          "status": "completed"
+        },
+        {
+          "id": "S1",
+          "status": "completed"
+        },
+        {
+          "id": "S2",
+          "status": "completed"
+        },
+        {
+          "id": "S3",
+          "status": "needs_attention"
+        },
+        {
+          "id": "S4",
+          "status": "completed"
+        },
+        {
+          "id": "S5",
+          "status": "completed"
+        },
+        {
+          "id": "S6",
+          "status": "needs_attention"
+        },
+        {
+          "id": "S7",
+          "status": "ready"
+        }
+      ],
+      "model": {
+        "available": true,
+        "mode": "live",
+        "reason": "已注册模型路由；调用可用性仍以实际任务为准。",
+        "provider": "zai",
+        "model": "glm-5.3-flash",
+        "reasoningEffort": "max"
+      },
+      "research": {
+        "available": false,
+        "mode": "unverified",
+        "reason": "Harness Web 已加载，但此宿主无只读 Provider 检测接口；联网能力未验证，可使用本地资料研究。"
+      },
+      "section": "项目概览"
+    },
+    {
+      "feedbackLanding": "evidence",
+      "returnProjectId": "83fd7e7e-d068-49e0-bf60-ffbd0496ce47"
+    },
+    {
+      "project": "V3P2 自验收 04:46",
+      "projectId": "c55a8910-ca03-4645-8b9a-7dd3005603a5",
+      "revision": 74,
+      "currentStage": "S6",
+      "unknowns": 8,
+      "waiting": 0,
+      "stages": [
+        {
+          "id": "S0",
+          "status": "completed"
+        },
+        {
+          "id": "S1",
+          "status": "completed"
+        },
+        {
+          "id": "S2",
+          "status": "ready"
+        },
+        {
+          "id": "S3",
+          "status": "needs_attention"
+        },
+        {
+          "id": "S4",
+          "status": "completed"
+        },
+        {
+          "id": "S5",
+          "status": "completed"
+        },
+        {
+          "id": "S6",
+          "status": "needs_attention"
+        },
+        {
+          "id": "S7",
+          "status": "ready"
+        }
+      ],
+      "model": {
+        "available": true,
+        "mode": "live",
+        "reason": "已注册模型路由；调用可用性仍以实际任务为准。",
+        "provider": "zai",
+        "model": "glm-5.3-flash",
+        "reasoningEffort": "max"
+      },
+      "research": {
+        "available": false,
+        "mode": "unverified",
+        "reason": "Harness Web 已加载，但此宿主无只读 Provider 检测接口；联网能力未验证，可使用本地资料研究。"
+      },
+      "section": "项目概览"
+    },
+    {
+      "project": "CALM 正式演示（现场确认用）",
+      "projectId": "8f7369be-7e36-4c5c-ab2a-2de1e1b81353",
+      "revision": 12,
+      "currentStage": "S1",
+      "unknowns": 17,
+      "waiting": 1,
+      "stages": [
+        {
+          "id": "S0",
+          "status": "completed"
+        },
+        {
+          "id": "S1",
+          "status": "waiting_human"
+        },
+        {
+          "id": "S2",
+          "status": "ready"
+        },
+        {
+          "id": "S3",
+          "status": "needs_attention"
+        },
+        {
+          "id": "S4",
+          "status": "not_started"
+        },
+        {
+          "id": "S5",
+          "status": "not_started"
+        },
+        {
+          "id": "S6",
+          "status": "ready"
+        },
+        {
+          "id": "S7",
+          "status": "not_started"
+        }
+      ],
+      "model": {
+        "available": true,
+        "mode": "live",
+        "reason": "已注册模型路由；调用可用性仍以实际任务为准。",
+        "provider": "zai",
+        "model": "glm-5.3-flash",
+        "reasoningEffort": "max"
+      },
+      "research": {
+        "available": false,
+        "mode": "unverified",
+        "reason": "Harness Web 已加载，但此宿主无只读 Provider 检测接口；联网能力未验证，可使用本地资料研究。"
+      },
+      "section": "项目概览"
+    },
+    {
+      "actionableWait": "CALM 正式演示（现场确认用）",
+      "currentStage": "S1",
+      "landing": "01 资料与需求",
+      "noNewExecution": true
+    }
+  ],
+  "gaps": [
+    "No existing failed run available for screenshot; failure exercised in React/domain tests."
+  ],
+  "emptyProject": "2cde69d7-5eb8-4f79-b923-8d1745f0d51c",
+  "pageErrors": []
+}

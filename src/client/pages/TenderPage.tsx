@@ -18,6 +18,7 @@ import { useTenderItems, useToolWorkflow } from '../hooks/usePhase4.ts'
 import { projectShortCodeIndex } from '../shortCodes.ts'
 import type { MarketPilotActions } from '../stores.ts'
 import type { MarketPilotText, MarketPilotTextKey } from '../locales.ts'
+import { useStageAccess, workflowText } from '../components/ProjectWorkflowOverview.tsx'
 
 function statusTone(status: string): 'success' | 'warning' | 'danger' | 'neutral' | 'quiet' {
   if (status === 'compliant') return 'success'
@@ -35,6 +36,7 @@ export function TenderPage({ t, projectId, actions, onGoEvidence }: {
   onGoEvidence?: (() => void) | undefined
 }) {
   const [selectedDocs, setSelectedDocs] = useState<ReadonlySet<string>>(new Set())
+  const access = useStageAccess('S6')
   const [selectedItems, setSelectedItems] = useState<ReadonlySet<string>>(new Set())
   const [drawer, setDrawer] = useState<TenderItemProjection | null>(null)
   const documents = useDocuments(projectId)
@@ -75,14 +77,14 @@ export function TenderPage({ t, projectId, actions, onGoEvidence }: {
       <div className="mp-toolbar">
         <button
           type="button" className="mp-primaryAction mp-headerNavItem"
-          disabled={workflow.busy || selectedDocs.size === 0}
+          disabled={workflow.busy || !access.allowed || documents.error !== '' || selectedDocs.size === 0}
           onClick={() => { void workflow.start('marketpilot_tender_extract', { documentIds: [...selectedDocs] }) }}
         >
           {t('tenderExtract')}
         </button>
         <button
           type="button" className="mp-primaryAction mp-headerNavItem"
-          disabled={workflow.busy || selectedItems.size === 0}
+          disabled={workflow.busy || !access.allowed || selectedItems.size === 0}
           title={selectedItems.size === 0 ? t('reviewTenderNeedsSelection') : undefined}
           onClick={() => { void workflow.start('marketpilot_tender_review', { tenderItemIds: [...selectedItems] }) }}
         >
@@ -90,12 +92,14 @@ export function TenderPage({ t, projectId, actions, onGoEvidence }: {
         </button>
         <button
           type="button" className="mp-headerNavItem"
-          disabled={workflow.busy || rows.length === 0}
+          disabled={workflow.busy || !access.allowed || rows.length === 0}
           onClick={() => { void workflow.start('marketpilot_tender_review', { tenderItemIds: rows.map(row => row.id) }) }}
         >
           {t('reviewTenderAll')}
         </button>
       </div>
+      {selectedDocs.size === 0 ? <p className="mp-caption">{workflowText(t, 'selectDocuments')}</p> : null}
+      {documents.error === '' ? null : <ErrorState t={t} message={documents.error} onRetry={documents.refresh} />}
       <WorkflowSurface
         t={t} run={workflow.run} execution={workflow.latest} busy={workflow.busy} error={workflow.error}
         label={t('tenderReview')}

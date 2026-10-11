@@ -32,11 +32,11 @@ export function WorkflowSurface({ t, run, execution, busy, error, onAnswer, onCa
   useEffect(() => {
     setAnswerBusy(false)
   }, [execution?.callId, execution?.status, error])
-  const visible = busy || run !== null || error !== ''
+  const visible = busy || run !== null || error !== '' || execution?.lost === true || execution?.status === 'failed'
   if (!visible) return null
   // In-flight executions expose a real cancel here (the guarded cancel
   // route aborts the host execution); settled ones offer nothing.
-  const running = execution !== undefined && execution.status === 'running'
+  const running = execution !== undefined && !execution.lost && execution.status === 'running'
   return (
     <>
       <TaskProgress
@@ -52,7 +52,9 @@ export function WorkflowSurface({ t, run, execution, busy, error, onAnswer, onCa
         </div>
       ) : null}
       {error === '' ? null : <p className="mp-errorText" role="alert">{error}</p>}
-      {execution !== undefined && execution.status === 'waiting_human' ? (
+      {execution?.error === undefined ? null : <p className="mp-errorText" role="alert">{execution.error}</p>}
+      {execution?.lost === true ? <p className="mp-errorText" role="alert">{t('interruptTitle')} · {t('interruptBody')}</p> : null}
+      {execution !== undefined && !execution.lost && execution.status === 'waiting_human' ? (
         <HumanReviewDialog
           t={t} execution={execution} busy={answerBusy}
           onAnswer={(selected, custom) => { setAnswerBusy(true); onAnswer(selected, custom) }}

@@ -35,15 +35,19 @@ export function useProjects() {
 export function useProjectDetail(projectId: string) {
   const [detail, setDetail] = useState<ProjectDetail | null>(null)
   const [error, setError] = useState('')
+  const generation = useRef(0)
   const refresh = useCallback(() => {
-    setDetail(null)
-    setError('')
+    const request = ++generation.current
     api.project(projectId)
-      .then(result => { setDetail(result) })
-      .catch(e => { setError(errorMessage(e)) })
+      .then(result => { if (request === generation.current) { setDetail(result); setError('') } })
+      .catch(e => { if (request === generation.current) setError(errorMessage(e)) })
   }, [projectId])
-  useEffect(() => { refresh() }, [refresh])
-  return { detail, error, refresh, loading: detail === null && error === '' }
+  useEffect(() => {
+    setDetail(null); setError(''); refresh()
+    return () => { generation.current += 1 }
+  }, [refresh])
+  const current = detail?.project.id === projectId ? detail : null
+  return { detail: current, error, refresh, loading: current === null && error === '' }
 }
 
 /**

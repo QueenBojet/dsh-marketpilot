@@ -1,20 +1,12 @@
-/**
- * Project workspace shell: summary header, the single vertical stage
- * navigation, and the active section. The overview itself leads with the
- * next action and a focused summary — the count wall moved to secondary
- * chips. Sections without a dedicated workflow UI render an explicit
- * "planned" state — never fake actions.
- */
-import { Button } from '@deepseek-ai/dsh-client-ui-primitives'
 import { useEffect, useState } from 'react'
-import type { ProjectDetail } from '../api.ts'
-import { NextActionCard } from '../components/NextActionCard.tsx'
 import { ProjectActivity } from '../components/ProjectActivity.tsx'
 import { ProjectHeader } from '../components/ProjectHeader.tsx'
 import { ProjectStageNav } from '../components/ProjectStageNav.tsx'
+import { ProjectWorkflowOverview, StageActionBar, WorkflowContext, workflowText } from '../components/ProjectWorkflowOverview.tsx'
 import { ErrorState, LoadingState } from '../components/States.tsx'
 import { useProjectDetail } from '../hooks/useProjects.ts'
-import { useExecutions, useProjectRuns } from '../hooks/useExecution.ts'
+import { useExecutions } from '../hooks/useExecution.ts'
+import { useProjectWorkflow } from '../hooks/useProjectWorkflow.ts'
 import type { MarketPilotText } from '../locales.ts'
 import { ArtifactsPage } from './ArtifactsPage.tsx'
 import { AlternativesPage } from './AlternativesPage.tsx'
@@ -23,113 +15,67 @@ import { RequirementsPage } from './RequirementsPage.tsx'
 import { ResearchPage } from './ResearchPage.tsx'
 import { SolutionPage } from './SolutionPage.tsx'
 import { TenderPage } from './TenderPage.tsx'
-import type { MarketPilotActions, MarketPilotView, ProjectSection } from '../stores.ts'
+import type { MarketPilotActions, MarketPilotView, ProjectSection, WorkflowMode } from '../stores.ts'
 
-/** The project branch of the navigation view. */
-type ProjectView = Extract<MarketPilotView, { kind: 'project' }>
-
-/** The detail route also returns competitor/policy rows the V2 type omits. */
-type FullDetail = ProjectDetail & { competitors?: unknown[]; policies?: unknown[] }
-
-/**
- * Render the project workspace.
- * @param props.t - the locale-bound text function.
- * @param props.actions - bound store actions.
- * @param props.view - the active project view (projectId + section).
- * @returns the page.
- */
-export function ProjectOverviewPage({ t, actions, view }: {
-  t: MarketPilotText
-  actions: MarketPilotActions
-  view: ProjectView
+export function ProjectOverviewPage({ t, actions, view, mode = 'guided' }: {
+  t: MarketPilotText; actions: MarketPilotActions
+  view: Extract<MarketPilotView, { kind: 'project' }>; mode?: WorkflowMode
 }) {
-  const { detail, error, refresh, loading } = useProjectDetail(view.projectId)
-  const runsQuery = useProjectRuns(view.projectId)
+  const detailQuery = useProjectDetail(view.projectId)
+  const workflow = useProjectWorkflow(view.projectId)
   const executions = useExecutions(view.projectId)
-  // Invalidate the run snapshots when a tracked execution settles, so the
-  // stage states and waiting badges follow reality instead of the mount-time
-  // snapshot. One refresh per settle marker (callId:status), never a timer.
-  const settledMarker = executions
-    .filter(execution => ['completed', 'failed', 'cancelled'].includes(execution.status))
-    .map(execution => `${execution.callId}:${execution.status}`)
-    .join('|')
-  const [seenSettled, setSeenSettled] = useState('')
-  useEffect(() => {
-    if (settledMarker === '' || settledMarker === seenSettled) return
-    setSeenSettled(settledMarker)
-    runsQuery.refresh()
-  }, [settledMarker, seenSettled, runsQuery.refresh])
-  if (error !== '') return <ErrorState t={t} message={error} onRetry={refresh} />
-  if (loading || detail === null) return <LoadingState t={t} />
-  const full = detail as FullDetail
-  const { project } = detail
-  // Wire boundary: a missing or renamed collection must degrade to zero, not
-  // crash the page on `.length`.
-  const rows = (value: unknown): unknown[] => Array.isArray(value) ? value : []
-  const requirements = rows(detail.requirements) as ProjectDetail['requirements']
-  // Only recoverable waits count as 待办: superseded waiting records (a newer
-  // run of the same type exists) are leftover interruption history.
-  const pendingWaits = (runsQuery.runs ?? [])
-    .filter(run => run.status === 'waiting_human' && run.supersededWait !== true)
-  const waiting = pendingWaits.length
-  const latestWait = pendingWaits[pendingWaits.length - 1]
-  const counts = {
-    documents: rows(detail.documents).length,
-    confirmed: requirements.filter(r => r.status === 'confirmed').length,
-    requirements: requirements.length,
-    evidence: rows(detail.evidence).length,
-    competitors: rows(full.competitors).length + rows(full.policies).length,
-    artifacts: rows(detail.artifacts).length,
-    tenderItems: rows(detail.tenderItems).length,
-  }
-  const setSection = (section: ProjectSection): void => { actions.setSection(section) }
-  return (
-    <div>
-      <ProjectHeader t={t} detail={detail} waiting={waiting} onBack={actions.goProjects} />
-      <div className="mp-layout">
-        <ProjectStageNav t={t} status={project.status} runs={runsQuery.runs} section={view.section} onSelect={setSection} />
-        <div className="mp-workspace">
-          {view.section === 'overview' ? (
-            <>
-              <NextActionCard
-                t={t} status={project.status} waiting={waiting}
-                waitingType={latestWait?.type}
-                activeDecisionId={project.activeDecisionId}
-                onGo={setSection}
-              />
-              <div className="mp-overviewGrid">
-                <div className="mp-card"><div className="mp-cardValue">{`${String(counts.confirmed)} / ${String(counts.requirements)}`}</div><div className="mp-cardLabel">{t('countRequirements')}</div></div>
-                <div className="mp-card"><div className="mp-cardValue">{String(requirements.filter(r => r.status === 'unknown').length)}</div><div className="mp-cardLabel">{t('countUnknown')}</div></div>
-                <div className="mp-card"><div className="mp-cardValue">{String(counts.evidence)}</div><div className="mp-cardLabel">{t('countEvidence')}</div></div>
-                <div className="mp-card"><div className="mp-cardValue">{String(counts.documents)}</div><div className="mp-cardLabel">{t('countDocuments')}</div></div>
-                <div className="mp-card"><div className="mp-cardValue">{String(counts.competitors)}</div><div className="mp-cardLabel">{t('sectionResearch')}</div></div>
-                <div className="mp-card"><div className="mp-cardValue">{String(counts.artifacts)}</div><div className="mp-cardLabel">{t('countArtifacts')}</div></div>
-              </div>
-              <ProjectActivity t={t} detail={detail} />
-            </>
-          ) : view.section === 'requirements' ? (
-            <RequirementsPage t={t} projectId={view.projectId} focus={view.focus} />
-          ) : view.section === 'artifacts' ? (
-            <ArtifactsPage t={t} projectId={view.projectId} />
-          ) : view.section === 'research' ? (
-            <ResearchPage t={t} projectId={view.projectId} />
-          ) : view.section === 'evidence' ? (
-            <EvidencePage t={t} projectId={view.projectId} actions={actions} focus={view.focus} />
-          ) : view.section === 'alternatives' ? (
-            <AlternativesPage t={t} projectId={view.projectId} />
-          ) : view.section === 'solution' ? (
-            <SolutionPage t={t} projectId={view.projectId} />
-          ) : view.section === 'tender' ? (
-            <TenderPage t={t} projectId={view.projectId} actions={actions} onGoEvidence={() => { setSection('evidence') }} />
-          ) : (
-            <div className="mp-planned">
-              <p className="mp-plannedTitle">{t('plannedTitle')}</p>
-              <p className="mp-plannedBody">{t('plannedBody')}</p>
-              <Button size="sm" variant="ghost" onClick={actions.goProjects}>{t('back')}</Button>
+  const [localMode, setLocalMode] = useState(mode)
+  useEffect(() => { setLocalMode(mode) }, [mode])
+  const marker = executions.map(e => `${e.callId}:${e.status}`).join('|')
+  useEffect(() => { workflow.refresh() }, [marker, workflow.refresh])
+  const settled = executions.filter(e => ['completed', 'failed', 'cancelled'].includes(e.status))
+    .map(e => `${e.callId}:${e.status}`).join('|')
+  useEffect(() => { if (settled !== '') detailQuery.refresh() }, [settled, detailQuery.refresh])
+  useEffect(() => { if (workflow.snapshot !== null) detailQuery.refresh() }, [workflow.snapshot?.revision, detailQuery.refresh])
+  if (detailQuery.error !== '') return <ErrorState t={t} message={detailQuery.error} onRetry={detailQuery.refresh} />
+  if (detailQuery.detail === null) return <LoadingState t={t} />
+  const detail = detailQuery.detail
+  const snapshot = workflow.snapshot
+  const onGo = (section: ProjectSection) => { actions.setSection(section) }
+  const activeStage = snapshot?.stages.find(s => s.section === view.section
+    && (s.id !== 'S0' || snapshot.currentStage === 'S0'))
+  return <WorkflowContext.Provider value={{ snapshot, error: workflow.error, executions }}>
+    <ProjectHeader t={t} detail={detail} waiting={workflow.error === '' ? snapshot?.waiting : undefined} onBack={actions.goProjects} />
+    <div className="mp-modeBar" aria-label={workflowText(t, 'mode')}>
+      {(['guided', 'professional'] as const).map(value => <button key={value} type="button" className="mp-headerNavItem"
+        aria-pressed={localMode === value} onClick={() => { setLocalMode(value); actions.setWorkflowMode?.(value) }}>
+        {workflowText(t, `mode.${value}`)}
+      </button>)}
+      <span className="mp-toolbarSpacer" />
+      {snapshot === null ? null : <span className="mp-caption">{snapshot.capabilities.model.mode === 'offline'
+        ? workflowText(t, 'providerOffline') : [snapshot.capabilities.model.provider, snapshot.capabilities.model.model, snapshot.capabilities.model.reasoningEffort].filter(Boolean).join(' · ')}</span>}
+      <button type="button" className="mp-link" onClick={workflow.refresh}>{workflowText(t, 'refresh')}</button>
+    </div>
+    {workflow.error === '' ? null : <div className="mp-nextHint" role="alert"><strong>{workflowText(t, 'readFailed')}</strong>
+      <span>{workflow.error}</span><button className="mp-link" type="button" onClick={workflow.refresh}>{t('retry')}</button></div>}
+    <div className="mp-layout" data-mode={localMode}>
+      <ProjectStageNav t={t} status={detail.project.status} runs={null} workflow={snapshot} section={view.section} onSelect={onGo} />
+      <div className="mp-workspace">
+        {snapshot === null ? workflow.error === '' ? <LoadingState t={t} /> : null : <>
+          {view.section === 'overview' ? <>
+            <ProjectWorkflowOverview t={t} snapshot={snapshot} onGo={onGo} collapsed={localMode === 'professional'} />
+            <details className="mp-secondaryDetails"><summary>{workflowText(t, 'history')}</summary><ProjectActivity t={t} detail={detail} /></details>
+          </> : <>
+            {activeStage === undefined ? null : <StageActionBar key={activeStage.id} t={t} stage={activeStage} onGo={onGo} inSection />}
+            {view.section === 'research' ? <p className="mp-capability" role="note">{snapshot.capabilities.research.reason}</p> : null}
+            {snapshot.capabilities.model.available ? null : <p className="mp-capability" role="note">{snapshot.capabilities.model.reason}</p>}
+            <div id="mp-stage-controls" tabIndex={-1}>
+              {view.section === 'requirements' ? <RequirementsPage t={t} projectId={view.projectId} focus={view.focus} /> : null}
+              {view.section === 'research' ? <ResearchPage t={t} projectId={view.projectId} /> : null}
+              {view.section === 'evidence' ? <EvidencePage t={t} projectId={view.projectId} actions={actions} focus={view.focus} /> : null}
+              {view.section === 'alternatives' ? <AlternativesPage t={t} projectId={view.projectId} /> : null}
+              {view.section === 'solution' ? <SolutionPage t={t} projectId={view.projectId} /> : null}
+              {view.section === 'tender' ? <TenderPage t={t} projectId={view.projectId} actions={actions} onGoEvidence={() => { onGo('evidence') }} /> : null}
+              {view.section === 'artifacts' ? <ArtifactsPage t={t} projectId={view.projectId} /> : null}
             </div>
-          )}
-        </div>
+          </>}
+        </>}
       </div>
     </div>
-  )
+  </WorkflowContext.Provider>
 }

@@ -73,6 +73,16 @@ describe('MarketPilot Phase 4 projection routes', () => {
     const tenderItems = await call(`/marketpilot/api/projects/${project.id}/tender-items`)
     expect(tenderItems.status).toBe(200)
     expect(tenderItems.body.tenderItems).toEqual([])
+    const workflow = await call(`/marketpilot/api/projects/${project.id}/workflow`)
+    expect(workflow.status).toBe(200)
+    expect(workflow.body.projectId).toBe(project.id)
+    expect(workflow.body.unknowns).toBe(1)
+    const stages = workflow.body.stages as { id: string; status: string; action: { enabled: boolean } }[]
+    expect(stages).toHaveLength(8)
+    expect(stages.find(s => s.id === 'S4')?.action.enabled).toBe(false)
+    expect(stages.find(s => s.id === 'S6')?.status).toBe('skipped_optional')
+    expect(JSON.stringify(workflow.body)).not.toContain('待确认声明')
+    expect((await call('/marketpilot/api/projects/missing/workflow')).status).not.toBe(200)
   })
 
   it('serves single-record detail routes and flags superseded waits', async () => {

@@ -16,6 +16,7 @@ import { useActiveRun, useDocuments, useExecutions, useRequirements } from '../h
 import { errorMessage } from '../hooks/useProjects.ts'
 import type { ProjectFocus } from '../stores.ts'
 import type { MarketPilotText, MarketPilotTextKey } from '../locales.ts'
+import { useStageAccess, workflowText } from '../components/ProjectWorkflowOverview.tsx'
 
 const STATUS_FILTERS = ['all', 'proposed', 'confirmed', 'unknown', 'conflict'] as const
 
@@ -26,6 +27,7 @@ export function RequirementsPage({ t, projectId, focus }: {
   focus?: ProjectFocus | undefined
 }) {
   const [kind, setKind] = useState('customer_requirement')
+  const access = useStageAccess('S1')
   const [selectedDocs, setSelectedDocs] = useState<ReadonlySet<string>>(new Set())
   const [selectedRequirements, setSelectedRequirements] = useState<ReadonlySet<string>>(new Set())
   const [statusFilter, setStatusFilter] = useState<string>('all')
@@ -42,9 +44,9 @@ export function RequirementsPage({ t, projectId, focus }: {
   const extractExecution = executions.find(execution => execution.tool === 'marketpilot_requirement_extract'
     && (execution.status === 'running' || execution.status === 'waiting_human' || execution.runId !== undefined))
   const confirmExecution = executions.find(execution => execution.tool === 'marketpilot_requirement_confirm'
-    && (execution.status === 'running' || execution.status === 'waiting_human'))
+    && !execution.lost && (execution.status === 'running' || execution.status === 'waiting_human'))
   const extractBusy = extractExecution !== undefined
-    && (extractExecution.status === 'running' || extractExecution.status === 'waiting_human')
+    && !extractExecution.lost && (extractExecution.status === 'running' || extractExecution.status === 'waiting_human')
   const busy = extractBusy || confirmExecution !== undefined
   // The waiting batch is server truth: poll it whenever this page is mounted,
   // so a confirm works even when the extraction was started by another
@@ -70,7 +72,7 @@ export function RequirementsPage({ t, projectId, focus }: {
   }
 
   const startExtraction = (): void => {
-    if (selectedDocs.size === 0 || busy) return
+    if (selectedDocs.size === 0 || busy || !access.allowed || documents.error !== '') return
     setError('')
     setNotice('')
     void executionStore.start('marketpilot_requirement_extract', { projectId, documentIds: [...selectedDocs] })
@@ -164,7 +166,7 @@ export function RequirementsPage({ t, projectId, focus }: {
       <div className="mp-toolbar">
         <button
           type="button" className="mp-headerNavItem mp-primaryAction"
-          disabled={busy || selectedDocs.size === 0}
+          disabled={busy || !access.allowed || documents.error !== '' || selectedDocs.size === 0}
           onClick={startExtraction}
         >
           {`${t('extractSelected')}（${String(selectedDocs.size)}）`}
@@ -175,6 +177,8 @@ export function RequirementsPage({ t, projectId, focus }: {
           </button>
         ) : null}
       </div>
+      {selectedDocs.size === 0 ? <p className="mp-caption">{workflowText(t, 'selectDocuments')}</p> : null}
+      {documents.error === '' ? null : <p className="mp-errorText" role="alert">{documents.error}</p>}
 
       {progressVisible ? (
         <TaskProgress
