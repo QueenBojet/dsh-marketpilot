@@ -126,8 +126,23 @@ V3.2.1 的178项是历史基线，M5起点实测为249项。历史真实GLM全�
 - M3新增提取字段的真实模型质量、全新在线全链路、非Flash指定路由新复验、人类完整口述彩排仍未完成。
 - 历史成果untracked；新指纹current只表示输入未变，不能证明事实已核验、标准有效、设备认证或性能合规。
 - 导出历史仍无专用持久化路径账本；实际文件与批准快照需独立核对。重启保留领域Run / 成果，不能继续回答遗留superseded或已中断门。
-- 低优先级显示缺口：有活动导出任务时，首页运行区仍显示未本地化的 `runType.marketpilot_artifact_export`，任务中心使用原工具名；首页窄侧栏会挤压项目名。成果页的真实审批门可见并可操作，本轮未扩展任务标签体系。
+- 活动导出任务的标签与首页侧栏挤压问题已补修；复现、改动和针对性复验见下节。
 - 回退M3旧strict schema不能读取M4新增dependencies，禁止删字段或覆盖新数据回退；详见 `V3_3_RELEASE_GUIDE.md`。
+
+## M5 显示缺陷补修
+
+基线 `574eadc`，工作区干净。针对用户“先修复漏洞”的指令，修复终验已定位的两类显示问题：
+
+| 真实复现 | 修复 / 文件 |
+|---|---|
+| 首页显示 `runType.marketpilot_artifact_export`，任务中心显示原工具名 | `TaskCard.tsx` 统一执行工具标签，导出复用中英文 `exportArtifact`；`HomePage.tsx` 共用该标签。未知工具保留原名，不将导出伪造为 WorkflowRun |
+| 280px 首页侧栏将项目名挤成竖排 | `styles.ts` 将任务标签与项目 / 状态分行，全宽换行，按钮左对齐 |
+
+`node scripts/acceptance-v33-m5-fixes.mjs --before` 在真实安装版 Desktop 托管页面失败，实际标签为原始翻译 key；截图记录修复前挤压。修复后同一脚本通过：首页三尺寸 / 两主题6张、任务中心2张、原审批门1张，共9张。1024截图定位侧栏留证；每次断言标签、状态、完整文本宽度、上下行位置及页面无横向溢出。任务中心展开导出步骤仍明确显示“暂无对应运行记录”。脚本与事实为 `scripts/acceptance-v33-m5-fixes.mjs`、`gui-acceptance/v3.3-m5/m5-display-{before,fixed}-facts.json`。
+
+针对性验证：`phase3-client` / `harness` / `workbench-routes` / `project-review` / `client-bundle` 共5文件39测试通过，包含人工审批、精确 Run 绑定、启动失败 / 卸载和禁止覆盖已有文件；typecheck / build通过。客户端382.95kB / gzip78.84kB，比初版M5增加0.27kB / 0.08kB，没有新增依赖。原33文件258测试记录保留，本次未重复全套测试。
+
+9项目完整detail前后哈希一致，0新execution / 模型调用 / 人工应答 / 页面异常。原导出callId、完整审批projection与ART-06正文哈希不变，成果仍draft，正式文件不存在。computer-use仅刷新原生客户端，未重启宿主；首页修复及原门可见另有2张2560×1392截图，见 `m5-display-fixed-native-facts.json`。修复不改变本报告其余验收边界。
 
 ## 人工收口
 

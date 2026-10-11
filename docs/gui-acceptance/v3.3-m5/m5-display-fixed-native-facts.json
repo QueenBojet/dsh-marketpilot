@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-11T08:11:51.656Z",
+  "mode": "native-computer-use",
+  "clientRefreshed": true,
+  "hostRestarted": false,
+  "humanAnswers": 0,
+  "screenshots": [
+    {
+      "name": "m5-display-fixed-native-home-2560.jpg",
+      "width": 2560,
+      "height": 1392
+    },
+    {
+      "name": "m5-display-fixed-native-pending-gate-2560.jpg",
+      "width": 2560,
+      "height": 1392
+    }
+  ],
+  "checks": [
+    "localized-export-label-visible",
+    "sidebar-project-and-status-readable",
+    "original-human-gate-visible-after-client-refresh"
+  ]
+}

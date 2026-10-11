@@ -113,7 +113,8 @@ const PANEL_CSS = `
 .mp-homeGrid{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:20px;align-items:start}
 .mp-attention{border:1px solid var(--dsw-alias-border-l2);border-radius:var(--dsw-radius-md);padding:14px 16px}
 .mp-attentionList{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
-.mp-attentionRow{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.mp-attentionRow{display:flex;flex-direction:column;align-items:stretch;gap:2px;min-width:0;overflow-wrap:anywhere}
+.mp-attentionRow>.mp-link{text-align:left}
 /* Home "continue project" feature card + drawer cross-reference link groups. */
 .mp-continueCard{display:flex;align-items:center;justify-content:space-between;gap:16px;border:1px solid var(--dsw-alias-border-l2);border-left:3px solid var(--dsw-alias-state-business-primary);border-radius:var(--dsw-radius-md);padding:14px 18px;margin-bottom:16px;background:var(--dsw-alias-bg-base)}
 .mp-continueMain{display:flex;flex-direction:column;gap:4px;min-width:0}

@@ -9,7 +9,7 @@ import type { ProjectRow } from '../api.ts'
 import { DataTable, type DataTableColumn } from '../components/DataTable.tsx'
 import { EmptyState, ErrorState, LoadingState } from '../components/States.tsx'
 import { StatusTag } from '../components/StatusTag.tsx'
-import { runTypeLabel, RUN_TYPE_BY_TOOL } from '../components/TaskCard.tsx'
+import { executionToolLabel } from '../components/TaskCard.tsx'
 import { formatTime } from '../format.ts'
 import { useExecutions, useHomeStats } from '../hooks/useExecution.ts'
 import { byRecent, useProjects } from '../hooks/useProjects.ts'
@@ -145,7 +145,7 @@ export function HomePage({ t, actions }: { t: MarketPilotText; actions: MarketPi
                       {live.map(execution => (
                         <li key={execution.callId} className="mp-attentionRow">
                           <button type="button" className="mp-link mp-cellMain" onClick={() => { actions.goTasks() }}>
-                            {runTypeLabel(t, RUN_TYPE_BY_TOOL[execution.tool] ?? execution.tool)}
+                            {executionToolLabel(t, execution.tool)}
                           </button>
                           <span className="mp-caption">
                             {`${projectName(execution.projectId)} · ${t(`runStatus.${execution.status}` as MarketPilotTextKey)}`}

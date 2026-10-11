@@ -1,0 +1,885 @@
+{
+  "date": "2026-10-11T08:07:43.150Z",
+  "mode": "real-installed-desktop-hosted-react",
+  "screenshots": [
+    {
+      "name": "m5-display-fixed-home-light-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m5-display-fixed-home-light-1366.png",
+      "width": 1366,
+      "height": 768
+    },
+    {
+      "name": "m5-display-fixed-home-light-1024.png",
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "name": "m5-display-fixed-home-dark-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m5-display-fixed-home-dark-1366.png",
+      "width": 1366,
+      "height": 768
+    },
+    {
+      "name": "m5-display-fixed-home-dark-1024.png",
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "name": "m5-display-fixed-tasks-light-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m5-display-fixed-tasks-light-1024.png",
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "name": "m5-display-fixed-pending-gate-light-1440.png",
+      "width": 1440,
+      "height": 900
+    }
+  ],
+  "checks": [
+    "localized-export-on-home-and-tasks",
+    "readable-sidebar-at-three-sizes-in-two-themes",
+    "no-invented-export-run",
+    "all-project-detail-hashes-unchanged",
+    "original-export-gate-unchanged",
+    "draft-and-content-hash-unchanged",
+    "no-official-file",
+    "no-new-executions",
+    "no-page-exceptions"
+  ],
+  "humanAnswers": 0,
+  "modelCalls": 0,
+  "homeChecks": [
+    {
+      "theme": "浅色",
+      "width": 1440,
+      "rows": [
+        {
+          "label": "CALM 正式演示（现场确认用）",
+          "caption": "待人工审核 · 1",
+          "row": {
+            "left": 1153,
+            "right": 1399,
+            "top": 440.296875,
+            "bottom": 479.296875,
+            "width": 246
+          },
+          "button": {
+            "left": 1153,
+            "right": 1399,
+            "top": 440.296875,
+            "bottom": 459.296875,
+            "width": 246
+          },
+          "info": {
+            "left": 1153,
+            "right": 1399,
+            "top": 461.296875,
+            "bottom": 479.296875,
+            "width": 246
+          },
+          "clipped": false
+        },
+        {
+          "label": "GLM-5.3 结构化输出验证",
+          "caption": "待人工审核 · 1",
+          "row": {
+            "left": 1153,
+            "right": 1399,
+            "top": 487.296875,
+            "bottom": 526.296875,
+            "width": 246
+          },
+          "button": {
+            "left": 1153,
+            "right": 1399,
+            "top": 487.296875,
+            "bottom": 506.296875,
+            "width": 246
+          },
+          "info": {
+            "left": 1153,
+            "right": 1399,
+            "top": 508.296875,
+            "bottom": 526.296875,
+            "width": 246
+          },
+          "clipped": false
+        },
+        {
+          "label": "GUI 验收（真实 GLM-5.3）",
+          "caption": "待人工审核 · 1",
+          "row": {
+            "left": 1153,
+            "right": 1399,
+            "top": 534.296875,
+            "bottom": 573.296875,
+            "width": 246
+          },
+          "button": {
+            "left": 1153,
+            "right": 1399,
+            "top": 534.296875,
+            "bottom": 553.296875,
+            "width": 246
+          },
+          "info": {
+            "left": 1153,
+            "right": 1399,
+            "top": 555.296875,
+            "bottom": 573.296875,
+            "width": 246
+          },
+          "clipped": false
+        },
+        {
+          "label": "V3P3 自验收 06:18",
+          "caption": "待人工审核 · 1",
+          "row": {
+            "left": 1153,
+            "right": 1399,
+            "top": 581.296875,
+            "bottom": 620.296875,
+            "width": 246
+          },
+          "button": {
+            "left": 1153,
+            "right": 1399,
+            "top": 581.296875,
+            "bottom": 600.296875,
+            "width": 246
+          },
+          "info": {
+            "left": 1153,
+            "right": 1399,
+            "top": 602.296875,
+            "bottom": 620.296875,
+            "width": 246
+          },
+          "clipped": false
+        },
+        {
+          "label": "导出成果",
+          "caption": "CALM 漏油监测桌面版演示 · 等待审核",
+          "row": {
+            "left": 1153,
+            "right": 1399,
+            "top": 683.296875,
+            "bottom": 722.296875,
+            "width": 246
+          },
+          "button": {
+            "left": 1153,
+            "right": 1399,
+            "top": 683.296875,
+            "bottom": 702.296875,
+            "width": 246
+          },
+          "info": {
+            "left": 1153,
+            "right": 1399,
+            "top": 704.296875,
+            "bottom": 722.296875,
+            "width": 246
+          },
+          "clipped": false
+        }
+      ]
+    },
+    {
+      "theme": "浅色",
+      "width": 1366,
+      "rows": [
+        {
+          "label": "CALM 正式演示（现场确认用）",
+          "caption": "待人工审核 · 1",
+          "row": {
+            "left": 1079,
+            "right": 1325,
+            "top": 440.296875,
+            "bottom": 479.296875,
+            "width": 246
+          },
+          "button": {
+            "left": 1079,
+            "right": 1325,
+            "top": 440.296875,
+            "bottom": 459.296875,
+            "width": 246
+          },
+          "info": {
+            "left": 1079,
+            "right": 1325,
+            "top": 461.296875,
+            "bottom": 479.296875,
+            "width": 246
+          },
+          "clipped": false
+        },
+        {
+          "label": "GLM-5.3 结构化输出验证",
+          "caption": "待人工审核 · 1",
+          "row": {
+            "left": 1079,
+            "right": 1325,
+            "top": 487.296875,
+            "bottom": 526.296875,
+            "width": 246
+          },
+          "button": {
+            "left": 1079,
+            "right": 1325,
+            "top": 487.296875,
+            "bottom": 506.296875,
+            "width": 246
+          },
+          "info": {
+            "left": 1079,
+            "right": 1325,
+            "top": 508.296875,
+            "bottom": 526.296875,
+            "width": 246
+          },
+          "clipped": false
+        },
+        {
+          "label": "GUI 验收（真实 GLM-5.3）",
+          "caption": "待人工审核 · 1",
+          "row": {
+            "left": 1079,
+            "right": 1325,
+            "top": 534.296875,
+            "bottom": 573.296875,
+            "width": 246
+          },
+          "button": {
+            "left": 1079,
+            "right": 1325,
+            "top": 534.296875,
+            "bottom": 553.296875,
+            "width": 246
+          },
+          "info": {
+            "left": 1079,
+            "right": 1325,
+            "top": 555.296875,
+            "bottom": 573.296875,
+            "width": 246
+          },
+          "clipped": false
+        },
+        {
+          "label": "V3P3 自验收 06:18",
+          "caption": "待人工审核 · 1",
+          "row": {
+            "left": 1079,
+            "right": 1325,
+            "top": 581.296875,
+            "bottom": 620.296875,
+            "width": 246
+          },
+          "button": {
+            "left": 1079,
+            "right": 1325,
+            "top": 581.296875,
+            "bottom": 600.296875,
+            "width": 246
+          },
+          "info": {
+            "left": 1079,
+            "right": 1325,
+            "top": 602.296875,
+            "bottom": 620.296875,
+            "width": 246
+          },
+          "clipped": false
+        },
+        {
+          "label": "导出成果",
+          "caption": "CALM 漏油监测桌面版演示 · 等待审核",
+          "row": {
+            "left": 1079,
+            "right": 1325,
+            "top": 683.296875,
+            "bottom": 722.296875,
+            "width": 246
+          },
+          "button": {
+            "left": 1079,
+            "right": 1325,
+            "top": 683.296875,
+            "bottom": 702.296875,
+            "width": 246
+          },
+          "info": {
+            "left": 1079,
+            "right": 1325,
+            "top": 704.296875,
+            "bottom": 722.296875,
+            "width": 246
+          },
+          "clipped": false
+        }
+      ]
+    },
+    {
+      "theme": "浅色",
+      "width": 1024,
+      "rows": [
+        {
+          "label": "CALM 正式演示（现场确认用）",
+          "caption": "待人工审核 · 1",
+          "row": {
+            "left": 313,
+            "right": 991,
+            "top": 442.09375,
+            "bottom": 481.09375,
+            "width": 678
+          },
+          "button": {
+            "left": 313,
+            "right": 991,
+            "top": 442.09375,
+            "bottom": 461.09375,
+            "width": 678
+          },
+          "info": {
+            "left": 313,
+            "right": 991,
+            "top": 463.09375,
+            "bottom": 481.09375,
+            "width": 678
+          },
+          "clipped": false
+        },
+        {
+          "label": "GLM-5.3 结构化输出验证",
+          "caption": "待人工审核 · 1",
+          "row": {
+            "left": 313,
+            "right": 991,
+            "top": 489.09375,
+            "bottom": 528.09375,
+            "width": 678
+          },
+          "button": {
+            "left": 313,
+            "right": 991,
+            "top": 489.09375,
+            "bottom": 508.09375,
+            "width": 678
+          },
+          "info": {
+            "left": 313,
+            "right": 991,
+            "top": 510.09375,
+            "bottom": 528.09375,
+            "width": 678
+          },
+          "clipped": false
+        },
+        {
+          "label": "GUI 验收（真实 GLM-5.3）",
+          "caption": "待人工审核 · 1",
+          "row": {
+            "left": 313,
+            "right": 991,
+            "top": 536.09375,
+            "bottom": 575.09375,
+            "width": 678
+          },
+          "button": {
+            "left": 313,
+            "right": 991,
+            "top": 536.09375,
+            "bottom": 555.09375,
+            "width": 678
+          },
+          "info": {
+            "left": 313,
+            "right": 991,
+            "top": 557.09375,
+            "bottom": 575.09375,
+            "width": 678
+          },
+          "clipped": false
+        },
+        {
+          "label": "V3P3 自验收 06:18",
+          "caption": "待人工审核 · 1",
+          "row": {
+            "left": 313,
+            "right": 991,
+            "top": 583.09375,
+            "bottom": 622.09375,
+            "width": 678
+          },
+          "button": {
+            "left": 313,
+            "right": 991,
+            "top": 583.09375,
+            "bottom": 602.09375,
+            "width": 678
+          },
+          "info": {
+            "left": 313,
+            "right": 991,
+            "top": 604.09375,
+            "bottom": 622.09375,
+            "width": 678
+          },
+          "clipped": false
+        },
+        {
+          "label": "导出成果",
+          "caption": "CALM 漏油监测桌面版演示 · 等待审核",
+          "row": {
+            "left": 313,
+            "right": 991,
+            "top": 677.09375,
+            "bottom": 716.09375,
+            "width": 678
+          },
+          "button": {
+            "left": 313,
+            "right": 991,
+            "top": 677.09375,
+            "bottom": 696.09375,
+            "width": 678
+          },
+          "info": {
+            "left": 313,
+            "right": 991,
+            "top": 698.09375,
+            "bottom": 716.09375,
+            "width": 678
+          },
+          "clipped": false
+        }
+      ]
+    },
+    {
+      "theme": "深色",
+      "width": 1440,
+      "rows": [
+        {
+          "label": "CALM 正式演示（现场确认用）",
+          "caption": "待人工审核 · 1",
+          "row": {
+            "left": 1153,
+            "right": 1399,
+            "top": 440.296875,
+            "bottom": 479.296875,
+            "width": 246
+          },
+          "button": {
+            "left": 1153,
+            "right": 1399,
+            "top": 440.296875,
+            "bottom": 459.296875,
+            "width": 246
+          },
+          "info": {
+            "left": 1153,
+            "right": 1399,
+            "top": 461.296875,
+            "bottom": 479.296875,
+            "width": 246
+          },
+          "clipped": false
+        },
+        {
+          "label": "GLM-5.3 结构化输出验证",
+          "caption": "待人工审核 · 1",
+          "row": {
+            "left": 1153,
+            "right": 1399,
+            "top": 487.296875,
+            "bottom": 526.296875,
+            "width": 246
+          },
+          "button": {
+            "left": 1153,
+            "right": 1399,
+            "top": 487.296875,
+            "bottom": 506.296875,
+            "width": 246
+          },
+          "info": {
+            "left": 1153,
+            "right": 1399,
+            "top": 508.296875,
+            "bottom": 526.296875,
+            "width": 246
+          },
+          "clipped": false
+        },
+        {
+          "label": "GUI 验收（真实 GLM-5.3）",
+          "caption": "待人工审核 · 1",
+          "row": {
+            "left": 1153,
+            "right": 1399,
+            "top": 534.296875,
+            "bottom": 573.296875,
+            "width": 246
+          },
+          "button": {
+            "left": 1153,
+            "right": 1399,
+            "top": 534.296875,
+            "bottom": 553.296875,
+            "width": 246
+          },
+          "info": {
+            "left": 1153,
+            "right": 1399,
+            "top": 555.296875,
+            "bottom": 573.296875,
+            "width": 246
+          },
+          "clipped": false
+        },
+        {
+          "label": "V3P3 自验收 06:18",
+          "caption": "待人工审核 · 1",
+          "row": {
+            "left": 1153,
+            "right": 1399,
+            "top": 581.296875,
+            "bottom": 620.296875,
+            "width": 246
+          },
+          "button": {
+            "left": 1153,
+            "right": 1399,
+            "top": 581.296875,
+            "bottom": 600.296875,
+            "width": 246
+          },
+          "info": {
+            "left": 1153,
+            "right": 1399,
+            "top": 602.296875,
+            "bottom": 620.296875,
+            "width": 246
+          },
+          "clipped": false
+        },
+        {
+          "label": "导出成果",
+          "caption": "CALM 漏油监测桌面版演示 · 等待审核",
+          "row": {
+            "left": 1153,
+            "right": 1399,
+            "top": 683.296875,
+            "bottom": 722.296875,
+            "width": 246
+          },
+          "button": {
+            "left": 1153,
+            "right": 1399,
+            "top": 683.296875,
+            "bottom": 702.296875,
+            "width": 246
+          },
+          "info": {
+            "left": 1153,
+            "right": 1399,
+            "top": 704.296875,
+            "bottom": 722.296875,
+            "width": 246
+          },
+          "clipped": false
+        }
+      ]
+    },
+    {
+      "theme": "深色",
+      "width": 1366,
+      "rows": [
+        {
+          "label": "CALM 正式演示（现场确认用）",
+          "caption": "待人工审核 · 1",
+          "row": {
+            "left": 1079,
+            "right": 1325,
+            "top": 440.296875,
+            "bottom": 479.296875,
+            "width": 246
+          },
+          "button": {
+            "left": 1079,
+            "right": 1325,
+            "top": 440.296875,
+            "bottom": 459.296875,
+            "width": 246
+          },
+          "info": {
+            "left": 1079,
+            "right": 1325,
+            "top": 461.296875,
+            "bottom": 479.296875,
+            "width": 246
+          },
+          "clipped": false
+        },
+        {
+          "label": "GLM-5.3 结构化输出验证",
+          "caption": "待人工审核 · 1",
+          "row": {
+            "left": 1079,
+            "right": 1325,
+            "top": 487.296875,
+            "bottom": 526.296875,
+            "width": 246
+          },
+          "button": {
+            "left": 1079,
+            "right": 1325,
+            "top": 487.296875,
+            "bottom": 506.296875,
+            "width": 246
+          },
+          "info": {
+            "left": 1079,
+            "right": 1325,
+            "top": 508.296875,
+            "bottom": 526.296875,
+            "width": 246
+          },
+          "clipped": false
+        },
+        {
+          "label": "GUI 验收（真实 GLM-5.3）",
+          "caption": "待人工审核 · 1",
+          "row": {
+            "left": 1079,
+            "right": 1325,
+            "top": 534.296875,
+            "bottom": 573.296875,
+            "width": 246
+          },
+          "button": {
+            "left": 1079,
+            "right": 1325,
+            "top": 534.296875,
+            "bottom": 553.296875,
+            "width": 246
+          },
+          "info": {
+            "left": 1079,
+            "right": 1325,
+            "top": 555.296875,
+            "bottom": 573.296875,
+            "width": 246
+          },
+          "clipped": false
+        },
+        {
+          "label": "V3P3 自验收 06:18",
+          "caption": "待人工审核 · 1",
+          "row": {
+            "left": 1079,
+            "right": 1325,
+            "top": 581.296875,
+            "bottom": 620.296875,
+            "width": 246
+          },
+          "button": {
+            "left": 1079,
+            "right": 1325,
+            "top": 581.296875,
+            "bottom": 600.296875,
+            "width": 246
+          },
+          "info": {
+            "left": 1079,
+            "right": 1325,
+            "top": 602.296875,
+            "bottom": 620.296875,
+            "width": 246
+          },
+          "clipped": false
+        },
+        {
+          "label": "导出成果",
+          "caption": "CALM 漏油监测桌面版演示 · 等待审核",
+          "row": {
+            "left": 1079,
+            "right": 1325,
+            "top": 683.296875,
+            "bottom": 722.296875,
+            "width": 246
+          },
+          "button": {
+            "left": 1079,
+            "right": 1325,
+            "top": 683.296875,
+            "bottom": 702.296875,
+            "width": 246
+          },
+          "info": {
+            "left": 1079,
+            "right": 1325,
+            "top": 704.296875,
+            "bottom": 722.296875,
+            "width": 246
+          },
+          "clipped": false
+        }
+      ]
+    },
+    {
+      "theme": "深色",
+      "width": 1024,
+      "rows": [
+        {
+          "label": "CALM 正式演示（现场确认用）",
+          "caption": "待人工审核 · 1",
+          "row": {
+            "left": 313,
+            "right": 991,
+            "top": 442.09375,
+            "bottom": 481.09375,
+            "width": 678
+          },
+          "button": {
+            "left": 313,
+            "right": 991,
+            "top": 442.09375,
+            "bottom": 461.09375,
+            "width": 678
+          },
+          "info": {
+            "left": 313,
+            "right": 991,
+            "top": 463.09375,
+            "bottom": 481.09375,
+            "width": 678
+          },
+          "clipped": false
+        },
+        {
+          "label": "GLM-5.3 结构化输出验证",
+          "caption": "待人工审核 · 1",
+          "row": {
+            "left": 313,
+            "right": 991,
+            "top": 489.09375,
+            "bottom": 528.09375,
+            "width": 678
+          },
+          "button": {
+            "left": 313,
+            "right": 991,
+            "top": 489.09375,
+            "bottom": 508.09375,
+            "width": 678
+          },
+          "info": {
+            "left": 313,
+            "right": 991,
+            "top": 510.09375,
+            "bottom": 528.09375,
+            "width": 678
+          },
+          "clipped": false
+        },
+        {
+          "label": "GUI 验收（真实 GLM-5.3）",
+          "caption": "待人工审核 · 1",
+          "row": {
+            "left": 313,
+            "right": 991,
+            "top": 536.09375,
+            "bottom": 575.09375,
+            "width": 678
+          },
+          "button": {
+            "left": 313,
+            "right": 991,
+            "top": 536.09375,
+            "bottom": 555.09375,
+            "width": 678
+          },
+          "info": {
+            "left": 313,
+            "right": 991,
+            "top": 557.09375,
+            "bottom": 575.09375,
+            "width": 678
+          },
+          "clipped": false
+        },
+        {
+          "label": "V3P3 自验收 06:18",
+          "caption": "待人工审核 · 1",
+          "row": {
+            "left": 313,
+            "right": 991,
+            "top": 583.09375,
+            "bottom": 622.09375,
+            "width": 678
+          },
+          "button": {
+            "left": 313,
+            "right": 991,
+            "top": 583.09375,
+            "bottom": 602.09375,
+            "width": 678
+          },
+          "info": {
+            "left": 313,
+            "right": 991,
+            "top": 604.09375,
+            "bottom": 622.09375,
+            "width": 678
+          },
+          "clipped": false
+        },
+        {
+          "label": "导出成果",
+          "caption": "CALM 漏油监测桌面版演示 · 等待审核",
+          "row": {
+            "left": 313,
+            "right": 991,
+            "top": 677.09375,
+            "bottom": 716.09375,
+            "width": 678
+          },
+          "button": {
+            "left": 313,
+            "right": 991,
+            "top": 677.09375,
+            "bottom": 696.09375,
+            "width": 678
+          },
+          "info": {
+            "left": 313,
+            "right": 991,
+            "top": 698.09375,
+            "bottom": 716.09375,
+            "width": 678
+          },
+          "clipped": false
+        }
+      ]
+    }
+  ],
+  "projects": 9,
+  "callId": "c422dd64-a2f5-491d-979a-bd96b548813f",
+  "status": "waiting_human"
+}

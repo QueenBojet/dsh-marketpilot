@@ -1,0 +1,147 @@
+{
+  "date": "2026-10-11T08:04:45.759Z",
+  "mode": "real-installed-desktop-hosted-react",
+  "screenshots": [
+    {
+      "name": "m5-display-before-home-light-1440.png",
+      "width": 1440,
+      "height": 900
+    }
+  ],
+  "checks": [],
+  "humanAnswers": 0,
+  "modelCalls": 0,
+  "home": [
+    {
+      "label": "CALM 正式演示（现场确认用）",
+      "caption": "待人工审核 · 1",
+      "row": {
+        "left": 1153,
+        "right": 1399,
+        "top": 440.296875,
+        "bottom": 478.296875,
+        "width": 246
+      },
+      "button": {
+        "left": 1153,
+        "right": 1323.203125,
+        "top": 440.296875,
+        "bottom": 478.296875,
+        "width": 170.203125
+      },
+      "info": {
+        "left": 1333.203125,
+        "right": 1399,
+        "top": 441.296875,
+        "bottom": 477.296875,
+        "width": 65.796875
+      },
+      "clipped": false
+    },
+    {
+      "label": "GLM-5.3 结构化输出验证",
+      "caption": "待人工审核 · 1",
+      "row": {
+        "left": 1153,
+        "right": 1399,
+        "top": 486.296875,
+        "bottom": 505.296875,
+        "width": 246
+      },
+      "button": {
+        "left": 1153,
+        "right": 1308.953125,
+        "top": 486.296875,
+        "bottom": 505.296875,
+        "width": 155.953125
+      },
+      "info": {
+        "left": 1323.34375,
+        "right": 1399,
+        "top": 486.796875,
+        "bottom": 504.796875,
+        "width": 75.65625
+      },
+      "clipped": false
+    },
+    {
+      "label": "GUI 验收（真实 GLM-5.3）",
+      "caption": "待人工审核 · 1",
+      "row": {
+        "left": 1153,
+        "right": 1399,
+        "top": 513.296875,
+        "bottom": 551.296875,
+        "width": 246
+      },
+      "button": {
+        "left": 1153,
+        "right": 1316.171875,
+        "top": 513.296875,
+        "bottom": 551.296875,
+        "width": 163.171875
+      },
+      "info": {
+        "left": 1326.171875,
+        "right": 1399,
+        "top": 514.296875,
+        "bottom": 550.296875,
+        "width": 72.828125
+      },
+      "clipped": false
+    },
+    {
+      "label": "V3P3 自验收 06:18",
+      "caption": "待人工审核 · 1",
+      "row": {
+        "left": 1153,
+        "right": 1399,
+        "top": 559.296875,
+        "bottom": 578.296875,
+        "width": 246
+      },
+      "button": {
+        "left": 1153,
+        "right": 1267.78125,
+        "top": 559.296875,
+        "bottom": 578.296875,
+        "width": 114.78125
+      },
+      "info": {
+        "left": 1323.34375,
+        "right": 1399,
+        "top": 559.796875,
+        "bottom": 577.796875,
+        "width": 75.65625
+      },
+      "clipped": false
+    },
+    {
+      "label": "runType.marketpilot_artifact_export",
+      "caption": "CALM 漏油监测桌面版演示 · 等待审核",
+      "row": {
+        "left": 1153,
+        "right": 1399,
+        "top": 641.296875,
+        "bottom": 785.296875,
+        "width": 246
+      },
+      "button": {
+        "left": 1153,
+        "right": 1380.453125,
+        "top": 703.796875,
+        "bottom": 722.796875,
+        "width": 227.453125
+      },
+      "info": {
+        "left": 1390.453125,
+        "right": 1422.046875,
+        "top": 641.296875,
+        "bottom": 785.296875,
+        "width": 31.59375
+      },
+      "clipped": false
+    }
+  ],
+  "failure": "Export task uses its localized execution label\n+ actual - expected\n\n+ 'runType.marketpilot_artifact_export'\n- '导出成果'\n"
+}

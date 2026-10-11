@@ -15,18 +15,24 @@ import type { MarketPilotText, MarketPilotTextKey } from '../locales.ts'
 import type { TrackedExecution } from '../hooks/executionStore.ts'
 import { executionStore } from '../hooks/executionStore.ts'
 
-/** Map a tool name to its workflow-run type for the display label. */
-export const RUN_TYPE_BY_TOOL: Record<string, string> = {
-  marketpilot_requirement_extract: 'requirement_analysis',
-  marketpilot_competitor_extract: 'competitor_analysis',
-  marketpilot_policy_extract: 'policy_analysis',
-  marketpilot_alternative_generate: 'alternative_generation',
-  marketpilot_solution_generate: 'solution_generation',
-  marketpilot_tender_extract: 'tender_review',
-  marketpilot_tender_review: 'tender_review',
+/** Execution labels include tools that do not create a workflow run. */
+const TOOL_LABEL_KEYS: Record<string, MarketPilotTextKey> = {
+  marketpilot_requirement_extract: 'runType.requirement_analysis',
+  marketpilot_competitor_extract: 'runType.competitor_analysis',
+  marketpilot_policy_extract: 'runType.policy_analysis',
+  marketpilot_alternative_generate: 'runType.alternative_generation',
+  marketpilot_solution_generate: 'runType.solution_generation',
+  marketpilot_tender_extract: 'runType.tender_review',
+  marketpilot_tender_review: 'runType.tender_review',
+  marketpilot_artifact_export: 'exportArtifact',
 }
 
-/** Localized run-type label with the raw fallback for unknown types. */
+/** Localize known tools; keep unknown tools identifiable by their raw name. */
+export function executionToolLabel(t: MarketPilotText, tool: string): string {
+  return Object.hasOwn(TOOL_LABEL_KEYS, tool) ? t(TOOL_LABEL_KEYS[tool]!) : tool
+}
+
+/** Localized label for a persisted workflow-run type. */
 export function runTypeLabel(t: MarketPilotText, type: string): string {
   return t(`runType.${type}` as MarketPilotTextKey)
 }
@@ -46,7 +52,6 @@ export function TaskCard({ t, execution, projectName, onOpenProject }: {
   const [lookup, setLookup] = useState<RunLookup>('loading')
   const active = execution.status === 'running' || execution.status === 'waiting_human'
   const elapsed = useElapsed(execution.startedAt, active)
-  const runType = RUN_TYPE_BY_TOOL[execution.tool]
   const elapsedText = `${t('elapsedLabel')} ${formatDuration(elapsed)}`
 
   useEffect(() => {
@@ -82,7 +87,7 @@ export function TaskCard({ t, execution, projectName, onOpenProject }: {
           : execution.status === 'failed' ? 'error'
             : execution.status === 'waiting_human' ? 'warning'
               : execution.status === 'cancelled' ? 'idle' : 'ongoing'} />
-        <span className="mp-cellMain">{runType !== undefined ? t(`runType.${runType}` as MarketPilotTextKey) : execution.tool}</span>
+        <span className="mp-cellMain">{executionToolLabel(t, execution.tool)}</span>
         {projectName === undefined ? null : <span className="mp-caption">{projectName}</span>}
         <span className="mp-toolbarSpacer" />
         <span className="mp-caption">{active ? elapsedText : formatTime(execution.startedAt)}</span>
