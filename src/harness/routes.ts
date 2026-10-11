@@ -8,6 +8,7 @@ import { ensure, MarketPilotError } from '../domain/common.ts'
 import { buildShortCodeIndex } from '../domain/shortcodes.ts'
 import type { ShortCodeBook } from '../domain/shortcodes.ts'
 import { markSupersededWaits } from '../domain/runs.ts'
+import { evidenceReviewGroup } from '../domain/project-review.ts'
 
 const API_PREFIX = '/marketpilot/api'
 const MAX_BODY_BYTES = 1024 * 1024
@@ -238,6 +239,14 @@ export function mountWorkbenchRoutes(ctx: Context, workbench: WorkbenchManager):
           const pathname = parsedUrl.pathname
           const segments = pathname.slice(API_PREFIX.length).split('/').filter(Boolean)
           const method = request.method ?? 'GET'
+          if (method === 'GET' && segments.length === 3 && segments[0] === 'projects' && segments[2] === 'review') {
+            return sendJson(response, 200, marketpilot.reviewOverview(segments[1]!))
+          }
+          if (method === 'GET' && segments.length === 4 && segments[0] === 'projects' && segments[2] === 'documents') {
+            const doc = (marketpilot.services.documents.list(segments[1]!) as DocumentRow[]).find(d => d.id === segments[3])
+            ensure(doc, 'DOCUMENT_NOT_FOUND', '来源资料不存在。')
+            return sendJson(response, 200, { document: { ...documentProjection(doc), textContent: doc.textContent } })
+          }
           if (method === 'GET' && segments.length === 3 && segments[0] === 'projects' && segments[2] === 'workflow') {
             return sendJson(response, 200, marketpilot.workflowOverview(segments[1]!, workbench.list(segments[1]!)))
           }
@@ -320,10 +329,19 @@ export function mountWorkbenchRoutes(ctx: Context, workbench: WorkbenchManager):
               .map(row => [row.id, row.name] as const))
             const reqCodes = buildShortCodeIndex({ requirements: all, codeBook: projectCodeBook(marketpilot, projectId) })
             const status = parsedUrl.searchParams.get('status')
+            const priority = parsedUrl.searchParams.get('priority')
+            const runId = parsedUrl.searchParams.get('runId')
+            const batch = runId === null ? undefined : (marketpilot.services.workflows.list(projectId) as WorkflowRunRow[])
+              .find(r => r.id === runId && r.type === 'requirement_analysis')
+            if (runId !== null) ensure(batch, 'RUN_NOT_FOUND', '本项目需求批次不存在。')
+            const outputIds = batch?.output?.requirementIds
+            const batchIds = batch === undefined ? undefined : new Set(Array.isArray(outputIds) ? outputIds.filter((id): id is string => typeof id === 'string') : [])
             const query = (parsedUrl.searchParams.get('q') ?? '').trim().toLowerCase()
             const filtered = all
+              .filter(row => batchIds === undefined || batchIds.has(row.id))
+              .filter(row => priority === null || priority === 'all' || row.priority === priority)
               .filter(row => status === null || status === 'all' || row.status === status)
-              .filter(row => query === '' || row.normalizedText.toLowerCase().includes(query))
+              .filter(row => query === '' || [row.normalizedText, row.originalText, reqCodes.codeOf(row.id) ?? ''].some(text => text.toLowerCase().includes(query)))
             const pageSize = Math.min(Math.max(Number(parsedUrl.searchParams.get('pageSize') ?? 50) || 50, 1), 200)
             const page = Math.max(Number(parsedUrl.searchParams.get('page') ?? 1) || 1, 1)
             const start = (page - 1) * pageSize
@@ -407,10 +425,12 @@ export function mountWorkbenchRoutes(ctx: Context, workbench: WorkbenchManager):
             const all = marketpilot.services.evidence.list(projectId) as EvidenceRecordRow[]
             const status = parsedUrl.searchParams.get('status')
             const kind = parsedUrl.searchParams.get('kind')
+            const review = parsedUrl.searchParams.get('review')
             const query = (parsedUrl.searchParams.get('q') ?? '').trim().toLowerCase()
             const filtered = all
               .filter(row => status === null || status === 'all' || row.status === status)
               .filter(row => kind === null || kind === 'all' || row.kind === kind)
+              .filter(row => review === null || review === 'all' || evidenceReviewGroup(row) === review)
               .filter(row => query === '' || row.statement.toLowerCase().includes(query)
                 || row.title.toLowerCase().includes(query))
             const pageSize = Math.min(Math.max(Number(parsedUrl.searchParams.get('pageSize') ?? 50) || 50, 1), 200)

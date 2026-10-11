@@ -9,6 +9,10 @@
 const STYLE_TAG = 'dsh-marketpilot'
 
 const PANEL_CSS = `
+.mp-reviewBlock{border:1px solid var(--dsw-alias-border-l2);border-radius:var(--dsw-radius-md);padding:12px;margin:12px 0}
+.mp-reviewBlock summary{font-weight:600;cursor:pointer}.mp-reviewBlock li{margin:8px 0;overflow-wrap:anywhere}
+.mp-reviewFilters{flex-wrap:wrap}.mp-sourcePreview{margin:8px 0}.mp-sourcePreview pre{white-space:pre-wrap;overflow-wrap:anywhere;font-family:inherit;font-size:12px;line-height:1.7;max-height:320px;overflow:auto;padding:12px;border:1px solid var(--dsw-alias-border-l2);border-radius:var(--dsw-radius-md)}
+.mp-backlogList{padding-left:18px}.mp-backlogList li{padding:8px 0;border-bottom:1px solid var(--dsw-alias-border-l2)}
 .mp-modeBar{display:flex;gap:8px;align-items:center;margin:10px 0 16px}
 .mp-modeBar [aria-pressed='true']{background:var(--dsw-alias-bg-multi-select);color:var(--dsw-alias-label-primary);font-weight:600}
 .mp-stageAction{border:1px solid var(--dsw-alias-border-l2);border-radius:var(--dsw-radius-md);padding:16px;margin-bottom:12px;background:var(--dsw-alias-bg-base)}

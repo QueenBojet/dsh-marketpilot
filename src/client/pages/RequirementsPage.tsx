@@ -17,14 +17,19 @@ import { errorMessage } from '../hooks/useProjects.ts'
 import type { ProjectFocus } from '../stores.ts'
 import type { MarketPilotText, MarketPilotTextKey } from '../locales.ts'
 import { useStageAccess, workflowText } from '../components/ProjectWorkflowOverview.tsx'
+import { useProjectReview } from '../hooks/useProjectReview.ts'
+import { ReviewBacklog, ReviewImpact } from '../components/ReviewSupport.tsx'
+import type { MarketPilotActions } from '../stores.ts'
+import { formatTime } from '../format.ts'
 
 const STATUS_FILTERS = ['all', 'proposed', 'confirmed', 'unknown', 'conflict'] as const
 
 /** Render the requirements page for one project. */
-export function RequirementsPage({ t, projectId, focus }: {
+export function RequirementsPage({ t, projectId, focus, actions }: {
   t: MarketPilotText
   projectId: string
   focus?: ProjectFocus | undefined
+  actions?: MarketPilotActions | undefined
 }) {
   const [kind, setKind] = useState('customer_requirement')
   const access = useStageAccess('S1')
@@ -32,14 +37,20 @@ export function RequirementsPage({ t, projectId, focus }: {
   const [selectedRequirements, setSelectedRequirements] = useState<ReadonlySet<string>>(new Set())
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [search, setSearch] = useState('')
-  const [drawer, setDrawer] = useState<RequirementItem | null>(null)
+  const [priority, setPriority] = useState('all'), [pageNumber, setPageNumber] = useState(1)
+  const [batchChoice, setBatchChoice] = useState<string | undefined>()
+  const review = useProjectReview(projectId)
+  const selectedBatchId = batchChoice ?? review.snapshot?.batches.find(b => b.status === 'waiting_human' && !b.superseded)?.id ?? ''
+  const batch = review.snapshot?.batches.find(b => b.id === selectedBatchId)
+  const [drawerId, setDrawerId] = useState<string | null>(null)
+  const [inputsOpen, setInputsOpen] = useState(true)
   const [reviewBusy, setReviewBusy] = useState(false)
   const [notice, setNotice] = useState('')
   const [error, setError] = useState('')
 
   const documents = useDocuments(projectId)
   const requirements = useRequirements(projectId,
-    useMemo(() => ({ status: statusFilter, q: search, pageSize: 100 }), [statusFilter, search]))
+    useMemo(() => ({ status: statusFilter, q: search, priority, page: pageNumber, pageSize: 25, ...selectedBatchId === '' ? {} : { runId: selectedBatchId } }), [statusFilter, search, priority, pageNumber, selectedBatchId]))
   const executions = useExecutions(projectId)
   const extractExecution = executions.find(execution => execution.tool === 'marketpilot_requirement_extract'
     && (execution.status === 'running' || execution.status === 'waiting_human' || execution.runId !== undefined))
@@ -53,14 +64,13 @@ export function RequirementsPage({ t, projectId, focus }: {
   // browser session or before a page reload.
   const waitingRun = useActiveRun(projectId, 'requirement_analysis', true)
 
-  /** The exact waiting batch: the server's waiting run, or a just-settled
-   * tracked extraction's run before the runs poll refreshes. */
-  const reviewRunId = waitingRun !== null && waitingRun.status === 'waiting_human'
-    ? waitingRun.id
-    : extractExecution?.runId !== undefined && waitingRun === null ? extractExecution.runId : undefined
-  const batchIds = new Set(waitingRun?.output?.requirementIds ?? [])
-  const selectedInBatch = reviewRunId === undefined
-    || (batchIds.size > 0 && [...selectedRequirements].every(id => batchIds.has(id)))
+  /** Only the selected, resumable server batch may be confirmed. */
+  const reviewRunId = batch?.status === 'waiting_human' && !batch.superseded ? batch.id : undefined
+  const batchIds = new Set(reviewRunId === undefined || review.error !== '' || requirements.error !== '' ? [] : batch?.proposedIds ?? [])
+  const visibleIds = new Set((requirements.page?.requirements ?? []).filter(r => r.status === 'proposed').map(r => r.id))
+  const selectedInBatch = reviewRunId !== undefined && [...selectedRequirements].every(id => batchIds.has(id) && visibleIds.has(id))
+  useEffect(() => { setSelectedRequirements(new Set()) }, [selectedBatchId, statusFilter, search, priority, pageNumber])
+  useEffect(() => { if (review.snapshot !== null) { documents.refresh(); requirements.refresh() } }, [review.snapshot?.revision, documents.refresh, requirements.refresh])
 
   const toggle = (setter: typeof setSelectedDocs) => (id: string) => {
     setter(current => {
@@ -85,7 +95,7 @@ export function RequirementsPage({ t, projectId, focus }: {
       setError(t('confirmNeedsSelection'))
       return
     }
-    if (busy) return
+    if (busy || !selectedInBatch || review.error !== '' || requirements.error !== '') return
     if (reviewRunId === undefined) {
       setError(t('confirmNeedsRun'))
       return
@@ -106,11 +116,13 @@ export function RequirementsPage({ t, projectId, focus }: {
     if (settleMarker === '' || settleMarker === seenMarker) return
     setSeenMarker(settleMarker)
     if (settled?.status === 'completed' && settled.tool === 'marketpilot_requirement_confirm') {
-      setNotice(t('baselineGenerated'))
+      const value = settled.value?.data as { run?: { status?: string } } | undefined
+      setNotice(t(value?.run?.status === 'completed' ? 'baselineGenerated' : 'review.partial'))
       setSelectedRequirements(new Set())
     }
     documents.refresh()
     requirements.refresh()
+    review.refresh()
   }, [settleMarker, seenMarker, settled, t, documents.refresh, requirements.refresh])
 
   // The confirm execution gates on the requirement review question.
@@ -122,30 +134,36 @@ export function RequirementsPage({ t, projectId, focus }: {
   // or pagination excludes it: the exact record is fetched by id as a fallback.
   const focusId = focus?.kind === 'requirement' ? focus.id : undefined
   const [remoteRequirement, setRemoteRequirement] = useState<RequirementItem | null>(null)
-  const [jumpMissed, setJumpMissed] = useState(false)
+  const [drawerReadError, setDrawerReadError] = useState('')
   useEffect(() => {
-    if (focusId === undefined) return
-    let cancelled = false
-    setJumpMissed(false)
-    api.requirement(projectId, focusId)
-      .then(result => { if (!cancelled) setRemoteRequirement(result.requirement) })
-      .catch(() => { if (!cancelled) { setRemoteRequirement(null); setJumpMissed(true) } })
-    return () => { cancelled = true }
+    if (focusId !== undefined) setDrawerId(focusId)
   }, [focusId, projectId])
   useEffect(() => {
-    if (focusId === undefined) return
-    const row = (requirements.page?.requirements ?? []).find(item => item.id === focusId)
-    if (row !== undefined) setDrawer(row)
-    else if (remoteRequirement?.id === focusId) setDrawer(remoteRequirement)
-  }, [focusId, requirements.page, remoteRequirement])
+    setRemoteRequirement(null)
+    setDrawerReadError('')
+    if (drawerId === null) return
+    let cancelled = false
+    api.requirement(projectId, drawerId)
+      .then(result => {
+        if (result.requirement?.id !== drawerId) throw new Error('REQUIREMENT_DETAIL_INVALID')
+        if (!cancelled) setRemoteRequirement(result.requirement)
+      })
+      .catch(e => { if (!cancelled) setDrawerReadError(errorMessage(e)) })
+    return () => { cancelled = true }
+  }, [drawerId, projectId, review.snapshot?.revision])
+  const drawer = remoteRequirement?.id === drawerId ? remoteRequirement
+    : requirements.page?.requirements.find(item => item.id === drawerId) ?? null
 
   return (
     <div>
       <h2 className="mp-sectionTitle" style={{ marginTop: 0 }}>{t('sectionRequirements')}</h2>
 
+      <details className="mp-reviewBlock" open={inputsOpen} onToggle={event => { setInputsOpen(event.currentTarget.open) }}>
+      <summary>{t('review.inputs')}</summary>
       <h3 className="mp-subTitle">{t('docsTitle')}</h3>
-      <DocumentUploader t={t} projectId={projectId} kind={kind} onKindChange={setKind} onUploaded={documents.refresh} />
-      {documents.loading ? <p className="mp-caption">{t('loading')}</p>
+      <DocumentUploader t={t} projectId={projectId} kind={kind} onKindChange={setKind} onUploaded={() => { documents.refresh(); review.refresh() }} />
+      {documents.error !== '' ? <p className="mp-errorText" role="alert">{documents.error}</p>
+        : documents.loading ? <p className="mp-caption">{t('loading')}</p>
         : documents.documents === null || documents.documents.length === 0 ? <p className="mp-caption">{t('docsEmpty')}</p>
           : (
             <ul className="mp-docList">
@@ -178,7 +196,8 @@ export function RequirementsPage({ t, projectId, focus }: {
         ) : null}
       </div>
       {selectedDocs.size === 0 ? <p className="mp-caption">{workflowText(t, 'selectDocuments')}</p> : null}
-      {documents.error === '' ? null : <p className="mp-errorText" role="alert">{documents.error}</p>}
+      </details>
+      <h3 className="mp-subTitle">{t('review.execution')}</h3>
 
       {progressVisible ? (
         <TaskProgress
@@ -193,50 +212,68 @@ export function RequirementsPage({ t, projectId, focus }: {
         </div>
       ) : null}
 
-      <h3 className="mp-subTitle">{t('reqTitle')}</h3>
+      <h3 className="mp-subTitle">{t('review.results')}</h3>
+      <div className="mp-toolbar"><label className="mp-caption">{t('review.batch')}{' '}<select aria-label={t('review.batch')} className="mp-kindSelect" value={selectedBatchId}
+        onChange={e => { setBatchChoice(e.target.value); setPageNumber(1) }}><option value="">{t('review.allBatches')}</option>
+        {review.snapshot?.batches.map(b => <option key={b.id} value={b.id}>{`${formatTime(b.startedAt)} · ${b.id.slice(0, 8)} · ${b.superseded ? t('review.history') : t(`runStatus.${b.status}` as MarketPilotTextKey)}`}</option>)}</select></label>
+        <label className="mp-caption">{t('review.priority')}{' '}<select aria-label={t('review.priority')} className="mp-kindSelect" value={priority} onChange={e => { setPriority(e.target.value); setPageNumber(1) }}>
+          <option value="all">{t('reqFilterAll')}</option>{['must', 'should', 'could'].map(p => <option key={p} value={p}>{t(`priority.${p}` as MarketPilotTextKey)}</option>)}
+        </select></label>
+        <button type="button" className="mp-link" onClick={() => { review.refresh(); requirements.refresh() }}>{t('workflow.refresh')}</button>
+      </div>
+      {review.error === '' ? null : <p role="alert" className="mp-errorText">{review.error}</p>}
+      <p className="mp-caption">{t('review.scope')}</p>
+      {reviewRunId === undefined ? <p className="mp-caption">{t('review.noBatch')}</p> : <p className="mp-caption">{Object.entries(batch?.counts ?? {}).map(([status, n]) => `${t(`requirementStatus.${status}` as MarketPilotTextKey)} ${n}`).join(' · ')}</p>}
       <div className="mp-toolbar">
         {STATUS_FILTERS.map(filter => (
           <button
             key={filter} type="button" className="mp-headerNavItem"
             aria-current={statusFilter === filter ? 'page' : undefined}
-            onClick={() => { setStatusFilter(filter) }}
+            onClick={() => { setStatusFilter(filter); setPageNumber(1) }}
           >
             {filter === 'all' ? t('reqFilterAll') : t(`requirementStatus.${filter}` as MarketPilotTextKey)}
           </button>
         ))}
         <input
           type="search" className="mp-searchInput" placeholder={t('reqSearchPlaceholder')}
-          value={search} onChange={event => { setSearch(event.target.value) }}
+          value={search} onChange={event => { setSearch(event.target.value); setPageNumber(1) }}
         />
         <span className="mp-toolbarSpacer" />
         <button
           type="button" className="mp-headerNavItem mp-primaryAction"
-          disabled={busy || selectedRequirements.size === 0 || !selectedInBatch}
+          disabled={busy || review.error !== '' || requirements.error !== '' || selectedRequirements.size === 0 || !selectedInBatch}
           title={!selectedInBatch ? t('confirmNeedsRun') : reviewRunId === undefined ? t('confirmNeedsRun') : ''}
           onClick={confirmSelected}
         >
           {`${t('confirmSelectedReq')}（${String(selectedRequirements.size)}）`}
         </button>
       </div>
+      <p className="mp-caption" role="status">{`${t('review.selection')}: ${requirements.page?.requirements.length ?? '—'} / ${requirements.error !== '' ? '—' : requirements.page?.total ?? '—'} / ${selectedRequirements.size}`}</p>
       {notice === '' ? null : <p className="mp-caption" role="status">{notice}</p>}
       {error === '' ? null : <p className="mp-errorText" role="alert">{error}</p>}
-      {jumpMissed ? <p className="mp-errorText" role="alert">{t('jumpMissing')}</p> : null}
-      {requirements.error !== '' ? <p className="mp-errorText" role="alert">{requirements.error}</p> : null}
-      {requirements.loading ? <p className="mp-caption">{t('loading')}</p>
+      {drawerReadError === '' ? null : <p className="mp-errorText" role="alert">{drawerReadError}</p>}
+      {drawerReadError !== '' && drawerId !== null && drawer === null ? <p className="mp-errorText" role="alert">{t('jumpMissing')}</p> : null}
+      {requirements.error !== '' ? <p className="mp-errorText" role="alert">{requirements.error}</p>
+        : requirements.loading ? <p className="mp-caption">{t('loading')}</p>
         : (
           <RequirementTable
             t={t} rows={requirements.page?.requirements ?? []}
             selected={selectedRequirements}
+            eligibleIds={batchIds}
             onToggle={toggle(setSelectedRequirements)}
             onSelectProposed={() => {
-              const proposed = (requirements.page?.requirements ?? []).filter(item => item.status === 'proposed')
+              const proposed = (requirements.page?.requirements ?? []).filter(item => item.status === 'proposed' && batchIds.has(item.id))
               setSelectedRequirements(new Set(proposed.map(item => item.id)))
             }}
-            onOpenDetail={setDrawer}
+            onOpenDetail={item => { setDrawerId(item.id) }}
           />
         )}
 
-      {drawer !== null ? <SourceDrawer t={t} item={drawer} onClose={() => { setDrawer(null) }} /> : null}
+      <div className="mp-toolbar"><button type="button" className="mp-link" disabled={pageNumber <= 1} onClick={() => { setPageNumber(pageNumber - 1) }}>{t('review.previous')}</button>
+        <span className="mp-caption">{pageNumber}</span><button type="button" className="mp-link" disabled={requirements.page === null || pageNumber * 25 >= requirements.page.total} onClick={() => { setPageNumber(pageNumber + 1) }}>{t('review.next')}</button></div>
+      {actions === undefined ? null : <ReviewBacklog t={t} snapshot={review.error === '' ? review.snapshot : null} actions={actions} />}
+      <ReviewImpact t={t} snapshot={review.error === '' ? review.snapshot : null} actions={actions} />
+      {drawer !== null ? <SourceDrawer t={t} item={drawer} projectId={projectId} related={review.error === '' ? review.snapshot?.links[drawer.id] : undefined} onEvidence={actions === undefined ? undefined : id => { actions.focusRecord('evidence', 'evidence', id) }} onClose={() => { setDrawerId(null) }} /> : null}
       {gating !== undefined ? (
         <HumanReviewDialog
           t={t} execution={gating} busy={reviewBusy}

@@ -1,6 +1,7 @@
 /** Typed same-origin client for the MarketPilot workbench HTTP API. */
 import type { ShortCodeBook } from '../domain/shortcodes.ts'
 import type { ProjectWorkflowOverview } from '../domain/project-workflow.ts'
+import type { ProjectReviewOverview } from '../domain/project-review.ts'
 
 /** One project row as the list route returns it. */
 export interface ProjectRow {
@@ -146,7 +147,7 @@ export interface ExecutionView {
 }
 
 /** Options for the requirements list route. */
-export interface RequirementsQuery { status?: string; q?: string; page?: number; pageSize?: number }
+export interface RequirementsQuery { status?: string; q?: string; page?: number; pageSize?: number; priority?: string; runId?: string }
 
 /** One competitor row (competitor matrix projection). */
 export interface CompetitorItem {
@@ -260,6 +261,8 @@ export const api = {
   projects: () => request<{ projects: ProjectRow[] }>('GET', '/marketpilot/api/projects'),
   project: (id: string) => request<ProjectDetail>('GET', `/marketpilot/api/projects/${id}`),
   workflow: (id: string) => request<ProjectWorkflowOverview>('GET', `/marketpilot/api/projects/${id}/workflow`),
+  review: (id: string) => request<ProjectReviewOverview>('GET', `/marketpilot/api/projects/${id}/review`),
+  document: (projectId: string, documentId: string) => request<{ document: DocumentMeta & { textContent: string } }>('GET', `/marketpilot/api/projects/${projectId}/documents/${documentId}`),
   summary: (id: string) => request<Record<string, unknown>>('GET', `/marketpilot/api/summary/${id}`),
   documents: (projectId: string) => request<{ documents: DocumentMeta[] }>('GET', `/marketpilot/api/projects/${projectId}/documents`),
   upload: async (projectId: string, name: string, kind: string, text: string): Promise<{ document: DocumentMeta }> => {
@@ -273,6 +276,8 @@ export const api = {
   },
   requirements: (projectId: string, query: RequirementsQuery = {}) => {
     const params = new URLSearchParams()
+    if (query.priority !== undefined && query.priority !== 'all') params.set('priority', query.priority)
+    if (query.runId !== undefined && query.runId !== '') params.set('runId', query.runId)
     if (query.status !== undefined && query.status !== 'all') params.set('status', query.status)
     if (query.q !== undefined && query.q !== '') params.set('q', query.q)
     if (query.page !== undefined) params.set('page', String(query.page))
@@ -296,8 +301,10 @@ export const api = {
   artifact: (projectId: string, artifactId: string) => request<{ artifact: ArtifactFullRow }>('GET', `/marketpilot/api/projects/${projectId}/artifacts/${artifactId}`),
   competitors: (projectId: string) => request<{ competitors: CompetitorItem[] }>('GET', `/marketpilot/api/projects/${projectId}/competitors`),
   policies: (projectId: string) => request<{ policies: PolicyItem[] }>('GET', `/marketpilot/api/projects/${projectId}/policies`),
-  evidence: (projectId: string, query: { status?: string; kind?: string; q?: string; pageSize?: number } = {}) => {
+  evidence: (projectId: string, query: { status?: string; kind?: string; q?: string; pageSize?: number; page?: number; review?: string } = {}) => {
     const params = new URLSearchParams()
+    if (query.review !== undefined && query.review !== 'all') params.set('review', query.review)
+    if (query.page !== undefined) params.set('page', String(query.page))
     if (query.status !== undefined && query.status !== 'all') params.set('status', query.status)
     if (query.kind !== undefined && query.kind !== 'all') params.set('kind', query.kind)
     if (query.q !== undefined && query.q !== '') params.set('q', query.q)

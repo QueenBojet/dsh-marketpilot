@@ -213,6 +213,7 @@ describe('EvidencePage', () => {
   const detailMock = (payload: unknown): ((input: unknown) => Promise<unknown>) => async (input: unknown) => {
     const url = String(input)
     if (url === '/marketpilot/api/projects/p1') return jsonResponse(payload)
+    if (/\/evidence\/[^/?]+$/.test(url)) return jsonResponse({ evidence: evidencePayload.evidence.find(e => url.endsWith('/' + e.id)) })
     if (url.includes('/evidence')) return jsonResponse(evidencePayload)
     if (url.includes('/runs')) return jsonResponse({ runs: [] })
     if (url.includes('/executions')) return jsonResponse({ executions: [] })
@@ -255,6 +256,7 @@ describe('EvidencePage', () => {
     fetchMock.mockImplementation(async (input: unknown) => {
       const url = String(input)
       if (url === '/marketpilot/api/projects/p1') return jsonResponse(detail)
+      if (/\/evidence\/[^/?]+$/.test(url)) return jsonResponse({ evidence: linked.evidence.find(e => url.endsWith('/' + e.id)) })
       if (url.includes('/evidence')) return jsonResponse(linked)
       if (url.includes('/runs')) return jsonResponse({ runs: [] })
       if (url.includes('/executions')) return jsonResponse({ executions: [] })
@@ -300,6 +302,7 @@ describe('EvidencePage', () => {
     fetchMock.mockImplementation(async (input: unknown, init?: { method?: string; body?: string }) => {
       const url = String(input)
       if (url === '/marketpilot/api/projects/p1') return jsonResponse(projectDetailDraft)
+      if (/\/evidence\/[^/?]+$/.test(url)) return jsonResponse({ evidence: evidencePayload.evidence.find(e => url.endsWith('/' + e.id)) })
       if (url.includes('/evidence')) return jsonResponse(evidencePayload)
       if (url.includes('/runs')) return jsonResponse({ runs: [] })
       if (url.includes('/executions')) return jsonResponse({ executions: [] })

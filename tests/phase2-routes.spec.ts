@@ -79,6 +79,40 @@ async function runTool(call: ApiCall, name: string, args: Record<string, unknown
 }
 
 describe('MarketPilot Phase 2 routes', () => {
+  it('M2 projects two real extraction batches with scoped paging, source text and cross-project rejection', async () => {
+    const { call, root, services, project } = await phase2Harness({ maxDocumentBytes: 2097152 })
+    root.provide('marketpilotModel', offlineModel)
+    const input = fileURLToPath(new URL('../fixtures/calm/input/brief.md', import.meta.url))
+    await runTool(call, 'marketpilot_document_import', { projectId: project.id, path: input, kind: 'customer_requirement' })
+    const doc = services.documents.list(project.id)[0]!
+    const first = await runTool(call, 'marketpilot_requirement_extract', { projectId: project.id, documentIds: [doc.id] })
+    const second = await runTool(call, 'marketpilot_requirement_extract', { projectId: project.id, documentIds: [doc.id] })
+    const review = await call('GET', `/marketpilot/api/projects/${project.id}/review`)
+    expect(review.status).toBe(200)
+    expect(review.body.projectId).toBe(project.id)
+    const batches = review.body.batches as { id: string; superseded: boolean; requirementIds: string[] }[]
+    expect(batches).toHaveLength(2)
+    expect(batches[0]).toMatchObject({ id: second.view.runId, superseded: false })
+    expect(batches[1]).toMatchObject({ id: first.view.runId, superseded: true })
+    expect(batches[0]!.requirementIds.some(id => batches[1]!.requirementIds.includes(id))).toBe(false)
+    const selected = services.requirements.list(project.id).filter(r => batches[0]!.requirementIds.includes(r.id) && r.priority === 'must')
+    const page = await call('GET', `/marketpilot/api/projects/${project.id}/requirements?runId=${String(second.view.runId)}&priority=must&page=2&pageSize=1`)
+    expect(page.body).toMatchObject({ total: selected.length, page: 2, pageSize: 1 })
+    expect((page.body.requirements as { id: string }[])[0]?.id).toBe(selected[1]?.id)
+    const row = (page.body.requirements as { shortId: string }[])[0]!
+    const byCode = await call('GET', `/marketpilot/api/projects/${project.id}/requirements?q=${row.shortId}`)
+    expect(byCode.body.total).toBe(1)
+    expect((await call('GET', `/marketpilot/api/projects/${project.id}/documents/${doc.id}`)).body.document).toMatchObject({ textContent: doc.textContent })
+    const other = await services.projects.create({ name: 'M2 isolated project' })
+    expect((await call('GET', `/marketpilot/api/projects/${other.id}/requirements?runId=${String(second.view.runId)}`)).body).toMatchObject({ code: 'RUN_NOT_FOUND' })
+    expect((await call('GET', `/marketpilot/api/projects/${other.id}/documents/${doc.id}`)).status).toBe(404)
+    expect((await call('GET', `/marketpilot/api/projects/missing/review`)).status).toBe(404)
+    const otherReview = await call('GET', `/marketpilot/api/projects/${other.id}/review`)
+    expect(otherReview.body).toMatchObject({ projectId: other.id, batches: [], issues: [] })
+    const mixed = await runTool(call, 'marketpilot_requirement_confirm', { projectId: project.id, runId: second.view.runId, requirementIds: [batches[1]!.requirementIds[0]!] })
+    expect(mixed.view.status).toBe('failed')
+    expect(services.requirements.get(project.id, batches[1]!.requirementIds[0]!).status).not.toBe('confirmed')
+  })
   it('uploads .md/.txt through the controlled route and lists metadata without text', async () => {
     const { call, project } = await phase2Harness({ maxDocumentBytes: 4096 })
     const uploaded = await call('POST', `/marketpilot/api/projects/${project.id}/documents/upload?name=${encodeURIComponent('客户简报.md')}&kind=customer_requirement`, '# 标题\n\n正文内容。')

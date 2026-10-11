@@ -3,12 +3,16 @@ import type { RequirementItem } from '../api.ts'
 import { useDrawerKeys } from '../hooks/useDrawerKeys.ts'
 import { StatusTag } from './StatusTag.tsx'
 import type { MarketPilotText } from '../locales.ts'
+import { DocumentSource } from './ReviewSupport.tsx'
 
 /** Render the requirement detail drawer. */
-export function SourceDrawer({ t, item, onClose }: {
+export function SourceDrawer({ t, item, onClose, projectId, related, onEvidence }: {
   t: MarketPilotText
   item: RequirementItem
   onClose: () => void
+  projectId?: string | undefined
+  related?: readonly { id: string; code: string; title: string; kind: string }[] | undefined
+  onEvidence?: ((id: string) => void) | undefined
 }) {
   const dialogRef = useDrawerKeys(true, onClose)
   return (
@@ -28,6 +32,11 @@ export function SourceDrawer({ t, item, onClose }: {
           <blockquote className="mp-quote">{item.originalText}</blockquote>
           <h3 className="mp-drawerSection">{t('colSource')}</h3>
           <p>{item.sourceDocumentName ?? item.sourceDocumentId}</p>
+          {projectId === undefined || !item.sourceDocumentId ? null : <DocumentSource t={t} projectId={projectId} documentId={item.sourceDocumentId} />}
+          {related === undefined || related.length === 0 ? null : <><h3 className="mp-drawerSection">{t('review.linkedEvidence')}</h3><ul>{related.map(e => <li key={e.id}>
+            <code>{e.code}</code>{' · '}{e.kind}{' · '}{e.title}{' '}
+            {onEvidence === undefined ? null : <button type="button" className="mp-link" onClick={() => { onEvidence(e.id) }}>{t('review.inspectEvidence')}</button>}
+          </li>)}</ul></>}
           {item.sourceLocator === undefined ? (
             <p className="mp-caption" role="note">{t('drawerNoLocator')}</p>
           ) : (

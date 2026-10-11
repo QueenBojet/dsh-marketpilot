@@ -12,6 +12,7 @@ import type { ModelStructuredOutputAdapter } from '../adapters/contracts.ts'
 import { ensure } from '../domain/common.ts'
 import { projectWorkflowOverview, type WorkflowExecutionFact } from '../domain/project-workflow.ts'
 import { workflowCapabilities } from './capabilities.ts'
+import { projectReviewOverview } from '../domain/project-review.ts'
 
 export interface Config { maxDocumentBytes: number; structuredProvider: string; modelTimeoutMs: number }
 export const Config: Schema<Config> = Schema.object({
@@ -43,6 +44,12 @@ export class MarketPilotService extends Service {
     const state = this.repository.get(projectId)
     ensure(state, 'PROJECT_NOT_FOUND', '项目不存在。')
     return projectWorkflowOverview(state, workflowCapabilities(this.ctx, this.config.structuredProvider), executions)
+  }
+
+  reviewOverview(projectId: string) {
+    const state = this.repository.get(projectId)
+    ensure(state, 'PROJECT_NOT_FOUND', '项目不存在。')
+    return projectReviewOverview(state)
   }
 
   protected async [Service.init]() {

@@ -3,7 +3,7 @@
  * plus the shared tool-execution helper every workflow page uses to start a
  * guarded tool run, watch its real steps, and surface its human gate.
  */
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   api, type AlternativeItem, type CompetitorItem, type EvidencePage, type PolicyItem,
   type TenderItemProjection,
@@ -43,15 +43,17 @@ export function usePolicies(projectId: string) {
 }
 
 /** Evidence-ledger page with server-side filter and search. */
-export function useEvidencePage(projectId: string, query: { status?: string; kind?: string; q?: string }) {
+export function useEvidencePage(projectId: string, query: { status?: string; kind?: string; q?: string; review?: string; page?: number }) {
   const [page, setPage] = useState<EvidencePage | null>(null)
   const [error, setError] = useState('')
+  const generation = useRef(0)
   const refresh = useCallback(() => {
+    const request = ++generation.current
     api.evidence(projectId, query)
-      .then(result => { setPage(result); setError('') })
-      .catch(e => { setError(describeError(e)) })
-  }, [projectId, query.status, query.kind, query.q])
-  useEffect(() => { refresh() }, [refresh])
+      .then(result => { if (request === generation.current) { setPage(result); setError('') } })
+      .catch(e => { if (request === generation.current) setError(describeError(e)) })
+  }, [projectId, query.status, query.kind, query.q, query.review, query.page])
+  useEffect(() => { setPage(null); setError(''); refresh(); return () => { generation.current += 1 } }, [refresh])
   return { page, error, refresh, loading: page === null && error === '' }
 }
 

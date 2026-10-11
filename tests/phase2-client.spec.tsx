@@ -145,7 +145,8 @@ describe('RequirementsPage', () => {
       }
       if (/\/marketpilot\/api\/executions\/call-/.test(url)) {
         return jsonResponse({ callId: `call-${String(callSeq)}`, tool: 'marketpilot_requirement_confirm',
-          projectId: 'p9', status: 'completed', startedAt: '2026-10-09T05:00:00.000Z', question: null })
+          projectId: 'p9', status: 'completed', startedAt: '2026-10-09T05:00:00.000Z', question: null,
+          value: { data: { run: { status: 'completed' } } } })
       }
       throw new Error(`unexpected fetch: ${url}`)
     })
@@ -232,6 +233,10 @@ describe('RequirementsPage', () => {
     let callSeq = 0
     fetchMock.mockImplementation(async (input: unknown, init?: { method?: string; body?: string }) => {
       const url = String(input)
+      if (url.endsWith('/review')) return jsonResponse({ projectId: 'p1', revision: 0,
+        batches: [{ ...waitingRun, superseded: false, requirementIds: waitingRun.output.requirementIds,
+          proposedIds: requirementsPayload.requirements.filter(r => r.status === 'proposed').map(r => r.id), counts: {} }],
+        evidenceCounts: {}, links: {}, issues: [], impacts: [] })
       if (url.startsWith('/marketpilot/api/projects/p1/documents')) return jsonResponse(documentsPayload)
       if (url.startsWith('/marketpilot/api/projects/p1/requirements')) return jsonResponse(requirementsPayload)
       if (url.startsWith('/marketpilot/api/projects/p1/runs')) return jsonResponse({ runs: [waitingRun] })

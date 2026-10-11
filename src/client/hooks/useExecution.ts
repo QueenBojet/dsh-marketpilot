@@ -3,7 +3,7 @@
  * hooks (documents, requirements, active run timeline). Components stay
  * props-driven; these hooks own only fetch/poll plumbing.
  */
-import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { api, type ArtifactFullRow, type ArtifactMetaRow, type DocumentMeta, type ProjectRow, type RequirementsPage, type RequirementsQuery, type WorkflowRunView } from '../api.ts'
 import { executionStore, type TrackedExecution } from './executionStore.ts'
 
@@ -28,12 +28,14 @@ export function useExecutions(projectId?: string): readonly TrackedExecution[] {
 export function useDocuments(projectId: string) {
   const [documents, setDocuments] = useState<DocumentMeta[] | null>(null)
   const [error, setError] = useState('')
+  const generation = useRef(0)
   const refresh = useCallback(() => {
+    const request = ++generation.current
     api.documents(projectId)
-      .then(result => { setDocuments(result.documents); setError('') })
-      .catch(e => { setError(e instanceof Error && e.message !== '' ? e.message : String(e)) })
+      .then(result => { if (request === generation.current) { setDocuments(result.documents); setError('') } })
+      .catch(e => { if (request === generation.current) setError(e instanceof Error && e.message !== '' ? e.message : String(e)) })
   }, [projectId])
-  useEffect(() => refresh(), [refresh])
+  useEffect(() => { setDocuments(null); setError(''); refresh(); return () => { generation.current += 1 } }, [refresh])
   return { documents, error, refresh, loading: documents === null && error === '' }
 }
 
@@ -41,12 +43,14 @@ export function useDocuments(projectId: string) {
 export function useRequirements(projectId: string, query: RequirementsQuery) {
   const [page, setPage] = useState<RequirementsPage | null>(null)
   const [error, setError] = useState('')
+  const generation = useRef(0)
   const refresh = useCallback(() => {
+    const request = ++generation.current
     api.requirements(projectId, query)
-      .then(result => { setPage(result); setError('') })
-      .catch(e => { setError(e instanceof Error && e.message !== '' ? e.message : String(e)) })
-  }, [projectId, query.status, query.q, query.page, query.pageSize])
-  useEffect(() => refresh(), [refresh])
+      .then(result => { if (request === generation.current) { setPage(result); setError('') } })
+      .catch(e => { if (request === generation.current) setError(e instanceof Error && e.message !== '' ? e.message : String(e)) })
+  }, [projectId, query.status, query.q, query.page, query.pageSize, query.runId, query.priority])
+  useEffect(() => { setPage(null); setError(''); refresh(); return () => { generation.current += 1 } }, [refresh])
   return { page, error, refresh, loading: page === null && error === '' }
 }
 

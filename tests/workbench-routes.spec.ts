@@ -93,6 +93,32 @@ async function click(call: ApiCall, name: string, args: Record<string, unknown>,
 }
 
 describe('MarketPilot workbench routes', () => {
+  it.each(['UNKNOWN', 'REJECT'])('M2 %s remains gated, cancellation preserves UNKNOWN and action groups reflect persisted review', async targetKind => {
+    const { call, services, project } = await workbenchHarness()
+    const row = await services.evidence.add(project.id, { kind: 'UNKNOWN', title: 'M2 open parameter', statement: 'Test parameter remains unknown', sourceType: 'model' })
+    const args = { projectId: project.id, evidenceId: row.id, method: 'human', targetKind, statement: row.statement, supportingEvidenceIds: [] }
+    const pending = await runTool(call, 'marketpilot_evidence_verify', args)
+    expect(pending.view.status).toBe('waiting_human')
+    expect(pending.view.question).toMatchObject({ options: ['确认', '退回修改'] })
+    expect(services.evidence.get(project.id, row.id)).toMatchObject({ kind: 'UNKNOWN', status: 'draft' })
+    expect((await call('POST', `/marketpilot/api/executions/${pending.callId}/cancel`)).status).toBe(200)
+    for (let i = 0; i < 100; i++) {
+      const cancelled = await call('GET', `/marketpilot/api/executions/${pending.callId}`)
+      if (cancelled.body.status === 'cancelled') break
+      await new Promise(resolve => setTimeout(resolve, 5))
+    }
+    expect((await call('GET', `/marketpilot/api/executions/${pending.callId}`)).body.status).toBe('cancelled')
+    expect(services.evidence.get(project.id, row.id)).toMatchObject({ kind: 'UNKNOWN', status: 'draft' })
+    await click(call, 'marketpilot_evidence_verify', args)
+    const expectedGroup = targetKind === 'UNKNOWN' ? 'needs_support' : 'rejected'
+    expect(services.evidence.get(project.id, row.id)).toMatchObject({ kind: 'UNKNOWN', status: targetKind === 'UNKNOWN' ? 'verified' : 'rejected' })
+    expect((await call('GET', `/marketpilot/api/projects/${project.id}/evidence?review=${expectedGroup}`)).body.total).toBe(1)
+    expect((await call('GET', `/marketpilot/api/projects/${project.id}/evidence?review=verified`)).body.total).toBe(0)
+    const review = await call('GET', `/marketpilot/api/projects/${project.id}/review`)
+    expect((review.body.evidenceCounts as Record<string, number>)[expectedGroup]).toBe(1)
+    const foreign = await services.projects.create({ name: 'M2 other evidence project' })
+    expect((await call('GET', `/marketpilot/api/projects/${foreign.id}/evidence/${row.id}`)).status).toBe(404)
+  })
   it('serves the tool whitelist, project list, detail and run summary', async () => {
     const { call } = await workbenchHarness()
     const tools = await call('GET', '/marketpilot/api/tools')

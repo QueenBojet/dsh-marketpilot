@@ -188,7 +188,8 @@ export class WorkbenchManager {
       })
       record.question = null
       if (result.isError) {
-        record.status = 'failed'
+        // Harness can return an aborted gate as a boxed Tool error.
+        record.status = record.controller.signal.aborted ? 'cancelled' : 'failed'
         record.error = result.content.map(block => block.type === 'text' ? block.text : '').join('').trim() || `工具 ${name} 执行失败。`
       } else {
         record.status = 'completed'

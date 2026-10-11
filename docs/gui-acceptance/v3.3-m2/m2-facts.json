@@ -1,0 +1,104 @@
+{
+  "mode": "real-desktop-hosted-web-cdp",
+  "date": "2026-10-11T05:25:33.716Z",
+  "newModelCalls": 0,
+  "screenshots": [
+    {
+      "name": "m2-empty-inputs-light-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m2-empty-inputs-dark-1024.png",
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "name": "m2-waiting-batch-light-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m2-priority-selection-cleared-1024.png",
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "name": "m2-calm-needs-support-light-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m2-calm-needs-support-light-1024.png",
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "name": "m2-calm-needs-support-dark-1024.png",
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "name": "m2-calm-backlog-1366.png",
+      "width": 1366,
+      "height": 768
+    },
+    {
+      "name": "m2-evidence-source-light-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m2-evidence-to-requirement-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m2-add-source-return-1440.png",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "m2-downstream-impact-1440.png",
+      "width": 1440,
+      "height": 900
+    }
+  ],
+  "checks": [
+    {
+      "waitingProject": "CALM 正式演示（现场确认用）",
+      "runId": "553d28cc-f1b9-4b13-89bd-b4622fc062aa",
+      "pageRows": 23,
+      "batchProposed": 16,
+      "historicalReadOnly": true,
+      "filterClearsSelection": true
+    },
+    {
+      "matureProject": "CALM 漏油监测桌面版演示",
+      "revision": 157,
+      "evidenceCounts": {
+        "pending": 0,
+        "needs_support": 28,
+        "verified": 10,
+        "rejected": 0,
+        "superseded": 0
+      },
+      "issues": 31,
+      "impactRecords": 6,
+      "evidenceId": "dff2549b-f144-4a5a-8881-2e99a21fd4eb",
+      "requirementId": "1753b7a3-fadc-4d28-b914-80ea72ad20cd",
+      "sourceMatchesBackend": true,
+      "bidirectionalJump": true,
+      "uploadExpanded": true
+    },
+    {
+      "persistedSnapshotsUnchanged": true,
+      "noNewExecution": true,
+      "pageOverflow": false
+    }
+  ],
+  "gaps": [
+    "Two-batch confirmation, pagination, cancellation and read-failure recovery use React and real Cordis/SQLite route tests; GUI does not write to existing CALM records or spend model credits."
+  ],
+  "pageErrors": []
+}

@@ -11,6 +11,7 @@ export interface RequirementTableProps {
   onToggle: (id: string) => void
   onSelectProposed: () => void
   onOpenDetail: (item: RequirementItem) => void
+  eligibleIds?: ReadonlySet<string> | undefined
 }
 
 /** Review-urgency order: 待确认 → 冲突 → 未知 → 已确认；同级保持提取顺序。 */
@@ -22,7 +23,7 @@ function reviewRank(status: string): number {
 }
 
 /** Render the requirement table. */
-export function RequirementTable({ t, rows, selected, onToggle, onSelectProposed, onOpenDetail }: RequirementTableProps) {
+export function RequirementTable({ t, rows, selected, onToggle, onSelectProposed, onOpenDetail, eligibleIds }: RequirementTableProps) {
   if (rows.length === 0) {
     return <div className="mp-empty"><p className="mp-emptyTitle">{t('reqEmptyTitle')}</p><p className="mp-emptyBody">{t('reqEmptyBody')}</p></div>
   }
@@ -35,7 +36,8 @@ export function RequirementTable({ t, rows, selected, onToggle, onSelectProposed
         <thead>
           <tr>
             <th scope="col" style={{ width: '36px' }}>
-              <button type="button" className="mp-link mp-caption" title={t('selectAllProposed')} onClick={onSelectProposed}>☑</button>
+              <button type="button" className="mp-link mp-caption" title={t('selectAllProposed')}
+                disabled={!rows.some(item => item.status === 'proposed' && (eligibleIds === undefined || eligibleIds.has(item.id)))} onClick={onSelectProposed}>☑</button>
             </th>
             <th scope="col">{t('colShortId')}</th>
             <th scope="col">{t('colName')}</th>
@@ -51,7 +53,7 @@ export function RequirementTable({ t, rows, selected, onToggle, onSelectProposed
             <tr key={item.id}>
               <td>
                 <input
-                  type="checkbox" disabled={item.status !== 'proposed'} checked={selected.has(item.id)}
+                  type="checkbox" disabled={item.status !== 'proposed' || (eligibleIds !== undefined && !eligibleIds.has(item.id))} checked={selected.has(item.id)}
                   aria-label={item.normalizedText}
                   onChange={() => { onToggle(item.id) }}
                 />
