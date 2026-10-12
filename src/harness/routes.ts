@@ -6,12 +6,14 @@ import type { MarketPilotService } from './service.ts'
 import { WorkbenchManager } from './workbench.ts'
 import { workbenchPage } from './v4-page.ts'
 import { ensure, MarketPilotError } from '../domain/common.ts'
+import { ZodError } from 'zod'
+import { handleV4 } from './v4-routes.ts'
 import { buildShortCodeIndex } from '../domain/shortcodes.ts'
 import type { ShortCodeBook } from '../domain/shortcodes.ts'
 import { markSupersededWaits } from '../domain/runs.ts'
 import { evidenceReviewGroup } from '../domain/project-review.ts'
 
-const API_PREFIX = '/marketpilot/api'
+export const API_PREFIX = '/marketpilot/api'
 const MAX_BODY_BYTES = 1024 * 1024
 const DOCUMENT_KINDS = ['customer_requirement', 'tender', 'meeting_note', 'internal_reference',
   'competitor_datasheet', 'standard', 'report', 'other'] as const
@@ -26,14 +28,14 @@ interface WebServerLike {
   }): () => void
 }
 
-function sendJson(response: ServerResponse, status: number, body: unknown): void {
+export function sendJson(response: ServerResponse, status: number, body: unknown): void {
   const payload = JSON.stringify(body)
   response.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'content-length': Buffer.byteLength(payload) })
   response.end(payload)
 }
 
 /** Same-origin policy: absent Origin (same-origin GET, some clients) passes; a present Origin must name this host. */
-function sameOrigin(request: IncomingMessage): boolean {
+export function sameOrigin(request: IncomingMessage): boolean {
   const origin = request.headers.origin
   if (origin === undefined || origin === 'null') return true
   const host = request.headers.host
@@ -41,7 +43,7 @@ function sameOrigin(request: IncomingMessage): boolean {
   try { return new URL(origin).host === host } catch { return false }
 }
 
-async function readJsonBody(request: IncomingMessage): Promise<Record<string, unknown>> {
+export async function readJsonBody(request: IncomingMessage): Promise<Record<string, unknown>> {
   const chunks: Buffer[] = []
   let size = 0
   for await (const chunk of request) {
@@ -56,7 +58,7 @@ async function readJsonBody(request: IncomingMessage): Promise<Record<string, un
 }
 
 /** Stream one raw request body, rejecting anything above the byte ceiling. */
-async function readRawBody(request: IncomingMessage, limitBytes: number): Promise<Buffer> {
+export async function readRawBody(request: IncomingMessage, limitBytes: number): Promise<Buffer> {
   const chunks: Buffer[] = []
   let size = 0
   for await (const chunk of request) {
@@ -519,6 +521,7 @@ export function mountWorkbenchRoutes(ctx: Context, workbench: WorkbenchManager):
           if (method === 'GET' && segments.length === 2 && segments[0] === 'summary') {
             return sendJson(response, 200, marketpilot.services.workflows.summary(segments[1]!))
           }
+          if (await handleV4({ ctx, workbench, marketpilot, request, response, method, segments, parsedUrl })) return
           return sendJson(response, 404, { error: `未知的工作台请求：${method} ${pathname}` })
         } catch (error) {
           if (error instanceof MarketPilotError) {
@@ -526,6 +529,10 @@ export function mountWorkbenchRoutes(ctx: Context, workbench: WorkbenchManager):
             const tooLarge = error.code === 'UPLOAD_TOO_LARGE'
             return sendJson(response, missing ? 404 : tooLarge ? 413 : 400, { error: error.message, code: error.code })
           }
+          if (error instanceof ZodError) {
+            return sendJson(response, 400, { error: error.issues.map(issue => `${issue.path.join('.') || '输入'}：${issue.message}`).join('；'), code: 'INVALID_INPUT' })
+          }
+          if (error instanceof SyntaxError) return sendJson(response, 400, { error: '请求体不是有效的 JSON。', code: 'WORKBENCH_BAD_BODY' })
           const message = error instanceof Error ? error.message : String(error)
           return sendJson(response, 500, { error: message })
         }

@@ -29,6 +29,9 @@ export const costLineInput = z.strictObject({
   reference: z.string().trim().max(1000).optional(), note: z.string().trim().max(2000).optional(),
 })
 export const routeSelectInput = z.strictObject({ alternativeId: id, by: text.max(80).default('用户') })
+export const modelPreferenceInput = z.strictObject({
+  provider: text.max(100), model: text.max(200), reasoningEffort: z.string().trim().min(1).max(40).optional(),
+})
 export const costReviewInput = z.strictObject({ kind: v4ReviewKind, note: z.string().trim().max(2000).optional() })
 
 export type CostReviewKind = z.infer<typeof v4ReviewKind>
@@ -59,6 +62,16 @@ export class SolutionService extends V4Base {
     return routeState(this.ctx.state(projectId))
   }
   route(projectId: string) { return routeState(this.ctx.state(projectId)) }
+
+  /** Project-level model preference; applies to the next run (global → project → per-run precedence). */
+  async setModelPreference(projectId: string, input: unknown) {
+    const pref = input === null ? null : modelPreferenceInput.parse(input)
+    await this.mutate(projectId, s => {
+      if (pref) s.v4.modelPreference = pref
+      else delete s.v4.modelPreference
+    })
+    return this.v4(projectId).modelPreference ?? null
+  }
 
   async addConfig(projectId: string, input: unknown) {
     const data = configInput.parse(clean(input))
