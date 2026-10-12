@@ -1,35 +1,39 @@
+import { execFileSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { workbenchPage } from '../src/harness/v4-page.ts'
 
-describe('MarketPilot V4 standalone foundation', () => {
-  it('is a standalone responsive HTML page pointing to the real same-origin API', () => {
-    expect(workbenchPage).toContain('<!doctype html>')
-    expect(workbenchPage).toContain('/marketpilot/api')
+describe('MarketPilot V4 standalone workbench page', () => {
+  it('is one self-contained responsive HTML document compatible with the inline-only CSP', () => {
+    expect(workbenchPage.startsWith('<!doctype html>')).toBe(true)
     expect(workbenchPage).toContain('width=device-width')
-    expect(workbenchPage).toContain('credentials:')
+    expect(workbenchPage).toContain('<div id="root"></div>')
+    expect(workbenchPage).not.toMatch(/<script[^>]+src=/i)
+    expect(workbenchPage).not.toMatch(/<link[^>]+href=/i)
+    expect(workbenchPage).not.toMatch(/@import/)
+    // Exactly one opening/closing inline script; bundle content must not terminate it early.
+    expect(workbenchPage.match(/<\/script/gi)).toHaveLength(1)
   })
 
-  it('exposes six non-linear project workspaces and actual existing tool calls', () => {
-    for (const text of ['项目总览', '资料与变更', '智能研究', '方案与决策', '成本与报价', '文档与交付']) {
-      expect(workbenchPage).toContain(text)
-    }
-    expect(workbenchPage).toContain('marketpilot_requirement_extract')
-    expect(workbenchPage).toContain('marketpilot_competitor_extract')
-    expect(workbenchPage).toContain('marketpilot_alternative_generate')
-    expect(workbenchPage).toContain('marketpilot_solution_generate')
-    expect(workbenchPage).toContain('documentIds')
+  it('talks only to the same-origin MarketPilot API', () => {
+    expect(workbenchPage).toContain('/marketpilot/api')
+    expect(workbenchPage).toContain('same-origin')
   })
 
-  it('does not advertise unfinished pricing, baseline publishing and internet research as live', () => {
-    expect(workbenchPage).toContain('尚未实现')
-    expect(workbenchPage).toContain('联网检索')
-    expect(workbenchPage).toContain('尚未接入真实持久化系统')
-    expect(workbenchPage).toContain('没有提供虚构金额')
+  it('ships global navigation and the six project workspaces', () => {
+    for (const text of ['工作台', '我的项目', '研究资料库', '运行记录', '设置',
+      '项目总览', '资料与变更', '智能研究', '方案与决策', '成本与报价', '文档与交付']) expect(workbenchPage).toContain(text)
   })
 
-  it('escapes untrusted document content and does not interpolate approval labels into JavaScript', () => {
-    expect(workbenchPage).toContain('const esc=s=>')
-    expect(workbenchPage).toContain('answerOption(')
-    expect(workbenchPage).not.toContain('JSON.stringify(k)+') 
+  it('invokes real gated tools rather than fake buttons', () => {
+    for (const tool of ['marketpilot_v4_route_confirm', 'marketpilot_v4_cost_review', 'marketpilot_alternative_generate'])
+      expect(workbenchPage).toContain(tool)
+    expect(workbenchPage).toContain('测试价格（非真实）')
   })
+
+  it('is up to date with src/workbench-ui', () => {
+    const before = readFileSync('src/harness/v4-page.generated.ts', 'utf8')
+    execFileSync(process.execPath, ['scripts/build-workbench.mjs'], { stdio: 'pipe' })
+    expect(readFileSync('src/harness/v4-page.generated.ts', 'utf8')).toBe(before)
+  }, 60_000)
 })

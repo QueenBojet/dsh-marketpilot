@@ -45,7 +45,8 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "build:client": "tsdown",
-    "build": "tsc -p tsconfig.build.json && node scripts/copy-prompts.mjs && tsdown"
+    "build:workbench": "node scripts/build-workbench.mjs",
+    "build": "node scripts/build-workbench.mjs && tsc -p tsconfig.build.json && node scripts/copy-prompts.mjs && tsdown"
   },
   "dependencies": {
     "zod": "4.4.3"
