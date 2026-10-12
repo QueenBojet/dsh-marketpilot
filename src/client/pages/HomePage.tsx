@@ -15,6 +15,7 @@ import { useExecutions, useHomeStats } from '../hooks/useExecution.ts'
 import { byRecent, useProjects } from '../hooks/useProjects.ts'
 import type { MarketPilotText, MarketPilotTextKey } from '../locales.ts'
 import type { MarketPilotActions } from '../stores.ts'
+import { GUIDED_STEPS, guidedText } from '../guidedWorkflow.ts'
 
 const RECENT_LIMIT = 8
 
@@ -81,6 +82,10 @@ export function HomePage({ t, actions }: { t: MarketPilotText; actions: MarketPi
         </div>
         <Button variant="primary" onClick={() => { actions.goProjects() }}>{t('newProject')}</Button>
       </div>
+      <section className="mp-homeJourney" aria-label={guidedText(t, 'fiveSteps')}>
+        <h2>{guidedText(t, 'journeyTitle')}</h2><p className="mp-caption">{guidedText(t, 'journeyHint')}</p>
+        <ol>{GUIDED_STEPS.map((step, index) => <li key={step.id}><span>{index + 1}</span><strong>{guidedText(t, `title.${step.key}`)}</strong></li>)}</ol>
+      </section>
       {error !== '' ? <ErrorState t={t} message={error} onRetry={refresh} />
         : loading ? <LoadingState t={t} />
           : projects !== null && projects.length === 0 ? (
@@ -110,11 +115,11 @@ export function HomePage({ t, actions }: { t: MarketPilotText; actions: MarketPi
                   <Button variant="primary" onClick={() => { actions.openProject(featured.id) }}>{t('homeContinue')}</Button>
                 </section>
               )}
-              <div className="mp-cards">
+              <details className="mp-secondaryDetails mp-homeStats"><summary>{guidedText(t, 'projectStats')}</summary><div className="mp-cards">
                 <StatCard t={t} value={projects === null ? null : projects.length} label={t('statProjects')} />
                 <StatCard t={t} value={stats === null ? null : stats.waitingTotal} label={t('statPending')} warn />
                 <StatCard t={t} value={stats === null ? null : stats.running} label={t('statRunning')} />
-              </div>
+              </div></details>
               <div className="mp-homeGrid">
                 <div>
                   <div className="mp-pageActions" style={{ justifyContent: 'space-between' }}>

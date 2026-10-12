@@ -5,6 +5,7 @@ import { afterEach, expect, it, vi } from 'vitest'
 import { ResearchPage } from '../src/client/pages/ResearchPage.tsx'
 import { marketpilotLocales } from '../src/client/locales.ts'
 import type { MarketPilotActions } from '../src/client/stores.ts'
+import { WorkflowContext } from '../src/client/components/ProjectWorkflowOverview.tsx'
 
 const t = (key: keyof typeof marketpilotLocales.zh) => marketpilotLocales.zh[key]
 let root: Root | undefined, container: HTMLDivElement | undefined
@@ -21,7 +22,7 @@ const snapshot = { projectId: 'p-m3', revision: 1, competitors,
   documents, recordCodes: { e0: 'EVD-01' }, runs: [] }
 const response = (value: unknown) => ({ ok: true, status: 200, json: async () => value })
 let invalid = false
-function mount(actions?: MarketPilotActions, bad = false) {
+function mount(actions?: MarketPilotActions, bad = false, guided = false) {
   invalid = bad; posted.length = 0
   vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true)
   vi.stubGlobal('fetch', vi.fn(async (input: unknown, init?: { method?: string; body?: string }) => {
@@ -36,7 +37,7 @@ function mount(actions?: MarketPilotActions, bad = false) {
     throw new Error(`Unexpected ${url}`)
   }))
   container = document.createElement('div'); document.body.append(container); root = createRoot(container)
-  act(() => { root!.render(<ResearchPage t={t} projectId="p-m3" {...actions ? { actions } : {}} />) })
+  act(() => { root!.render(<WorkflowContext.Provider value={{ mode: guided ? 'guided' : 'professional', snapshot: null, error: '' }}><ResearchPage t={t} projectId="p-m3" {...actions ? { actions } : {}} /></WorkflowContext.Provider>) })
 }
 const flush = async () => { await act(async () => {}) }
 const button = (name: string) => [...container!.querySelectorAll('button')].find(b => b.textContent?.trim() === name)!
@@ -47,6 +48,21 @@ async function change(label: string, value: string, type: 'input' | 'textarea' |
   act(() => { Object.getOwnPropertyDescriptor(prototype, 'value')!.set!.call(element, value); element.dispatchEvent(new Event(type === 'select' ? 'change' : 'input', { bubbles: true })) }); await flush()
 }
 afterEach(() => { act(() => { root?.unmount() }); container?.remove(); vi.unstubAllGlobals(); vi.restoreAllMocks() })
+it('guided research shows real cards first and keeps source input folded even when search has no matches', async () => {
+  mount(undefined, false, true); await flush()
+  expect(container!.querySelectorAll('.mp-researchCard')).toHaveLength(5)
+  const result = container!.querySelector('.mp-researchResults')!, inputs = container!.querySelector<HTMLDetailsElement>('.mp-researchInput')!
+  expect(result.compareDocumentPosition(inputs) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  expect(inputs.open).toBe(false)
+  const boxes = [...result.querySelectorAll<HTMLInputElement>('input[type=checkbox]')]
+  for (const box of boxes.slice(0, 4)) await click(box)
+  expect(boxes[4]!.disabled).toBe(true)
+  await change(t('research.resultSearch'), 'no-match')
+  expect(container!.querySelectorAll('.mp-researchCard')).toHaveLength(0)
+  expect(inputs.open).toBe(false)
+  expect(container!.querySelector('.mp-businessResultHead')?.textContent).toContain('5')
+  expect(posted).toEqual([])
+})
 it('clears selection on filters, persists purpose in the tool call, and separates directions', async () => {
   mount(); await flush()
   await click(container!.querySelector('.mp-docItem input')!)

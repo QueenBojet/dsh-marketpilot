@@ -9,7 +9,7 @@ import { defineStore, type ActionsDecl, type EngineStoreHandle } from '@deepseek
 
 /** One project workspace section; `overview` is the Phase 1 landing section. */
 export type ProjectSection =
-  | 'overview' | 'requirements' | 'research' | 'evidence'
+  | 'overview' | 'documents' | 'requirements' | 'research' | 'evidence'
   | 'alternatives' | 'solution' | 'tender' | 'artifacts'
 
 /** A cross-module jump target: land on a section and highlight one record. */

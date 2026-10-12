@@ -16,21 +16,24 @@ import { useActiveRun, useDocuments, useExecutions, useRequirements } from '../h
 import { errorMessage } from '../hooks/useProjects.ts'
 import type { ProjectFocus } from '../stores.ts'
 import type { MarketPilotText, MarketPilotTextKey } from '../locales.ts'
-import { useStageAccess, workflowText } from '../components/ProjectWorkflowOverview.tsx'
+import { useGuidedMode, useStageAccess, workflowText } from '../components/ProjectWorkflowOverview.tsx'
 import { useProjectReview } from '../hooks/useProjectReview.ts'
 import { ReviewBacklog, ReviewImpact } from '../components/ReviewSupport.tsx'
 import type { MarketPilotActions } from '../stores.ts'
 import { formatTime } from '../format.ts'
+import { guidedText } from '../guidedWorkflow.ts'
 
 const STATUS_FILTERS = ['all', 'proposed', 'confirmed', 'unknown', 'conflict'] as const
 
 /** Render the requirements page for one project. */
-export function RequirementsPage({ t, projectId, focus, actions }: {
+export function RequirementsPage({ t, projectId, focus, actions, target }: {
   t: MarketPilotText
   projectId: string
   focus?: ProjectFocus | undefined
   actions?: MarketPilotActions | undefined
+  target?: 'upload' | 'analysis' | undefined
 }) {
+  const guided = useGuidedMode()
   const [kind, setKind] = useState('customer_requirement')
   const access = useStageAccess('S1')
   const [selectedDocs, setSelectedDocs] = useState<ReadonlySet<string>>(new Set())
@@ -43,7 +46,11 @@ export function RequirementsPage({ t, projectId, focus, actions }: {
   const selectedBatchId = batchChoice ?? review.snapshot?.batches.find(b => b.status === 'waiting_human' && !b.superseded)?.id ?? ''
   const batch = review.snapshot?.batches.find(b => b.id === selectedBatchId)
   const [drawerId, setDrawerId] = useState<string | null>(null)
-  const [inputsOpen, setInputsOpen] = useState(true)
+  const [inputsOpen, setInputsOpen] = useState(target !== 'analysis')
+  useEffect(() => {
+    if (target === undefined) return
+    setInputsOpen(target === 'upload')
+  }, [target])
   const [reviewBusy, setReviewBusy] = useState(false)
   const [notice, setNotice] = useState('')
   const [error, setError] = useState('')
@@ -154,13 +161,10 @@ export function RequirementsPage({ t, projectId, focus, actions }: {
   const drawer = remoteRequirement?.id === drawerId ? remoteRequirement
     : requirements.page?.requirements.find(item => item.id === drawerId) ?? null
 
-  return (
-    <div>
-      <h2 className="mp-sectionTitle" style={{ marginTop: 0 }}>{t('sectionRequirements')}</h2>
-
-      <details className="mp-reviewBlock" open={inputsOpen} onToggle={event => { setInputsOpen(event.currentTarget.open) }}>
-      <summary>{t('review.inputs')}</summary>
-      <h3 className="mp-subTitle">{t('docsTitle')}</h3>
+  const hasRequirementRecords = (access.stage?.results ?? 0) > 0 || review.snapshot?.batches.some(b => b.requirementIds.length > 0) === true
+  const inputPanel = (<details className={guided ? "mp-reviewBlock mp-businessDetails mp-requirementInputs" : "mp-reviewBlock"} open={inputsOpen || (guided && target === 'analysis' && !hasRequirementRecords && requirements.page?.total === 0)} onToggle={event => { setInputsOpen(event.currentTarget.open) }}>
+      <summary>{guided ? guidedText(t, target === 'upload' ? 'uploadSources' : 'selectSources') : t('review.inputs')}</summary>
+      <h3 id="mp-requirement-upload" className="mp-subTitle">{t('docsTitle')}</h3>
       <DocumentUploader t={t} projectId={projectId} kind={kind} onKindChange={setKind} onUploaded={() => { documents.refresh(); review.refresh() }} />
       {documents.error !== '' ? <p className="mp-errorText" role="alert">{documents.error}</p>
         : documents.loading ? <p className="mp-caption">{t('loading')}</p>
@@ -175,13 +179,13 @@ export function RequirementsPage({ t, projectId, focus, actions }: {
                       onChange={() => { toggle(setSelectedDocs)(doc.id) }}
                     />
                     <span className="mp-cellMain">{doc.name}</span>
-                    <span className="mp-caption">{` · ${doc.kind} · ${String(doc.bytes)} B`}</span>
+                    <span className="mp-caption">{guided ? ` · ${t(`docKind.${doc.kind}` as MarketPilotTextKey)}` : ` · ${doc.kind} · ${String(doc.bytes)} B`}</span>
                   </label>
                 </li>
               ))}
             </ul>
           )}
-      <div className="mp-toolbar">
+      <div id="mp-requirement-analysis" className="mp-toolbar">
         <button
           type="button" className="mp-headerNavItem mp-primaryAction"
           disabled={busy || !access.allowed || documents.error !== '' || selectedDocs.size === 0}
@@ -196,23 +200,11 @@ export function RequirementsPage({ t, projectId, focus, actions }: {
         ) : null}
       </div>
       {selectedDocs.size === 0 ? <p className="mp-caption">{workflowText(t, 'selectDocuments')}</p> : null}
-      </details>
-      <h3 className="mp-subTitle">{t('review.execution')}</h3>
-
-      {progressVisible ? (
-        <TaskProgress
-          t={t} run={waitingRun} active={busy}
-          startedAt={extractExecution?.startedAt ?? waitingRun?.startedAt ?? new Date().toISOString()}
-        />
-      ) : null}
-      {extractExecution?.lost === true ? (
-        <div className="mp-nextHint" role="alert">
-          <strong>{t('interruptTitle')}</strong>
-          <span>{t('interruptBody')}</span>
-        </div>
-      ) : null}
-
-      <h3 className="mp-subTitle">{t('review.results')}</h3>
+      </details>)
+  const resultPanel = <section className={guided ? "mp-businessCard mp-requirementResults" : undefined}>
+      {guided ? <header className="mp-businessResultHead"><div><p className="mp-guidedEyebrow">{guidedText(t, 'mainResult')}</p><h3>{guidedText(t, 'requirementsResult')}</h3><p>{`${access.stage?.results ?? '—'} ${guidedText(t, 'unit.requirements')}`}</p></div>
+        {actions === undefined ? null : <button type="button" className="mp-primaryAction mp-headerNavItem" disabled={(access.stage?.results ?? 0) === 0} onClick={() => { actions.setSection('research') }}>{guidedText(t, 'nextResearch')}</button>}</header>
+        : <h3 className="mp-subTitle">{t('review.results')}</h3>}
       <div className="mp-toolbar"><label className="mp-caption">{t('review.batch')}{' '}<select aria-label={t('review.batch')} className="mp-kindSelect" value={selectedBatchId}
         onChange={e => { setBatchChoice(e.target.value); setPageNumber(1) }}><option value="">{t('review.allBatches')}</option>
         {review.snapshot?.batches.map(b => <option key={b.id} value={b.id}>{`${formatTime(b.startedAt)} · ${b.id.slice(0, 8)} · ${b.superseded ? t('review.history') : t(`runStatus.${b.status}` as MarketPilotTextKey)}`}</option>)}</select></label>
@@ -222,8 +214,8 @@ export function RequirementsPage({ t, projectId, focus, actions }: {
         <button type="button" className="mp-link" onClick={() => { review.refresh(); requirements.refresh() }}>{t('workflow.refresh')}</button>
       </div>
       {review.error === '' ? null : <p role="alert" className="mp-errorText">{review.error}</p>}
-      <p className="mp-caption">{t('review.scope')}</p>
-      {reviewRunId === undefined ? <p className="mp-caption">{t('review.noBatch')}</p> : <p className="mp-caption">{Object.entries(batch?.counts ?? {}).map(([status, n]) => `${t(`requirementStatus.${status}` as MarketPilotTextKey)} ${n}`).join(' · ')}</p>}
+      {guided ? <details className="mp-businessScope"><summary>{guidedText(t, 'reviewScope')}</summary><p className="mp-caption">{t('review.scope')}</p></details> : <p className="mp-caption">{t('review.scope')}</p>}
+      {reviewRunId === undefined ? guided ? null : <p className="mp-caption">{t('review.noBatch')}</p> : <p className="mp-caption">{Object.entries(batch?.counts ?? {}).map(([status, n]) => `${t(`requirementStatus.${status}` as MarketPilotTextKey)} ${n}`).join(' · ')}</p>}
       <div className="mp-toolbar">
         {STATUS_FILTERS.map(filter => (
           <button
@@ -257,7 +249,7 @@ export function RequirementsPage({ t, projectId, focus, actions }: {
         : requirements.loading ? <p className="mp-caption">{t('loading')}</p>
         : (
           <RequirementTable
-            t={t} rows={requirements.page?.requirements ?? []}
+            compact={guided} t={t} rows={requirements.page?.requirements ?? []}
             selected={selectedRequirements}
             eligibleIds={batchIds}
             onToggle={toggle(setSelectedRequirements)}
@@ -271,6 +263,28 @@ export function RequirementsPage({ t, projectId, focus, actions }: {
 
       <div className="mp-toolbar"><button type="button" className="mp-link" disabled={pageNumber <= 1} onClick={() => { setPageNumber(pageNumber - 1) }}>{t('review.previous')}</button>
         <span className="mp-caption">{pageNumber}</span><button type="button" className="mp-link" disabled={requirements.page === null || pageNumber * 25 >= requirements.page.total} onClick={() => { setPageNumber(pageNumber + 1) }}>{t('review.next')}</button></div>
+  </section>
+  const resultsFirst = guided && target !== 'upload' && hasRequirementRecords
+  return (
+    <div className={guided ? "mp-businessPage mp-requirementsPage" : undefined}>
+      {guided ? null : <h2 className="mp-sectionTitle" style={{ marginTop: 0 }}>{t('sectionRequirements')}</h2>}
+      {resultsFirst ? resultPanel : inputPanel}
+      {guided ? null : <h3 className="mp-subTitle">{t('review.execution')}</h3>}
+
+      {progressVisible ? (
+        <TaskProgress
+          t={t} run={waitingRun} active={busy}
+          startedAt={extractExecution?.startedAt ?? waitingRun?.startedAt ?? new Date().toISOString()}
+        />
+      ) : null}
+      {extractExecution?.lost === true ? (
+        <div className="mp-nextHint" role="alert">
+          <strong>{t('interruptTitle')}</strong>
+          <span>{t('interruptBody')}</span>
+        </div>
+      ) : null}
+
+      {resultsFirst ? inputPanel : resultPanel}
       {actions === undefined ? null : <ReviewBacklog t={t} snapshot={review.error === '' ? review.snapshot : null} actions={actions} />}
       <ReviewImpact t={t} snapshot={review.error === '' ? review.snapshot : null} actions={actions} />
       {drawer !== null ? <SourceDrawer t={t} item={drawer} projectId={projectId} related={review.error === '' ? review.snapshot?.links[drawer.id] : undefined} onEvidence={actions === undefined ? undefined : id => { actions.focusRecord('evidence', 'evidence', id) }} onClose={() => { setDrawerId(null) }} /> : null}

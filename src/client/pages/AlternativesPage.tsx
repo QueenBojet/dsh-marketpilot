@@ -19,8 +19,10 @@ import { useDrawerKeys } from '../hooks/useDrawerKeys.ts'
 import { RecordLinks, DesignSyntheticNotice } from '../components/ArtifactContextNotice.tsx'
 import { routeReview } from '../../domain/route-review.ts'
 import type { MarketPilotActions } from '../stores.ts'
-import { useStageAccess, workflowText } from '../components/ProjectWorkflowOverview.tsx'
+import { useGuidedMode, useStageAccess, workflowText } from '../components/ProjectWorkflowOverview.tsx'
+import { guidedText } from '../guidedWorkflow.ts'
 import type { MarketPilotText, MarketPilotTextKey } from '../locales.ts'
+import { formatTime } from '../format.ts'
 
 function coverageTone(level: string | undefined): 'success' | 'warning' | 'danger' | 'neutral' {
   if (level === 'full') return 'success'
@@ -30,13 +32,16 @@ function coverageTone(level: string | undefined): 'success' | 'warning' | 'dange
 }
 
 /** One candidate column. */
-function CandidateCard({ t, row, selected, busy, onSelect, clean }: {
+function CandidateCard({ t, row, selected, busy, onSelect, clean, compact = false, codes, actions }: {
   t: MarketPilotText
   row: AlternativeItem
   selected: boolean
   busy: boolean
   onSelect: (id: string) => void
   clean: (text: string) => string
+  compact?: boolean
+  codes: Record<string, string>
+  actions?: MarketPilotActions | undefined
 }) {
   const [expanded, setExpanded] = useState(false)
   return (
@@ -50,11 +55,11 @@ function CandidateCard({ t, row, selected, busy, onSelect, clean }: {
           aria-label={row.name}
           onChange={() => { onSelect(row.id) }}
         />
-        <h3 className="mp-altCardTitle">{row.name}</h3>
-        <Tag tone={row.status === 'selected' ? 'success' : row.status === 'rejected' ? 'danger' : 'neutral'}>
+        <h3 className="mp-altCardTitle" title={row.name}>{row.name}</h3>
+        {compact && row.status === 'candidate' ? null : <Tag tone={row.status === 'selected' ? 'success' : row.status === 'rejected' ? 'danger' : 'neutral'}>
           {row.status === 'selected' ? t('altStatusSelected')
             : row.status === 'rejected' ? t('altStatusRejected') : t('altStatusCandidate')}
-        </Tag>
+        </Tag>}
       </header>
       <p className="mp-altCardSummary">{clean(row.summary)}</p>
       <dl className="mp-altCardFacts">
@@ -66,9 +71,12 @@ function CandidateCard({ t, row, selected, busy, onSelect, clean }: {
         <dd>{row.limitations.map(clean).join('；') || '—'}</dd>
         <dt>{t('altRisks')}</dt>
         <dd>{row.risks.map(clean).join('；') || '—'}</dd>
-        <dt>{t('altUnknowns')}</dt>
-        <dd className="mp-altUnknowns">{row.unknowns.map(clean).join('；') || '—'}</dd>
+        {compact ? null : <><dt>{t('altUnknowns')}</dt><dd className="mp-altUnknowns">{row.unknowns.map(clean).join('；') || '—'}</dd></>}
       </dl>
+      {compact ? <details className="mp-routeSources"><summary>{guidedText(t, 'routeEvidence')}</summary>
+        <h4>{t('altUnknowns')}</h4><ul>{row.unknowns.map((text, index) => <li key={index}>{clean(text)}</li>)}</ul>
+        <RecordLinks ids={row.evidenceIds} codes={codes} actions={actions} />
+      </details> : null}
       <footer className="mp-altCardFoot">
         <span className="mp-caption">{`${t('colEvidence')}: ${String(row.evidenceIds.length)}`}</span>
         <button
@@ -84,6 +92,7 @@ function CandidateCard({ t, row, selected, busy, onSelect, clean }: {
 
 /** Render the alternatives page. */
 export function AlternativesPage({ t, projectId, actions }: { t: MarketPilotText; projectId: string; actions?: MarketPilotActions | undefined }) {
+  const guided = useGuidedMode()
   const [selected, setSelected] = useState(''), [rationale, setRationale] = useState('')
   const [view, setView] = useState<'summary' | 'matrix'>('summary'), [batchId, setBatchId] = useState('')
   const [previewVersion, setPreviewVersion] = useState<string | null>(null), [starting, setStarting] = useState(false)
@@ -100,6 +109,8 @@ export function AlternativesPage({ t, projectId, actions }: { t: MarketPilotText
   const confirmed = (snapshot?.requirements ?? []).filter(row => row.status === 'confirmed')
     .sort((a, b) => (a.priority === 'must' ? 0 : 1) - (b.priority === 'must' ? 0 : 1) || a.createdAt.localeCompare(b.createdAt))
   const codes = snapshot?.recordCodes ?? {}
+  const activeDecision = snapshot?.decisions.find(row => row.id === snapshot.activeDecisionId)
+  const activeRoute = snapshot?.alternatives.find(row => row.id === activeDecision?.alternativeId)
   const codeIndex = useMemo(() => snapshot === null ? null : buildShortCodeIndex({ ...snapshot, codeBook: { seq: {}, codes: snapshot.recordCodes } }), [snapshot])
   const clean = (text: string): string => codeIndex?.replace(text) ?? text
   const chosen = rows.find(row => row.id === selected)
@@ -122,15 +133,24 @@ export function AlternativesPage({ t, projectId, actions }: { t: MarketPilotText
     void workflow.start('marketpilot_alternative_generate', {}).catch(() => { /* Visible workflow error. */ })
       .finally(() => { startingRef.current = false; setStarting(false) })
   }
-  return <div className="mp-altPage">
-    <h2 className="mp-sectionTitle" style={{ marginTop: 0 }}>{t('alternativesTitle')}</h2>
+  const matrixPanel = (<div className="mp-tableWrap"><table className="mp-table mp-routeMatrix"><thead><tr><th scope="col">{t('colName')}</th>{rows.map(row => <th key={row.id} scope="col"><label><input type="radio" name="route" checked={selected === row.id} disabled={busy} aria-label={row.name} onChange={() => { setSelected(row.id); setPreviewVersion(null) }} />{row.name}</label></th>)}</tr></thead>
+        <tbody>{(['summary', 'components', 'strengths', 'limitations', 'risks', 'unknowns'] as const).map(key => <tr key={key}><th scope="row">{t(({ summary: 'colResponse', components: 'altComponents', strengths: 'altStrengths', limitations: 'altLimitations', risks: 'altRisks', unknowns: 'altUnknowns' } as const)[key])}</th>
+          {rows.map(row => <td key={row.id}>{clean(typeof row[key] === 'string' ? row[key] as string : (row[key] as string[]).join('；')) || '—'}</td>)}</tr>)}
+          <tr><th scope="row">{t('evidenceRefs')}</th>{rows.map(row => <td key={row.id}><RecordLinks ids={row.evidenceIds} codes={codes} actions={actions} /></td>)}</tr>
+        </tbody></table></div>)
+  const coveragePanel = (rows.length === 0 || confirmed.length === 0 ? null : <section className="mp-coverageBlock"><h3 className="mp-subTitle">{t('coverageTitle')}</h3><div className="mp-tableWrap"><table className="mp-table">
+      <thead><tr><th scope="col">{t('colName')}</th>{rows.map(row => <th key={row.id} scope="col">{row.name}</th>)}</tr></thead><tbody>{confirmed.map(requirement => <tr key={requirement.id}>
+        <td className="mp-cellMain"><RecordLinks ids={[requirement.id]} codes={codes} actions={actions} kind="requirement" /> {requirement.normalizedText}{requirement.priority === 'must' ? <Tag tone="neutral">MUST</Tag> : null}</td>
+        {rows.map(row => <td key={row.id}><Tag tone={coverageTone(row.requirementCoverage[requirement.id])}>{t(`coverage.${row.requirementCoverage[requirement.id] ?? 'unknown'}` as MarketPilotTextKey)}</Tag></td>)}</tr>)}</tbody></table></div></section>)
+  return <div className={guided ? "mp-altPage mp-businessPage" : "mp-altPage"}>
+    {guided ? <header className="mp-businessResultHead"><div><p className="mp-guidedEyebrow">{guidedText(t, 'mainResult')}</p><h3>{guidedText(t, 'routesResult')}</h3><p>{`${snapshot === null ? '—' : rows.length} ${guidedText(t, 'unit.routes')}`}</p></div></header> : <h2 className="mp-sectionTitle" style={{ marginTop: 0 }}>{t('alternativesTitle')}</h2>}
       <DesignSyntheticNotice t={t} snapshot={snapshot} />
     <div className="mp-toolbar">
-      <button type="button" className="mp-primaryAction mp-headerNavItem" disabled={busy || !access.allowed || confirmed.length === 0 || snapshot === null || data.error !== ''} onClick={generate}>{t('generateAlternatives')}</button>
-      <button type="button" className="mp-headerNavItem" aria-pressed={view === 'summary'} onClick={() => { setView('summary') }}>{t('design.summaryView')}</button>
-      <button type="button" className="mp-headerNavItem" aria-pressed={view === 'matrix'} onClick={() => { setView('matrix') }}>{t('design.matrixView')}</button>
+      <button type="button" className={guided && rows.length > 0 ? "mp-headerNavItem mp-secondaryAction" : "mp-primaryAction mp-headerNavItem"} disabled={busy || !access.allowed || confirmed.length === 0 || snapshot === null || data.error !== ''} onClick={generate}>{t('generateAlternatives')}</button>
+      {guided ? null : <><button type="button" className="mp-headerNavItem" aria-pressed={view === 'summary'} onClick={() => { setView('summary') }}>{t('design.summaryView')}</button>
+      <button type="button" className="mp-headerNavItem" aria-pressed={view === 'matrix'} onClick={() => { setView('matrix') }}>{t('design.matrixView')}</button></>}
       {batches.length === 0 ? null : <select className="mp-searchInput" aria-label={t('design.routeBatch')} value={batchId || batches[0]?.id} onChange={event => { setBatchId(event.target.value); setSelected(''); setPreviewVersion(null) }}>
-        {batches.map((row, i) => <option key={row.id} value={row.id}>{`v${batches.length - i} · ${row.updatedAt.slice(0, 16)}`}</option>)}
+        {batches.map((row, i) => <option key={row.id} value={row.id}>{`v${batches.length - i} · ${formatTime(row.updatedAt)}`}</option>)}
         <option value="all">{t('design.allRoutes')}</option>
       </select>}
     </div>
@@ -138,19 +158,15 @@ export function AlternativesPage({ t, projectId, actions }: { t: MarketPilotText
     {data.error !== '' ? <ErrorState t={t} message={data.error} onRetry={data.refresh} /> : snapshot === null ? <LoadingState t={t} /> : null}
     <WorkflowSurface t={t} run={workflow.run} execution={workflow.latest} busy={busy} error={workflow.error} label={t('generateAlternatives')}
       onAnswer={(answer, custom) => { void workflow.answer(answer, custom) }} onCancel={() => { void workflow.cancel() }} />
-    {snapshot === null ? null : rows.length === 0 ? <EmptyState title={t('alternativesTitle')} body={t('noAlternatives')} /> : view === 'summary' ?
-      <div className="mp-altGrid" data-count={String(Math.min(rows.length, 3))}>{rows.map(row => <CandidateCard key={row.id} t={t} row={row} selected={selected === row.id} busy={busy} onSelect={id => { setSelected(id); setPreviewVersion(null) }} clean={clean} />)}</div> :
-      <div className="mp-tableWrap"><table className="mp-table mp-routeMatrix"><thead><tr><th scope="col">{t('colName')}</th>{rows.map(row => <th key={row.id} scope="col"><label><input type="radio" name="route" checked={selected === row.id} disabled={busy} aria-label={row.name} onChange={() => { setSelected(row.id); setPreviewVersion(null) }} />{row.name}</label></th>)}</tr></thead>
-        <tbody>{(['summary', 'components', 'strengths', 'limitations', 'risks', 'unknowns'] as const).map(key => <tr key={key}><th scope="row">{t(({ summary: 'colResponse', components: 'altComponents', strengths: 'altStrengths', limitations: 'altLimitations', risks: 'altRisks', unknowns: 'altUnknowns' } as const)[key])}</th>
-          {rows.map(row => <td key={row.id}>{clean(typeof row[key] === 'string' ? row[key] as string : (row[key] as string[]).join('；')) || '—'}</td>)}</tr>)}
-          <tr><th scope="row">{t('evidenceRefs')}</th>{rows.map(row => <td key={row.id}><RecordLinks ids={row.evidenceIds} codes={codes} actions={actions} /></td>)}</tr>
-        </tbody></table></div>}
-    <p className="mp-caption">{t('design.matrixHint')}</p>
-    {rows.length === 0 || confirmed.length === 0 ? null : <section className="mp-coverageBlock"><h3 className="mp-subTitle">{t('coverageTitle')}</h3><div className="mp-tableWrap"><table className="mp-table">
-      <thead><tr><th scope="col">{t('colName')}</th>{rows.map(row => <th key={row.id} scope="col">{row.name}</th>)}</tr></thead><tbody>{confirmed.map(requirement => <tr key={requirement.id}>
-        <td className="mp-cellMain"><RecordLinks ids={[requirement.id]} codes={codes} actions={actions} kind="requirement" /> {requirement.normalizedText}{requirement.priority === 'must' ? <Tag tone="neutral">MUST</Tag> : null}</td>
-        {rows.map(row => <td key={row.id}><Tag tone={coverageTone(row.requirementCoverage[requirement.id])}>{t(`coverage.${row.requirementCoverage[requirement.id] ?? 'unknown'}` as MarketPilotTextKey)}</Tag></td>)}</tr>)}</tbody></table></div></section>}
-    {rows.length === 0 ? null : <div className="mp-decisionBar"><div className="mp-decisionBarMain"><span className="mp-caption">{t('selectRoute')}</span><strong>{chosen?.name ?? t('altNoneSelected')}</strong></div>
+    {snapshot === null ? null : rows.length === 0 ? <EmptyState title={t('alternativesTitle')} body={t('noAlternatives')} /> : guided || view === 'summary' ?
+      <div className="mp-altGrid" data-count={String(Math.min(rows.length, 3))}>{rows.map(row => <CandidateCard compact={guided} codes={codes} actions={actions} key={row.id} t={t} row={row} selected={selected === row.id} busy={busy} onSelect={id => { setSelected(id); setPreviewVersion(null) }} clean={clean} />)}</div> :
+      matrixPanel}
+    {guided && activeDecision !== undefined ? <section className="mp-businessDecision">
+      <div><p className="mp-guidedEyebrow">{guidedText(t, 'recordedRoute')}</p><strong>{activeRoute?.name ?? guidedText(t, 'unrecorded')}</strong><details className="mp-businessScope"><summary>{guidedText(t, 'decisionRationale')}</summary><p className="mp-caption">{clean(activeDecision.rationale)}</p></details></div>
+      {actions === undefined ? null : <button type="button" className="mp-primaryAction mp-headerNavItem" onClick={() => { actions.setSection('solution') }}>{guidedText(t, 'nextSolution')}</button>}
+    </section> : null}
+    {guided ? rows.length === 0 ? null : <details className="mp-businessDetails mp-routeDetails"><summary>{guidedText(t, 'routeMatrix')}</summary><p className="mp-caption">{t('design.matrixHint')}</p>{matrixPanel}{coveragePanel}</details> : <><p className="mp-caption">{t('design.matrixHint')}</p>{coveragePanel}</>}
+    {rows.length === 0 ? null : <div className="mp-decisionBar">{guided ? <h3>{guidedText(t, 'humanRouteChoice')}</h3> : null}<div className="mp-decisionBarMain"><span className="mp-caption">{t('selectRoute')}</span><strong>{chosen?.name ?? t('altNoneSelected')}</strong></div>
       <textarea className="mp-dialogInput mp-decisionInput" placeholder={t('rationale')} value={rationale} aria-label={t('rationale')} disabled={busy} onChange={event => { setRationale(event.target.value); setPreviewVersion(null) }} />
       <button type="button" className="mp-primaryAction mp-headerNavItem" disabled={!canReview} onClick={() => { if (snapshot !== null && canReview) setPreviewVersion(snapshot.reviewVersion) }}>{t('submitDecision')}</button>
       {chosen?.status === 'selected' ? <p className="mp-caption">{t('design.alreadySelected')}</p> : null}

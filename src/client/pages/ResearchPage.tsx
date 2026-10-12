@@ -1,4 +1,6 @@
 import { useContext, useEffect, useRef, useState } from 'react'
+import { CompetitorCards, PolicyCards } from '../components/ResearchCards.tsx'
+import { guidedText } from '../guidedWorkflow.ts'
 import type { CompetitorItem, PolicyItem } from '../api.ts'
 import { ErrorState, LoadingState } from '../components/States.tsx'
 import { WorkflowSurface } from '../components/WorkflowSurface.tsx'
@@ -9,10 +11,12 @@ import { useDocuments } from '../hooks/useExecution.ts'
 import { useResearchOverview } from '../hooks/useResearchOverview.ts'
 import type { MarketPilotText, MarketPilotTextKey } from '../locales.ts'
 import type { MarketPilotActions } from '../stores.ts'
-import { useStageAccess, WorkflowContext } from '../components/ProjectWorkflowOverview.tsx'
+import { useGuidedMode, useStageAccess, WorkflowContext } from '../components/ProjectWorkflowOverview.tsx'
 
 /** Local research uses guarded tools; online mode requires verified official capability. */
 export function ResearchPage({ t, projectId, actions }: { t: MarketPilotText; projectId: string; actions?: MarketPilotActions }) {
+  const guided = useGuidedMode()
+  const [inputOpen, setInputOpen] = useState(false)
   const access = useStageAccess('S2'), context = useContext(WorkflowContext)
   const [mode, setMode] = useState<'local' | 'online'>('local'), [tab, setTab] = useState<'competitor' | 'policy'>('competitor')
   const [selectedDocs, setSelectedDocs] = useState<ReadonlySet<string>>(new Set())
@@ -35,6 +39,7 @@ export function ResearchPage({ t, projectId, actions }: { t: MarketPilotText; pr
   const q = search.trim().toLowerCase()
   const results = tab === 'competitor' ? competitors.filter(row => [row.company, row.product, row.technology].some(v => v?.toLowerCase().includes(q)))
     : policies.filter(row => [row.title, row.issuer, row.documentNumber, row.version, row.scope].some(v => v?.toLowerCase().includes(q)))
+  const hasResults = (tab === 'competitor' ? competitors.length : policies.length) > 0
   const pages = Math.max(1, Math.ceil(results.length / 12)), currentPage = Math.min(page, pages), visible = results.slice((currentPage - 1) * 12, currentPage * 12)
   const comparisonRows = competitors.filter(row => selectedProducts.has(row.id))
   const inputReady = access.allowed && documents.error === '' && research.error === '' && snapshot !== null && !documents.loading && selectedIds.length > 0 && !starting && !competitorFlow.busy && !policyFlow.busy
@@ -45,18 +50,7 @@ export function ResearchPage({ t, projectId, actions }: { t: MarketPilotText; pr
       { documentIds: selectedIds, ...(purposes[tab].trim() === '' ? {} : { purpose: purposes[tab].trim() }) })
       .catch(() => { /* hook exposes the start error */ }).finally(() => { startLock.current = false; setStarting(false) })
   }
-  return <div className="mp-researchPage">
-    <h2 className="mp-sectionTitle" style={{ marginTop: 0 }}>{t('sectionResearch')}</h2>
-    <div className="mp-toolbar" aria-label={t('research.mode')}>
-      <button type="button" className="mp-headerNavItem" aria-pressed={mode === 'local'} onClick={() => { setMode('local') }}>{t('research.local')}</button>
-      <button type="button" className="mp-headerNavItem" aria-pressed={mode === 'online'} onClick={() => { setMode('online') }}>{t('research.online')}</button>
-    </div>
-    {mode === 'online' ? <section className="mp-reviewBlock mp-onlineResearch">
-      <h3>{t('research.online')}</h3><p role="note">{context.snapshot?.capabilities.research.reason ?? t('research.capabilityUnknown')}</p><p className="mp-caption">{t('research.providerHelp')}</p>
-      <button type="button" className="mp-primaryAction" disabled>{t('research.searchFetch')}</button><p><button type="button" className="mp-link" onClick={() => { setMode('local') }}>{t('review.continueResearch')}</button></p>
-    </section> : <>
-      <div className="mp-toolbar" aria-label={t('research.direction')}>{(['competitor', 'policy'] as const).map(direction => <button key={direction} type="button" className="mp-headerNavItem" aria-current={tab === direction ? 'page' : undefined} onClick={() => { setTab(direction) }}>{t(direction === 'competitor' ? 'tabCompetitor' : 'tabPolicy')}</button>)}</div>
-      <section className="mp-reviewBlock mp-researchInput"><h3>{t('research.inputs')}</h3>
+  const inputPanel = (<details id="mp-research-inputs" className="mp-reviewBlock mp-researchInput mp-businessDetails" open={!guided || inputOpen || (snapshot !== null && !hasResults)} onToggle={e => { setInputOpen(e.currentTarget.open) }}><summary>{guided ? guidedText(t, 'researchSources') : t('research.inputs')}</summary>
         <div className="mp-researchFilters"><label>{t('research.kind')}<select aria-label={t('research.kind')} value={kind} onChange={e => { filterDocs(() => { setKind(e.target.value) }) }}><option value="all">{t('research.allKinds')}</option>{['customer_requirement', 'tender', 'meeting_note', 'internal_reference', 'competitor_datasheet', 'standard', 'report', 'other'].map(value => <option value={value} key={value}>{t(`docKind.${value}` as MarketPilotTextKey)}</option>)}</select></label>
           <label>{t('research.docSearch')}<input aria-label={t('research.docSearch')} value={docSearch} onChange={e => { filterDocs(() => { setDocSearch(e.target.value) }) }} /></label></div>
         <label className="mp-researchPurpose">{t('research.purpose')}<textarea aria-label={t('research.purpose')} value={purposes[tab]} maxLength={2000} rows={2} onChange={e => { setPurposes({ ...purposes, [tab]: e.target.value }) }} /></label>
@@ -64,14 +58,30 @@ export function ResearchPage({ t, projectId, actions }: { t: MarketPilotText; pr
         {documents.error !== '' ? <ErrorState t={t} message={documents.error} onRetry={documents.refresh} /> : documents.loading ? <LoadingState t={t} /> : docs.length === 0 ? <p className="mp-caption">{t('docsEmpty')}</p> : <ul className="mp-docList mp-researchDocs">{docs.map(doc => <li key={doc.id} className="mp-docItem"><label><input type="checkbox" checked={selectedDocs.has(doc.id)} disabled={workflow.busy || !doc.hasText} onChange={() => { setSelectedDocs(current => { const next = new Set(current); next.has(doc.id) ? next.delete(doc.id) : next.add(doc.id); return next }) }} /> <span className="mp-cellMain">{doc.name}</span><span className="mp-caption">{` · ${t(`docKind.${doc.kind}` as MarketPilotTextKey)}`}</span></label></li>)}</ul>}
         <div className="mp-toolbar"><button type="button" className="mp-primaryAction mp-headerNavItem" disabled={!inputReady} onClick={start}>{t(tab === 'competitor' ? 'extractCompetitors' : 'extractPolicies')}</button>{actions ? <button type="button" className="mp-link" onClick={() => { actions.setSection('requirements') }}>{t('review.addSource')}</button> : null}<span className="mp-caption">{t('researchLocalMode')}</span></div>
         {competitorFlow.busy || policyFlow.busy ? <p className="mp-caption">{t('research.runningHint')}</p> : null}
-      </section>
-      <WorkflowSurface t={t} run={workflow.run} execution={workflow.latest} busy={workflow.busy} error={workflow.error} label={t(tab === 'competitor' ? 'extractCompetitors' : 'extractPolicies')} onAnswer={(selected, custom) => { void workflow.answer(selected, custom) }} onCancel={() => { void workflow.cancel() }} />
-      {research.error !== '' ? <ErrorState t={t} message={research.error} onRetry={research.refresh} /> : snapshot === null ? <LoadingState t={t} /> : <section className="mp-researchResults"><h3>{t('research.results')}</h3><p className="mp-caption">{t(tab === 'competitor' ? 'research.draftHint' : 'research.policyHint')}</p>
+      </details>)
+  const resultPanel = (research.error !== '' ? <ErrorState t={t} message={research.error} onRetry={research.refresh} /> : snapshot === null ? <LoadingState t={t} /> : <section className={guided ? "mp-researchResults mp-businessCard" : "mp-researchResults"}>{guided ? <header className="mp-businessResultHead"><div><p className="mp-guidedEyebrow">{guidedText(t, 'mainResult')}</p><h3>{guidedText(t, 'researchResult')}</h3><p>{`${tab === 'competitor' ? competitors.length : policies.length} ${guidedText(t, 'unit.research')}`}</p></div><div className="mp-businessActions"><button type="button" className="mp-link" onClick={() => { setInputOpen(true); document.getElementById('mp-research-inputs')?.scrollIntoView?.({ block: 'start' }) }}>{guidedText(t, 'newResearch')}</button>{actions === undefined ? null : <button type="button" className="mp-primaryAction mp-headerNavItem" onClick={() => { actions.setSection('alternatives') }}>{guidedText(t, 'nextRoutes')}</button>}</div></header> : <h3>{t('research.results')}</h3>}<p className="mp-caption">{t(tab === 'competitor' ? 'research.draftHint' : 'research.policyHint')}</p>
         <div className="mp-toolbar"><input aria-label={t('research.resultSearch')} placeholder={t('research.resultSearch')} value={search} onChange={e => { setSearch(e.target.value); setPage(1); setSelectedProducts(new Set()); setMatrix(false) }} />{tab === 'competitor' ? <button type="button" className="mp-link" disabled={comparisonRows.length < 2} aria-pressed={matrix} onClick={() => { setMatrix(!matrix) }}>{`${t('research.matrix')} (${comparisonRows.length}/4)`}</button> : null}<span className="mp-caption">{`${results.length} · ${currentPage}/${pages}`}</span><button type="button" className="mp-link" disabled={currentPage === 1} onClick={() => { setPage(currentPage - 1) }}>{t('review.previous')}</button><button type="button" className="mp-link" disabled={currentPage === pages} onClick={() => { setPage(currentPage + 1) }}>{t('review.next')}</button></div>
-        {results.length === 0 ? <p className="mp-caption">{t(tab === 'competitor' ? 'noCompetitors' : 'noPolicies')}</p> : tab === 'competitor' ? <CompetitorTable t={t} snapshot={snapshot} rows={visible as CompetitorItem[]} selected={selectedProducts} onSelect={id => { setSelectedProducts(current => { const next = new Set(current); next.has(id) ? next.delete(id) : next.add(id); return next }) }} onOpen={setDrawer} /> : <PolicyTable t={t} rows={visible as PolicyItem[]} onOpen={setPolicyDrawer} />}
+        {results.length === 0 ? <p className="mp-caption">{t(tab === 'competitor' ? 'noCompetitors' : 'noPolicies')}</p> : guided ? tab === 'competitor' ? <CompetitorCards t={t} snapshot={snapshot} rows={visible as CompetitorItem[]} selected={selectedProducts} onSelect={id => { setSelectedProducts(current => { const next = new Set(current); next.has(id) ? next.delete(id) : next.add(id); return next }) }} onOpen={setDrawer} /> : <PolicyCards t={t} rows={visible as PolicyItem[]} onOpen={setPolicyDrawer} /> : tab === 'competitor' ? <CompetitorTable t={t} snapshot={snapshot} rows={visible as CompetitorItem[]} selected={selectedProducts} onSelect={id => { setSelectedProducts(current => { const next = new Set(current); next.has(id) ? next.delete(id) : next.add(id); return next }) }} onOpen={setDrawer} /> : <PolicyTable t={t} rows={visible as PolicyItem[]} onOpen={setPolicyDrawer} />}
         {matrix && comparisonRows.length >= 2 ? <CompetitorComparison t={t} rows={comparisonRows} snapshot={snapshot} actions={actions} onOpen={setDrawer} /> : null}
         <details className="mp-reviewBlock"><summary>{t('research.history')}</summary><ul>{snapshot.runs.filter(run => run.type === (tab === 'competitor' ? 'competitor_analysis' : 'policy_analysis')).slice().reverse().map(run => <li key={run.id}><strong>{`${t(`runStatus.${run.status}` as MarketPilotTextKey)} · ${run.startedAt}`}</strong><p className="mp-caption">{`${t('research.purpose')}: ${typeof run.input.purpose === 'string' ? run.input.purpose : t('research.purposeAbsent')}`}</p><p className="mp-caption">{Array.isArray(run.input.documentIds) ? run.input.documentIds.map(id => typeof id === 'string' ? snapshot.documents.find(doc => doc.id === id)?.name ?? id : '').join(' · ') : 'UNKNOWN'}</p>{run.error ? <p role="alert">{run.error}</p> : null}</li>)}</ul></details>
-      </section>}
+      </section>)
+  return <div className={guided ? "mp-researchPage mp-businessPage" : "mp-researchPage"}>
+    {guided ? null : <h2 className="mp-sectionTitle" style={{ marginTop: 0 }}>{t('sectionResearch')}</h2>}
+    {guided ? <details className="mp-businessScope"><summary>{guidedText(t, 'researchMode')}</summary><div className="mp-toolbar" aria-label={t('research.mode')}>
+      <button type="button" className="mp-headerNavItem" aria-pressed={mode === 'local'} onClick={() => { setMode('local') }}>{t('research.local')}</button>
+      <button type="button" className="mp-headerNavItem" aria-pressed={mode === 'online'} onClick={() => { setMode('online') }}>{t('research.online')}</button>
+    </div><p>{context.snapshot?.capabilities.research.reason ?? t('research.capabilityUnknown')}</p></details> : (<div className="mp-toolbar" aria-label={t('research.mode')}>
+      <button type="button" className="mp-headerNavItem" aria-pressed={mode === 'local'} onClick={() => { setMode('local') }}>{t('research.local')}</button>
+      <button type="button" className="mp-headerNavItem" aria-pressed={mode === 'online'} onClick={() => { setMode('online') }}>{t('research.online')}</button>
+    </div>)}
+    {mode === 'online' ? <section className="mp-reviewBlock mp-onlineResearch">
+      <h3>{t('research.online')}</h3><p role="note">{context.snapshot?.capabilities.research.reason ?? t('research.capabilityUnknown')}</p><p className="mp-caption">{t('research.providerHelp')}</p>
+      <button type="button" className="mp-primaryAction" disabled>{t('research.searchFetch')}</button><p><button type="button" className="mp-link" onClick={() => { setMode('local') }}>{t('review.continueResearch')}</button></p>
+    </section> : <>
+      <div className="mp-toolbar" aria-label={t('research.direction')}>{(['competitor', 'policy'] as const).map(direction => <button key={direction} type="button" className="mp-headerNavItem" aria-current={tab === direction ? 'page' : undefined} onClick={() => { setTab(direction) }}>{guided ? guidedText(t, direction === 'competitor' ? 'researchProducts' : 'researchPolicies') : t(direction === 'competitor' ? 'tabCompetitor' : 'tabPolicy')}</button>)}</div>
+      {guided && hasResults ? resultPanel : inputPanel}
+      <WorkflowSurface t={t} run={workflow.run} execution={workflow.latest} busy={workflow.busy} error={workflow.error} label={t(tab === 'competitor' ? 'extractCompetitors' : 'extractPolicies')} onAnswer={(selected, custom) => { void workflow.answer(selected, custom) }} onCancel={() => { void workflow.cancel() }} />
+      {guided && hasResults ? inputPanel : resultPanel}
     </>}
     {snapshot === null || (drawer === null && policyDrawer === null) ? null : <div className="mp-drawerMask" role="presentation" onClick={e => { if (e.target === e.currentTarget) { setDrawer(null); setPolicyDrawer(null) } }}><aside ref={drawerRef} className="mp-drawer" role="dialog" aria-label={drawer ? t('colCompany') : policyDrawer!.title}>
       <div className="mp-drawerHead"><h2 className="mp-drawerTitle">{drawer ? `${drawer.company} ${drawer.product ?? ''}` : policyDrawer!.title}</h2><button type="button" className="mp-link" onClick={() => { setDrawer(null); setPolicyDrawer(null) }}>{t('close')}</button></div>

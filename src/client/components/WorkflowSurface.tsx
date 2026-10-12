@@ -13,6 +13,8 @@ import type { TrackedExecution } from '../hooks/executionStore.ts'
 import { executionStore } from '../hooks/executionStore.ts'
 import type { MarketPilotText } from '../locales.ts'
 import type { WorkflowRunView } from '../api.ts'
+import { useGuidedMode } from './ProjectWorkflowOverview.tsx'
+import { guidedText } from '../guidedWorkflow.ts'
 
 /** Render progress, the pending gate, and errors for one workflow page. */
 export function WorkflowSurface({ t, run, execution, busy, error, onAnswer, onCancel, label }: {
@@ -26,6 +28,7 @@ export function WorkflowSurface({ t, run, execution, busy, error, onAnswer, onCa
   label?: string | undefined
 }) {
   const [answerBusy, setAnswerBusy] = useState(false)
+  const guided = useGuidedMode()
   // Re-arm the dialog after any gate movement: the execution left the
   // waiting state (answer landed), a different gate took over, or the page
   // reported an error while the same gate still waits (retry must work).
@@ -37,13 +40,14 @@ export function WorkflowSurface({ t, run, execution, busy, error, onAnswer, onCa
   // In-flight executions expose a real cancel here (the guarded cancel
   // route aborts the host execution); settled ones offer nothing.
   const running = execution !== undefined && !execution.lost && execution.status === 'running'
+  const progress = <TaskProgress t={t} run={run} active={busy}
+    startedAt={execution?.startedAt ?? run?.startedAt ?? new Date().toISOString()}
+    {...label === undefined ? {} : { label }} />
+  const foldProgress = guided && !busy && error === '' && execution?.lost !== true && execution?.error === undefined
+    && (run === null || run.status === 'completed') && execution?.status !== 'waiting_human'
   return (
     <>
-      <TaskProgress
-        t={t} run={run} active={busy}
-        startedAt={execution?.startedAt ?? run?.startedAt ?? new Date().toISOString()}
-        {...label === undefined ? {} : { label }}
-      />
+      {foldProgress ? <details className="mp-businessDetails"><summary>{guidedText(t, 'runDetails')}</summary>{progress}</details> : progress}
       {running ? (
         <div className="mp-taskActions">
           <button type="button" className="mp-link" onClick={() => { void executionStore.cancel(execution!.callId) }}>

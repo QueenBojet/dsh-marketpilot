@@ -449,7 +449,7 @@ describe('ProjectOverviewPage stage navigation', () => {
     })
     const instance = createMarketPilotStore().create()
     instance.actions.openProject('p1')
-    render(<ProjectOverviewPage t={t} actions={instance.actions} view={{ kind: 'project', projectId: 'p1', section: 'overview' }} />)
+    render(<ProjectOverviewPage t={t} actions={instance.actions} view={{ kind: 'project', projectId: 'p1', section: 'overview' }} mode="professional" />)
     await flush()
     // A waiting_human requirement run marks the requirements stage as waiting
     // despite the status baseline, and the next-action card leads with it.
@@ -487,9 +487,9 @@ describe('ProjectOverviewPage stage navigation', () => {
     })
     const instance = createMarketPilotStore().create()
     instance.actions.openProject('p1')
-    render(<ProjectOverviewPage t={t} actions={instance.actions} view={{ kind: 'project', projectId: 'p1', section: 'overview' }} />)
+    render(<ProjectOverviewPage t={t} actions={instance.actions} view={{ kind: 'project', projectId: 'p1', section: 'overview' }} mode="professional" />)
     await flush()
-    // Solution is done; without tender sources the optional branch is skipped.
+    // Professional mode retains the original stage detail and optional tender state.
     const stages = [...container!.querySelectorAll<HTMLButtonElement>('button.mp-stageItem')]
     expect(stages.find(b => b.textContent?.includes(t('sectionSolution')))?.getAttribute('data-state')).toBe('done')
     expect(stages.find(b => b.textContent?.includes(t('sectionTender')))?.getAttribute('data-status')).toBe('skipped_optional')

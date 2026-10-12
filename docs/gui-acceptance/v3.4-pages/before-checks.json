@@ -1,0 +1,12 @@
+{
+  "phase": "before",
+  "screenshots": [
+    "before-requirements.png",
+    "before-research.png",
+    "before-routes.png",
+    "before-solution.png"
+  ],
+  "checks": [
+    "All project and execution records unchanged; no model calls or gate answers"
+  ]
+}

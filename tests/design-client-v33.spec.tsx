@@ -18,9 +18,12 @@ import { captureArtifactDependencies } from '../src/services/artifact-context.ts
 import { fields, withInputs, workflowState, withDecision } from './workflow-fixtures.ts'
 import type { ProjectState } from '../src/domain/state.ts'
 import type { MarketPilotActions } from '../src/client/stores.ts'
+import { WorkflowContext } from '../src/client/components/ProjectWorkflowOverview.tsx'
+import { projectWorkflowOverview } from '../src/domain/project-workflow.ts'
+import { capabilities } from './workflow-fixtures.ts'
 
 const t = (key: keyof typeof marketpilotLocales.zh) => marketpilotLocales.zh[key]
-let root: Root, container: HTMLElement, state: ProjectState, readFailure: boolean, wrongProject: boolean
+let root: Root, container: HTMLElement, state: ProjectState, readFailure: boolean, wrongProject: boolean, wrongArtifact: boolean
 const response = (payload: unknown) => ({ ok: true, status: 200, json: async () => payload })
 const flush = async () => { await act(async () => {}) }
 const button = (label: string) => [...container.querySelectorAll('button')].find(b => b.textContent?.trim() === label)!
@@ -34,14 +37,17 @@ async function input(label: string, value: string, select = false) {
 }
 beforeEach(() => {
   vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true)
-  state = withInputs(workflowState()); readFailure = false; wrongProject = false
+  state = withInputs(workflowState()); readFailure = false; wrongProject = false; wrongArtifact = false
   state.alternatives.push({ ...fields('alt1'), name: '路线 A', summary: '记录摘要', components: ['模块 A'], strengths: ['记录优势'], limitations: ['适用场景待确认'], risks: ['现场适应性待验证'], unknowns: ['检出率 UNKNOWN'], requirementCoverage: { req1: 'partial' }, evidenceIds: [], status: 'candidate' })
   vi.stubGlobal('fetch', vi.fn(async (url: string) => {
     if (url.endsWith('/design')) {
       if (readFailure) throw new Error('DESIGN_READ_FAILED')
       return response({ ...designOverview(state), projectId: wrongProject ? 'p2' : 'p1' })
     }
-    if (url.includes('/artifacts/')) return response({ artifact: state.artifacts.find(row => row.id === url.split('/').at(-1)) })
+    if (url.includes('/artifacts/')) {
+      const artifact = state.artifacts.find(row => row.id === url.split('/').at(-1))
+      return response({ artifact: wrongArtifact ? { ...artifact, id: 'other-artifact' } : artifact })
+    }
     if (url.includes('/executions')) return response({ executions: [] })
     if (url.includes('/runs')) return response({ runs: [] })
     throw new Error(`Unexpected ${url}`)
@@ -49,6 +55,58 @@ beforeEach(() => {
   container = document.createElement('div'); document.body.append(container); root = createRoot(container)
 })
 afterEach(() => { act(() => { root.unmount() }); container.remove(); vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllGlobals() })
+
+const guidedPage = (page: ReactNode) => <WorkflowContext.Provider value={{ mode: 'guided', snapshot: projectWorkflowOverview(state, capabilities, []), error: '' }}>{page}</WorkflowContext.Provider>
+
+it('guided routes fold full coverage and retain a real human preview before execution', async () => {
+  const start = vi.spyOn(executionStore, 'start').mockResolvedValue('gate-test')
+  await mount(guidedPage(<AlternativesPage t={t} projectId="p1" actions={actions} />))
+  expect(container.querySelectorAll('.mp-altCard')).toHaveLength(1)
+  const details = container.querySelector<HTMLDetailsElement>('.mp-routeDetails')!
+  expect(details.open).toBe(false)
+  expect(details.textContent).toContain('Test requirement')
+  expect(container.querySelector('.mp-routeSources')?.textContent).toContain('检出率 UNKNOWN')
+  await click(container.querySelector('input[type=radio]')!)
+  await input(t('rationale'), '真人确认测试理由')
+  await click(button(t('submitDecision')))
+  expect(container.querySelector('[role=dialog]')?.textContent).toContain('现场适应性待验证')
+  expect(start).not.toHaveBeenCalled()
+  await click(button(t('design.openHumanGate')))
+  expect(start).toHaveBeenCalledOnce()
+  expect(start).toHaveBeenCalledWith('marketpilot_decision_confirm', expect.objectContaining({ alternativeId: 'alt1', rationale: '真人确认测试理由' }))
+})
+
+it('guided solution switches exact saved summaries and exports the selected version without starting a model', async () => {
+  state = withDecision()
+  state.artifacts.push({ ...fields('old'), name: '旧方案', type: 'solution', format: 'markdown', reviewStatus: 'draft', content: '# 旧方案\n## 方案摘要\n选定路线：旧路线 A\n旧版本 UNKNOWN\n# 旧审计\n原始证据' },
+    { ...fields('new'), createdAt: '2026-10-12T01:00:00.000Z', name: '新方案', type: 'solution', format: 'markdown', reviewStatus: 'approved', content: '# 新方案\n## 方案摘要\n选定路线：新路线 B\n人工 Decision：历史审核信息\n# 新审计\n完整正文' })
+  const original = structuredClone(state)
+  const start = vi.spyOn(executionStore, 'start').mockResolvedValue('unexpected')
+  await mount(guidedPage(<SolutionPage t={t} projectId="p1" actions={actions} />))
+  expect(container.querySelector('.mp-solutionSummary')?.textContent).toContain('新路线 B')
+  expect(container.querySelector('.mp-solutionSummary')?.textContent).not.toContain('历史审核信息')
+  expect(container.querySelector<HTMLDetailsElement>('.mp-solutionAudit')?.open).toBe(false)
+  expect(container.querySelector('.mp-solutionAudit')?.textContent).toContain('历史审核信息')
+  await input(t('solutionVersions'), 'old', true)
+  expect(container.querySelector('.mp-solutionSummary')?.textContent).toContain('旧版本 UNKNOWN')
+  expect(container.querySelector('.mp-solutionRoute')?.textContent).toContain('旧路线 A')
+  expect(container.querySelector('.mp-solutionRoute')?.textContent).not.toContain('新路线 B')
+  await click(button(t('guided.reviewExport')))
+  expect(actions.focusRecord).toHaveBeenLastCalledWith('artifacts', 'artifact', 'old')
+  await click(button(t('openArtifact')))
+  expect(container.querySelector('.mp-solutionMarkdown')?.textContent).toContain('原始证据')
+  expect(container.querySelector('.mp-readerLayout')?.getAttribute('data-rail')).toBe('closed')
+  expect(start).not.toHaveBeenCalled()
+  expect(state).toEqual(original)
+})
+
+it('rejects a wrong artifact detail instead of displaying it as the selected solution version', async () => {
+  state = withDecision(); wrongArtifact = true
+  state.artifacts.push({ ...fields('art1'), name: '方案', type: 'solution', format: 'markdown', reviewStatus: 'draft', content: 'Wrong detail content' })
+  await mount(guidedPage(<SolutionPage t={t} projectId="p1" />))
+  expect(container.textContent).toContain('ARTIFACT_DETAIL_INVALID')
+  expect(container.querySelector('.mp-solutionExcerpt')).toBeNull()
+})
 
 it('separates expansion, selection and preview, compares real fields, and submits once with the frozen input version', async () => {
   const start = vi.spyOn(executionStore, 'start').mockResolvedValue('gate-test')

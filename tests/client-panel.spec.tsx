@@ -19,6 +19,7 @@ import { StatusTag } from '../src/client/components/StatusTag.tsx'
 import { marketpilotLocales } from '../src/client/locales.ts'
 import { createMarketPilotStore, type MarketPilotActions } from '../src/client/stores.ts'
 import { projectWorkflowOverview } from '../src/domain/project-workflow.ts'
+import { projectReviewOverview } from '../src/domain/project-review.ts'
 import { capabilities, withInputs, workflowState } from './workflow-fixtures.ts'
 
 const t = (key: keyof typeof marketpilotLocales.zh) => marketpilotLocales.zh[key]
@@ -121,6 +122,9 @@ describe('MarketPilot main panel', () => {
     expect(text()).toContain('CALM 单点系泊监测')
     expect(text()).toContain('GLM 结构化验证')
     expect(text()).toContain(marketpilotLocales.zh.recentProjects)
+    expect(container!.querySelectorAll('.mp-homeJourney')).toHaveLength(1)
+    expect(container!.querySelectorAll('.mp-homeJourney li')).toHaveLength(5)
+    expect(container!.querySelector('.mp-homeJourney')?.closest('details')).toBeNull()
     // The three stat cards carry real values: 2 projects, 1 waiting review, 1 running.
     const cards = [...container!.querySelectorAll('.mp-cards .mp-card')].map(card => card.textContent ?? '')
     expect(cards[0]).toContain('2')
@@ -163,12 +167,18 @@ describe('MarketPilot main panel', () => {
     expect(text()).toContain('网络中断')
   })
 
-  it('navigates home → projects → project overview → planned section', async () => {
+  it('navigates home → projects → project overview → guided requirement results', async () => {
+    const requirementState = withInputs(workflowState())
     fetchMock.mockImplementation(async (input: unknown) => {
       const url = String(input)
       if (url === '/marketpilot/api/projects') return jsonResponse(projectsPayload)
       if (url === '/marketpilot/api/projects/p1') return jsonResponse(detailPayload)
       if (url === '/marketpilot/api/projects/p1/workflow') return jsonResponse(projectWorkflowOverview(withInputs(workflowState()), capabilities, []))
+      if (url === '/marketpilot/api/projects/p1/review') return jsonResponse(projectReviewOverview(requirementState))
+      if (url === '/marketpilot/api/projects/p1/documents') return jsonResponse({ documents: requirementState.documents.map(doc => ({ ...doc, bytes: 10, hasText: true })) })
+      if (url.startsWith('/marketpilot/api/projects/p1/requirements?')) return jsonResponse({ requirements: requirementState.requirements.map(row => ({ ...row, shortId: 'REQ-01', sourceDocumentId: 'doc1', sourceDocumentName: 'customer.md' })), total: 1, page: 1, pageSize: 25, counts: { confirmed: 1 } })
+      if (url.includes('/runs')) return jsonResponse({ runs: [] })
+      if (url === '/marketpilot/api/executions') return jsonResponse({ executions: [] })
       throw new Error(`unexpected fetch: ${url}`)
     })
     const props = makePanelProps()
@@ -187,14 +197,14 @@ describe('MarketPilot main panel', () => {
     await flush()
     expect(fetchMock).toHaveBeenCalledWith('/marketpilot/api/projects/p1', { method: 'GET' })
     expect(text()).toContain('CALM 单点系泊监测')
-    expect(text()).toContain(marketpilotLocales.zh['workflow.currentStage'])
+    expect(text()).toContain(marketpilotLocales.zh['guided.currentTask'])
     act(() => {
-      const section = [...container!.querySelectorAll('button')].find(b => b.textContent === marketpilotLocales.zh.sectionRequirements)
+      const section = container!.querySelector<HTMLButtonElement>('.mp-guidedNavStep[data-stage="S1"]')
       section!.click()
     })
     await flush()
     // Phase 2: the requirements section is a real page (uploader + review table).
-    expect(text()).toContain(marketpilotLocales.zh.reqTitle)
+    expect(text()).toContain(marketpilotLocales.zh['guided.requirementsResult'])
     expect(text()).toContain(marketpilotLocales.zh.docsDrop)
   })
 })

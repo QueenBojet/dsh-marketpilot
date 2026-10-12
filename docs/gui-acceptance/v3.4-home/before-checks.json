@@ -1,0 +1,13 @@
+{
+  "phase": "before",
+  "screenshots": [
+    "before-home.png",
+    "before-calm.png",
+    "before-empty.png"
+  ],
+  "checks": [
+    "All project records and execution records unchanged; no model calls or human answers"
+  ],
+  "modelCalls": 0,
+  "humanAnswers": 0
+}

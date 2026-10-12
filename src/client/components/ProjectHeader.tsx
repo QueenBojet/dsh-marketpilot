@@ -15,11 +15,12 @@ import type { MarketPilotText } from '../locales.ts'
  * @param props.waiting - waiting-for-human run count for this project.
  * @param props.onBack - returns to the project list.
  */
-export function ProjectHeader({ t, detail, waiting, onBack }: {
+export function ProjectHeader({ t, detail, waiting, onBack, compact = false }: {
   t: MarketPilotText
   detail: ProjectDetail
   waiting: number | undefined
   onBack: () => void
+  compact?: boolean
 }) {
   const { project } = detail
   const rows = (value: unknown): unknown[] => Array.isArray(value) ? value : []
@@ -36,19 +37,19 @@ export function ProjectHeader({ t, detail, waiting, onBack }: {
       <div className="mp-projectHeaderMain">
         <div className="mp-projectTitleRow">
           <h1 className="mp-pageTitle">{project.name}</h1>
-          <span className="mp-caption">{t('workflow.recordStatus')}</span><StatusTag t={t} kind="project" value={project.status} />
+          {compact ? null : <><span className="mp-caption">{t('workflow.recordStatus')}</span><StatusTag t={t} kind="project" value={project.status} /></>}
         </div>
         <p className="mp-projectMeta mp-caption">
           {`${project.industry ?? t('valueUnset')} · ${project.scenario ?? t('valueUnset')} · ${t('fieldUpdated')} ${formatTime(project.updatedAt)}`}
         </p>
-        <div className="mp-statChips">
+        {compact ? null : <div className="mp-statChips">
           {chips.map(chip => (
             <span key={chip.label} className="mp-statChip" data-tone={chip.tone ?? 'default'}>
               <strong>{chip.value}</strong>
               <span>{chip.label}</span>
             </span>
           ))}
-        </div>
+        </div>}
       </div>
       <button type="button" className="mp-headerNavItem" onClick={onBack}>{t('back')}</button>
     </header>

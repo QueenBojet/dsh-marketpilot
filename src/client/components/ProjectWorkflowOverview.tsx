@@ -6,8 +6,12 @@ import type { TrackedExecution } from '../hooks/executionStore.ts'
 import { errorMessage } from '../hooks/useProjects.ts'
 import type { MarketPilotText, MarketPilotTextKey } from '../locales.ts'
 import { formatTime } from '../format.ts'
+import { guidedText, type GuidedStep } from '../guidedWorkflow.ts'
+import { GUIDED_STEPS } from '../guidedWorkflow.ts'
+import type { WorkflowMode } from '../stores.ts'
 
-export const WorkflowContext = createContext<{ snapshot: Overview | null; error: string; executions?: readonly TrackedExecution[] }>({ snapshot: null, error: '' })
+export const WorkflowContext = createContext<{ snapshot: Overview | null; error: string; executions?: readonly TrackedExecution[]; mode?: WorkflowMode }>({ snapshot: null, error: '' })
+export function useGuidedMode(): boolean { return useContext(WorkflowContext).mode === 'guided' }
 export function useStageAccess(id: ProjectWorkflowStage['id']) {
   const { snapshot, error } = useContext(WorkflowContext)
   const stage = snapshot?.stages.find(s => s.id === id)
@@ -43,8 +47,8 @@ export function ProjectStepCard({ t, stage, current, onGo }: {
   </button>
 }
 /** The same projected action is used on the landing page and in the owning section. */
-export function StageActionBar({ t, stage, onGo, inSection = false }: {
-  t: MarketPilotText; stage: ProjectWorkflowStage; onGo(section: WorkflowSection): void; inSection?: boolean
+export function StageActionBar({ t, stage, onGo, inSection = false, guidedStep }: {
+  t: MarketPilotText; stage: ProjectWorkflowStage; onGo(section: WorkflowSection): void; inSection?: boolean; guidedStep?: GuidedStep | undefined
 }) {
   const [starting, setStarting] = useState(false)
   const [error, setError] = useState('')
@@ -64,6 +68,15 @@ export function StageActionBar({ t, stage, onGo, inSection = false }: {
   const live = executions?.some(e => e.projectId === stageProjectId && e.tool === stage.action.tool
     && !e.lost && ['running', 'waiting_human'].includes(e.status)) ?? false
   const runnable = stage.action.enabled && !starting && snapshotError === '' && !(inSection && live)
+  if (guidedStep !== undefined) return <section className="mp-stageAction mp-businessStageHeader" data-stage={stage.id} data-status={stage.status}>
+    <span className="mp-businessStepNumber" aria-hidden="true">{GUIDED_STEPS.findIndex(step => step.id === guidedStep.id) + 1}</span>
+    <div className="mp-businessStageCopy"><span className="mp-guidedEyebrow">{guidedText(t, 'currentTask')}</span>
+      <h2>{guidedText(t, `title.${guidedStep.key}`)}</h2><p>{guidedText(t, `task.${guidedStep.key}`)}</p></div>
+    <button type="button" className="mp-link mp-caption" onClick={() => { onGo('overview') }}>{guidedText(t, 'overview')}</button>
+    {stage.prerequisites.length === 0 ? null : <details className="mp-businessAccess"><summary>{guidedText(t, 'prerequisites')}</summary><PrerequisiteHint t={t} items={stage.prerequisites} onGo={onGo} /></details>}
+    {stage.run?.error === undefined ? null : <p className="mp-errorText" role="alert">{stage.run.error}</p>}
+    {stage.execution?.error === undefined || stage.execution.error === stage.run?.error ? null : <p className="mp-errorText" role="alert">{stage.execution.error}</p>}
+  </section>
   return <section className="mp-stageAction" data-stage={stage.id} data-status={stage.status}>
     <div className="mp-stageActionHead">
       <div><span className="mp-caption">{inSection ? workflowText(t, 'stage') : workflowText(t, 'currentStage')}</span>

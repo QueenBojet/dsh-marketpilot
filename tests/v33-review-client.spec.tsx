@@ -13,6 +13,9 @@ import { EvidencePage } from '../src/client/pages/EvidencePage.tsx'
 import { marketpilotLocales } from '../src/client/locales.ts'
 import { projectReviewOverview } from '../src/domain/project-review.ts'
 import { evidenceReviewGroup } from '../src/domain/project-review.ts'
+import { WorkflowContext } from '../src/client/components/ProjectWorkflowOverview.tsx'
+import { projectWorkflowOverview } from '../src/domain/project-workflow.ts'
+import { capabilities } from './workflow-fixtures.ts'
 import { fields, run, withInputs, workflowState } from './workflow-fixtures.ts'
 import type { ProjectState } from '../src/domain/state.ts'
 
@@ -95,6 +98,18 @@ beforeEach(() => {
 afterEach(() => { act(() => { root.unmount() }); container.remove(); vi.clearAllTimers(); vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllGlobals() })
 
 describe('M2 batch and evidence interactions', () => {
+  it('guided requirements put real results first, retain four review columns and keep the order on an empty search', async () => {
+    await render(<WorkflowContext.Provider value={{ mode: 'guided', snapshot: projectWorkflowOverview(state, capabilities, []), error: '' }}><RequirementsPage t={t} projectId={projectId} target="analysis" actions={actions} /></WorkflowContext.Provider>)
+    const result = container.querySelector('.mp-requirementResults')!, inputs = container.querySelector<HTMLDetailsElement>('.mp-requirementInputs')!
+    expect(result.compareDocumentPosition(inputs) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(container.querySelectorAll('.mp-requirementResults thead th')).toHaveLength(4)
+    expect(inputs.open).toBe(false)
+    expect(button(t('guided.nextResearch')).disabled).toBe(true)
+    await search('No matching rows')
+    expect(result.compareDocumentPosition(inputs) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(inputs.open).toBe(false)
+    expect(posts).toEqual([])
+  })
   it('confirms only the current page in the exact latest batch, and makes older waits read only', async () => {
     await render(<RequirementsPage t={t} projectId={projectId} />)
     expect((container.querySelector('select[aria-label="需求批次"]') as HTMLSelectElement).value).toBe('b2')

@@ -1,0 +1,20 @@
+{
+  "phase": "after",
+  "screenshots": [
+    "after-home.png",
+    "after-calm.png",
+    "after-calm-1024.png",
+    "after-calm-dark.png",
+    "after-calm-professional.png",
+    "after-empty.png"
+  ],
+  "checks": [
+    "Workbench home shows the five-step journey and folds aggregate statistics",
+    "calm: five stages match backend; no internal stage labels or four-column statistics",
+    "All five CALM navigation entries reach their actual existing workspace without executing tools",
+    "empty: five stages match backend; no internal stage labels or four-column statistics",
+    "All project records and execution records unchanged; no model calls or human answers"
+  ],
+  "modelCalls": 0,
+  "humanAnswers": 0
+}

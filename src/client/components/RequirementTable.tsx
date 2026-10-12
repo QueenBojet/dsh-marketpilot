@@ -2,6 +2,7 @@
 import type { RequirementItem } from '../api.ts'
 import { StatusTag } from './StatusTag.tsx'
 import type { MarketPilotText, MarketPilotTextKey } from '../locales.ts'
+import { guidedText } from '../guidedWorkflow.ts'
 
 /** Callbacks and rows for the requirement table. */
 export interface RequirementTableProps {
@@ -12,6 +13,7 @@ export interface RequirementTableProps {
   onSelectProposed: () => void
   onOpenDetail: (item: RequirementItem) => void
   eligibleIds?: ReadonlySet<string> | undefined
+  compact?: boolean
 }
 
 /** Review-urgency order: 待确认 → 冲突 → 未知 → 已确认；同级保持提取顺序。 */
@@ -23,7 +25,7 @@ function reviewRank(status: string): number {
 }
 
 /** Render the requirement table. */
-export function RequirementTable({ t, rows, selected, onToggle, onSelectProposed, onOpenDetail, eligibleIds }: RequirementTableProps) {
+export function RequirementTable({ t, rows, selected, onToggle, onSelectProposed, onOpenDetail, eligibleIds, compact = false }: RequirementTableProps) {
   if (rows.length === 0) {
     return <div className="mp-empty"><p className="mp-emptyTitle">{t('reqEmptyTitle')}</p><p className="mp-emptyBody">{t('reqEmptyBody')}</p></div>
   }
@@ -39,12 +41,11 @@ export function RequirementTable({ t, rows, selected, onToggle, onSelectProposed
               <button type="button" className="mp-link mp-caption" title={t('selectAllProposed')}
                 disabled={!rows.some(item => item.status === 'proposed' && (eligibleIds === undefined || eligibleIds.has(item.id)))} onClick={onSelectProposed}>☑</button>
             </th>
-            <th scope="col">{t('colShortId')}</th>
-            <th scope="col">{t('colName')}</th>
-            <th scope="col">{t('colType')}</th>
-            <th scope="col">{t('colPriority')}</th>
+            {compact ? null : <th scope="col">{t('colShortId')}</th>}
+            <th scope="col">{compact ? guidedText(t, 'keyRequirements') : t('colName')}</th>
+            {compact ? null : <><th scope="col">{t('colType')}</th><th scope="col">{t('colPriority')}</th></>}
             <th scope="col">{t('colStatus')}</th>
-            <th scope="col">{t('colSource')}</th>
+            {compact ? null : <th scope="col">{t('colSource')}</th>}
             <th scope="col" style={{ width: '64px' }}>{t('colDetail')}</th>
           </tr>
         </thead>
@@ -58,12 +59,12 @@ export function RequirementTable({ t, rows, selected, onToggle, onSelectProposed
                   onChange={() => { onToggle(item.id) }}
                 />
               </td>
-              <td><code>{item.shortId}</code></td>
-              <td className="mp-cellMain">{item.normalizedText}</td>
-              <td className="mp-muted">{item.type}</td>
-              <td className="mp-muted">{t(`priority.${item.priority}` as MarketPilotTextKey)}</td>
+              {compact ? null : <td><code>{item.shortId}</code></td>}
+              <td className="mp-cellMain">{compact ? <><div className="mp-reqMeta"><code>{item.shortId}</code><span>{guidedText(t, `priority.${item.priority}`)}</span></div>
+                <span>{item.normalizedText}</span></> : item.normalizedText}</td>
+              {compact ? null : <><td className="mp-muted">{item.type}</td><td className="mp-muted">{t(`priority.${item.priority}` as MarketPilotTextKey)}</td></>}
               <td><StatusTag t={t} kind="requirement" value={item.status} /></td>
-              <td className="mp-muted">{item.sourceDocumentName ?? item.sourceDocumentId.slice(0, 8)}</td>
+              {compact ? null : <td className="mp-muted">{item.sourceDocumentName ?? item.sourceDocumentId.slice(0, 8)}</td>}
               <td>
                 <button type="button" className="mp-link" onClick={() => { onOpenDetail(item) }}>{t('colDetail')}</button>
               </td>

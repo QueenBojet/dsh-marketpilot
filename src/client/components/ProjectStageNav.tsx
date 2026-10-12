@@ -6,9 +6,10 @@
  * navigation selection and business stage state stay separately modeled.
  */
 import type { MarketPilotText, MarketPilotTextKey } from '../locales.ts'
-import type { ProjectSection } from '../stores.ts'
+import type { ProjectSection, WorkflowMode } from '../stores.ts'
 import type { ProjectWorkflowOverview } from '../../domain/project-workflow.ts'
 import { workflowText } from './ProjectWorkflowOverview.tsx'
+import { GUIDED_STEPS, guidedCurrentStep, guidedText } from '../guidedWorkflow.ts'
 
 /** Which six-phase stage each project status maps to (0-5; 6 = archived/complete).
  * The baseline marks the stage the user should work in NEXT — requirements_ready
@@ -74,14 +75,41 @@ const NAV_ROWS: readonly { readonly section: ProjectSection; readonly key: Marke
  * @param props.section - the currently selected section.
  * @param props.onSelect - switches the project section.
  */
-export function ProjectStageNav({ t, status, runs, section, onSelect, workflow }: {
+export function ProjectStageNav({ t, status, runs, section, onSelect, workflow, mode = 'professional' }: {
   t: MarketPilotText
   status: string
   runs: readonly { type: string; status: string }[] | null
   section: ProjectSection
   onSelect: (section: ProjectSection) => void
   workflow?: ProjectWorkflowOverview | null
+  mode?: WorkflowMode
 }) {
+  if (mode === 'guided') {
+    const current = workflow == null ? undefined : guidedCurrentStep(workflow)
+    return <nav className="mp-stageNav mp-guidedNav" aria-label={guidedText(t, 'fiveSteps')}>
+      <button type="button" className="mp-stageItem" aria-current={section === 'overview' ? 'page' : undefined}
+        onClick={() => { onSelect('overview') }}>{guidedText(t, 'overview')}</button>
+      <p className="mp-guidedNavLabel">{guidedText(t, 'fiveSteps')}</p>
+      <div className="mp-guidedNavSteps">
+        {GUIDED_STEPS.map((step, index) => {
+          const fact = workflow?.stages.find(s => s.id === step.id)
+          const state = fact === undefined ? undefined : ({ completed: 'done', waiting_human: 'waiting',
+            needs_attention: 'waiting', unavailable: 'waiting', running: 'running', failed: 'error' } as Record<string, StageState>)[fact.status]
+              ?? (current?.id === step.id ? 'current' : 'pending')
+          return <button type="button" key={step.id} className="mp-stageItem mp-guidedNavStep"
+            aria-current={section === step.section ? 'page' : undefined} data-stage={fact?.id} data-status={fact?.status} data-state={state}
+            title={fact === undefined ? undefined : guidedText(t, `status.${fact.status}`)} onClick={() => { onSelect(step.section) }}>
+            <span className="mp-guidedNavNumber" aria-hidden="true">{fact?.status === 'completed' ? '✓' : index + 1}</span>
+            <span>{guidedText(t, `title.${step.key}`)}</span>
+          </button>
+        })}
+      </div>
+      <div className="mp-guidedNavSupport">
+        {(['evidence', 'artifacts', 'tender'] as const).map(target => <button type="button" key={target} className="mp-stageItem"
+          aria-current={section === target ? 'page' : undefined} onClick={() => { onSelect(target) }}>{guidedText(t, `nav.${target}`)}</button>)}
+      </div>
+    </nav>
+  }
   const currentStage = STAGE_BY_STATUS[status] ?? 0
   return (
     <nav className="mp-stageNav" aria-label={t('stageNavLabel')}>
@@ -93,7 +121,7 @@ export function ProjectStageNav({ t, status, runs, section, onSelect, workflow }
         return (
           <button
             key={rowSection} type="button" className="mp-stageItem"
-            aria-current={section === rowSection ? 'page' : undefined}
+            aria-current={(section === 'documents' ? 'requirements' : section) === rowSection ? 'page' : undefined}
             {...state === undefined ? {} : { 'data-state': state, title: t(STAGE_STATE_TITLE[state]) }}
             {...projected === undefined ? {} : { 'data-stage': projected.id, 'data-status': projected.status, title: workflowText(t, `status.${projected.status}`) }}
             onClick={() => { onSelect(rowSection) }}

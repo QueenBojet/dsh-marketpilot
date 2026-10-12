@@ -116,11 +116,15 @@ export function useArtifact(projectId: string, artifactId: string | null) {
     setArtifact(null)
     setError('')
     api.artifact(projectId, artifactId)
-      .then(result => { if (!cancelled) setArtifact(result.artifact) })
+      .then(result => {
+        if (result.artifact?.id !== artifactId || typeof result.artifact.content !== 'string') throw new Error('ARTIFACT_DETAIL_INVALID')
+        if (!cancelled) setArtifact(result.artifact)
+      })
       .catch(e => { if (!cancelled) setError(e instanceof Error && e.message !== '' ? e.message : String(e)) })
     return () => { cancelled = true }
   }, [projectId, artifactId])
-  return { artifact, error, loading: artifact === null && error === '' }
+  const current = artifact?.id === artifactId ? artifact : null
+  return { artifact: current, error, loading: current === null && error === '' }
 }
 
 /** Recent workflow-run snapshots for one project (phase-state derivation). */

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { ProjectActivity } from '../components/ProjectActivity.tsx'
 import { ProjectHeader } from '../components/ProjectHeader.tsx'
 import { ProjectStageNav } from '../components/ProjectStageNav.tsx'
+import { GuidedWorkflowOverview } from '../components/GuidedWorkflowOverview.tsx'
+import { GUIDED_STEPS, guidedText } from '../guidedWorkflow.ts'
 import { ProjectWorkflowOverview, StageActionBar, WorkflowContext, workflowText } from '../components/ProjectWorkflowOverview.tsx'
 import { ErrorState, LoadingState } from '../components/States.tsx'
 import { useProjectDetail } from '../hooks/useProjects.ts'
@@ -37,35 +39,42 @@ export function ProjectOverviewPage({ t, actions, view, mode = 'guided' }: {
   const detail = detailQuery.detail
   const snapshot = workflow.snapshot
   const onGo = (section: ProjectSection) => { actions.setSection(section) }
-  const activeStage = snapshot?.stages.find(s => s.section === view.section
+  const activeStep = GUIDED_STEPS.find(step => step.section === view.section)
+  const activeStage = localMode === 'guided' && activeStep !== undefined ? snapshot?.stages.find(s => s.id === activeStep.id)
+    : view.section === 'documents' ? snapshot?.stages.find(s => s.id === 'S0') : snapshot?.stages.find(s => s.section === view.section
     && (s.id !== 'S0' || snapshot.currentStage === 'S0'))
-  return <WorkflowContext.Provider value={{ snapshot, error: workflow.error, executions }}>
-    <ProjectHeader t={t} detail={detail} waiting={workflow.error === '' ? snapshot?.waiting : undefined} onBack={actions.goProjects} />
+  return <WorkflowContext.Provider value={{ snapshot, error: workflow.error, executions, mode: localMode }}>
+    <ProjectHeader t={t} detail={detail} waiting={workflow.error === '' ? snapshot?.waiting : undefined} onBack={actions.goProjects} compact={localMode === 'guided'} />
     <div className="mp-modeBar" aria-label={workflowText(t, 'mode')}>
       {(['guided', 'professional'] as const).map(value => <button key={value} type="button" className="mp-headerNavItem"
         aria-pressed={localMode === value} onClick={() => { setLocalMode(value); actions.setWorkflowMode?.(value) }}>
         {workflowText(t, `mode.${value}`)}
       </button>)}
       <span className="mp-toolbarSpacer" />
-      {snapshot === null ? null : <span className="mp-caption">{snapshot.capabilities.model.mode === 'offline'
+      {snapshot === null || localMode === 'guided' ? null : <span className="mp-caption">{snapshot.capabilities.model.mode === 'offline'
         ? workflowText(t, 'providerOffline') : [snapshot.capabilities.model.provider, snapshot.capabilities.model.model, snapshot.capabilities.model.reasoningEffort].filter(Boolean).join(' · ')}</span>}
-      <button type="button" className="mp-link" onClick={workflow.refresh}>{workflowText(t, 'refresh')}</button>
+      <button type="button" className="mp-link" onClick={workflow.refresh}>{localMode === 'guided' ? guidedText(t, 'refresh') : workflowText(t, 'refresh')}</button>
     </div>
     {workflow.error === '' ? null : <div className="mp-nextHint" role="alert"><strong>{workflowText(t, 'readFailed')}</strong>
       <span>{workflow.error}</span><button className="mp-link" type="button" onClick={workflow.refresh}>{t('retry')}</button></div>}
     <div className="mp-layout" data-mode={localMode}>
-      <ProjectStageNav t={t} status={detail.project.status} runs={null} workflow={snapshot} section={view.section} onSelect={onGo} />
+      <ProjectStageNav t={t} status={detail.project.status} runs={null} workflow={snapshot} section={view.section} onSelect={onGo} mode={localMode} />
       <div className="mp-workspace">
         {snapshot === null ? workflow.error === '' ? <LoadingState t={t} /> : null : <>
           {view.section === 'overview' ? <>
-            <ProjectWorkflowOverview t={t} snapshot={snapshot} onGo={onGo} collapsed={localMode === 'professional'} />
+            {localMode === 'guided' ? <GuidedWorkflowOverview t={t} snapshot={snapshot} detail={detail} onGo={onGo} />
+              : <ProjectWorkflowOverview t={t} snapshot={snapshot} onGo={onGo} />}
             <details className="mp-secondaryDetails"><summary>{workflowText(t, 'history')}</summary><ProjectActivity t={t} detail={detail} /></details>
           </> : <>
-            {activeStage === undefined ? null : <StageActionBar key={activeStage.id} t={t} stage={activeStage} onGo={onGo} inSection />}
-            {view.section === 'research' ? <p className="mp-capability" role="note">{snapshot.capabilities.research.reason}</p> : null}
-            {snapshot.capabilities.model.available ? null : <p className="mp-capability" role="note">{snapshot.capabilities.model.reason}</p>}
+            {activeStage === undefined ? null : <StageActionBar key={activeStage.id} t={t} stage={activeStage} onGo={onGo} inSection
+              guidedStep={localMode === 'guided' ? activeStep : undefined} />}
+            {view.section === 'research' && localMode === 'professional' ? <p className="mp-capability" role="note">{snapshot.capabilities.research.reason}</p> : null}
+            {snapshot.capabilities.model.available ? null : localMode === 'guided'
+              ? <details className="mp-businessScope"><summary>{guidedText(t, 'capability')}</summary><p>{snapshot.capabilities.model.reason}</p></details>
+              : <p className="mp-capability" role="note">{snapshot.capabilities.model.reason}</p>}
             <div id="mp-stage-controls" tabIndex={-1}>
-              {view.section === 'requirements' ? <RequirementsPage t={t} projectId={view.projectId} focus={view.focus} actions={actions} /> : null}
+              {view.section === 'requirements' || view.section === 'documents' ? <RequirementsPage t={t} projectId={view.projectId} focus={view.focus} actions={actions}
+                target={localMode === 'guided' ? view.section === 'documents' ? 'upload' : 'analysis' : undefined} /> : null}
               {view.section === 'research' ? <ResearchPage t={t} projectId={view.projectId} actions={actions} /> : null}
               {view.section === 'evidence' ? <EvidencePage t={t} projectId={view.projectId} actions={actions} focus={view.focus} /> : null}
               {view.section === 'alternatives' ? <AlternativesPage t={t} projectId={view.projectId} actions={actions} /> : null}
