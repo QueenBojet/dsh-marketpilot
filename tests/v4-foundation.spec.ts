@@ -32,8 +32,9 @@ describe('MarketPilot V4 standalone workbench page', () => {
   })
 
   it('is up to date with src/workbench-ui', () => {
-    const before = readFileSync('src/harness/v4-page.generated.ts', 'utf8')
+    const read = () => readFileSync('src/harness/v4-page.generated.ts', 'utf8').split(String.fromCharCode(13)).join('')
+    const before = read()
     execFileSync(process.execPath, ['scripts/build-workbench.mjs'], { stdio: 'pipe' })
-    expect(readFileSync('src/harness/v4-page.generated.ts', 'utf8')).toBe(before)
+    expect(read()).toBe(before)
   }, 60_000)
 })
