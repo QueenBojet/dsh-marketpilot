@@ -256,11 +256,32 @@ export function mountWorkbenchRoutes(ctx: Context, workbench: WorkbenchManager):
           if (method === 'GET' && segments.length === 3 && segments[0] === 'projects' && segments[2] === 'workflow') {
             return sendJson(response, 200, marketpilot.workflowOverview(segments[1]!, workbench.list(segments[1]!)))
           }
+          // Expose the actual DSH default selection and registered providers.
+          if (method === 'GET' && segments.length === 1 && segments[0] === 'model-selection') {
+            const defaultModel = ctx.get('agentDefaultModel') as { currentSelection(): { provider: string; model: string; reasoningEffort?: string } } | undefined
+            const llm = ctx.get('llm') as { listProviders(): { id: string }[] } | undefined
+            return sendJson(response, 200, {
+              selection: defaultModel?.currentSelection() ?? null,
+              providers: llm?.listProviders().map(p => p.id) ?? [],
+              editable: defaultModel !== undefined && llm !== undefined,
+            })
+          }
           // POST /tools → start one click-driven execution.
           if (method === 'POST' && segments.length === 1 && segments[0] === 'tools') {
             const body = await readJsonBody(request)
             ensure(typeof body.name === 'string' && body.name.length > 0, 'WORKBENCH_BAD_TOOL', '缺少工具名称。')
-            const started = await workbench.start(body.name, body.args ?? {})
+            let selection: { provider: string; model: string; reasoningEffort?: string } | undefined
+            if (body.modelSelection !== undefined && body.modelSelection !== null) {
+              const raw = body.modelSelection
+              ensure(typeof raw === 'object' && !Array.isArray(raw), 'WORKBENCH_INVALID_MODEL', '模型选择参数不合法。')
+              const value = raw as Record<string, unknown>
+              ensure(typeof value.provider === 'string' && typeof value.model === 'string' &&
+                (value.reasoningEffort === undefined || typeof value.reasoningEffort === 'string'),
+                'WORKBENCH_INVALID_MODEL', '模型 Provider、名称或思考强度格式不合法。')
+              selection = { provider: value.provider as string, model: value.model as string,
+                ...value.reasoningEffort === undefined ? {} : { reasoningEffort: value.reasoningEffort as string } }
+            }
+            const started = await workbench.start(body.name, body.args ?? {}, selection)
             return sendJson(response, 202, started)
           }
           // GET /executions?projectId= → per-project execution index.
