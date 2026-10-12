@@ -28,7 +28,7 @@ describe('MarketPilot V4 standalone foundation', () => {
   })
 
   it('escapes untrusted document content and does not interpolate approval labels into JavaScript', () => {
-    expect(workbenchPage).toContain('function esc(')
+    expect(workbenchPage).toContain('const esc=s=>')
     expect(workbenchPage).toContain('answerOption(')
     expect(workbenchPage).not.toContain('JSON.stringify(k)+') 
   })
