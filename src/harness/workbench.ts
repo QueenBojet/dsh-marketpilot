@@ -122,7 +122,7 @@ export class WorkbenchManager {
    * @param args - lossless-JSON arguments for that tool.
    * @returns the execution identity used for polling and answering.
    */
-  async start(name: string, args: unknown): Promise<{ callId: string }> {
+  async start(name: string, args: unknown, modelSelection?: { provider: string; model: string; reasoningEffort?: string }): Promise<{ callId: string }> {
     ensure(this.allowedTools().includes(name), 'WORKBENCH_TOOL_FORBIDDEN', `工作台不允许执行工具：${name}`)
     const services = this.ctx.get('marketpilot')
     ensure(services !== undefined, 'WORKBENCH_NOT_READY', 'MarketPilot 服务尚未就绪。')
@@ -147,7 +147,13 @@ export class WorkbenchManager {
         // here exactly as the headless bundle does for its own agents.
         const defaultModel = this.ctx.get('agentDefaultModel') as AgentDefaultModelLike | undefined
         ensure(defaultModel !== undefined, 'WORKBENCH_NO_MODEL', '工作台需要默认模型配置（agentDefaultModel）才能运行模型步骤。')
-        const selection = defaultModel.currentSelection()
+        const selection = modelSelection ?? defaultModel.currentSelection()
+        if (modelSelection !== undefined) {
+          const llm = this.ctx.get('llm') as { listProviders(): { id: string }[] } | undefined
+          ensure(llm?.listProviders().some(p => p.id === selection.provider), 'WORKBENCH_PROVIDER_UNAVAILABLE', '所选模型 Provider 未在 DSH 注册。')
+          ensure(selection.provider.length <= 128 && selection.model.length <= 128 && selection.provider.trim() !== '' && selection.model.trim() !== '', 'WORKBENCH_INVALID_MODEL', '模型配置不合法。')
+          ensure(selection.reasoningEffort === undefined || /^[a-z0-9_-]{1,40}$/i.test(selection.reasoningEffort), 'WORKBENCH_INVALID_EFFORT', '思考强度不合法。')
+        }
         handle = await agents.create({
           sessionId: randomUUID(),
           meta: await this.sessionMeta(),
