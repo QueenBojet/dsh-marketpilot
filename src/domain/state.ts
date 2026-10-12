@@ -9,6 +9,7 @@ import { alternativeSchema, decisionSchema } from './decision.ts'
 import { tenderSchema } from './tender.ts'
 import { artifactSchema } from './artifact.ts'
 import { workflowSchema } from './workflow.ts'
+import { v4StateSchema, validateV4 } from './v4.ts'
 
 /**
  * Persisted short-code assignments (`REQ-01`-style display codes → record
@@ -28,6 +29,8 @@ export const stateSchema = z.strictObject({
   alternatives: z.array(alternativeSchema), decisions: z.array(decisionSchema),
   tenderItems: z.array(tenderSchema), artifacts: z.array(artifactSchema), workflowRuns: z.array(workflowSchema),
   codeBook: shortCodeBookSchema.optional(),
+  /** V4 workbench objects; absent on legacy projects until first V4 write. */
+  v4: v4StateSchema.optional(),
 }).superRefine((s, ctx) => {
   const fail = (message: string) => ctx.addIssue({ code: 'custom', message })
   const collections = { documents: s.documents, requirements: s.requirements, evidence: s.evidence,
@@ -79,11 +82,12 @@ export const stateSchema = z.strictObject({
   if (active && active.requirementIds.some(id => !s.requirements.some(r => r.id === id && r.status === 'confirmed'))) fail('Active Decision requires confirmed requirements')
   const selected = s.alternatives.filter(a => a.status === 'selected')
   if (active ? selected.length !== 1 || selected[0]?.id !== active.alternativeId : selected.length !== 0) fail('Selected Alternative must match the active Human Decision')
+  if (s.v4) validateV4(s.v4, s.project.id, (kind, id) => collections[kind].some(r => r.id === id), allIds, fail)
 })
 
 export type ProjectState = z.infer<typeof stateSchema>
-/** Record collections only — `project`/`revision` are headers, `codeBook` is the code map. */
-export type Collection = Exclude<keyof ProjectState, 'project' | 'revision' | 'codeBook'>
+/** Record collections only — `project`/`revision` are headers, `codeBook` is the code map, `v4` holds workbench objects. */
+export type Collection = Exclude<keyof ProjectState, 'project' | 'revision' | 'codeBook' | 'v4'>
 export type RecordOf<K extends Collection> = ProjectState[K][number]
 
 /** Forward-only project status order; `archived` is terminal. */
