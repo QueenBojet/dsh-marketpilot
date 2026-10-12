@@ -4,6 +4,7 @@ import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-storage-domain'
 import type { MarketPilotService } from './service.ts'
 import { WorkbenchManager } from './workbench.ts'
+import { workbenchPage } from './v4-page.ts'
 import { ensure, MarketPilotError } from '../domain/common.ts'
 import { buildShortCodeIndex } from '../domain/shortcodes.ts'
 import type { ShortCodeBook } from '../domain/shortcodes.ts'
@@ -228,6 +229,28 @@ function requirementProjection(row: RequirementRow, documentName: string | undef
 export function mountWorkbenchRoutes(ctx: Context, workbench: WorkbenchManager): void {
   ctx.inject(['webServer'], webCtx => {
     const webServer = (webCtx as Context & { webServer: WebServerLike }).webServer
+    webCtx.effect(() => webServer.register({
+      kind: 'exact', path: '/marketpilot/workbench',
+      handler: (request, response) => {
+        if (request.method !== 'GET' && request.method !== 'HEAD') {
+          response.writeHead(405, { allow: 'GET, HEAD' }); response.end(); return
+        }
+        if (!sameOrigin(request)) {
+          response.writeHead(403); response.end(); return
+        }
+        const bytes = Buffer.from(workbenchPage, 'utf8')
+        response.writeHead(200, {
+          'content-type': 'text/html; charset=utf-8',
+          'content-security-policy': "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+          'x-content-type-options': 'nosniff',
+          'referrer-policy': 'no-referrer',
+          'cache-control': 'no-store',
+          'content-length': bytes.byteLength,
+        })
+        response.end(request.method === 'HEAD' ? undefined : bytes)
+      },
+    }))
+
     webCtx.effect(() => webServer.register({
       kind: 'prefix', path: API_PREFIX,
       handler: async (request, response) => {
