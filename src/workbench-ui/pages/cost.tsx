@@ -223,8 +223,8 @@ export function CostPage() {
                 </tr>)
             })}</tbody></table></div> : <Empty>暂无成本行。可新增设备、安装、集成、服务等成本行；数量可跟随方案配置。</Empty>}
           {r.categories.length ? <>
-            <div className="cost-bars">{r.categories.map((c, i) => <div key={c.category} title={`${CATEGORY[c.category] ?? c.category} ${c.display}`} style={{ width: `${(c.share * 100).toFixed(2)}%`, background: BAR_COLORS[i % BAR_COLORS.length] }} />)}</div>
-            <div className="cost-legend">{r.categories.map((c, i) => <span key={c.category} style={{ ['--dot' as string]: BAR_COLORS[i % BAR_COLORS.length] }}>{CATEGORY[c.category] ?? c.category} {(c.share * 100).toFixed(1)}%</span>)}</div>
+            <div className="cost-bars">{r.categories.map((c, i) => <div key={c.category} title={`${CATEGORY[c.category] ?? c.category} ${c.display}`} style={{ width: `${c.share.toFixed(2)}%`, background: BAR_COLORS[i % BAR_COLORS.length] }} />)}</div>
+            <div className="cost-legend">{r.categories.map((c, i) => <span key={c.category} style={{ ['--dot' as string]: BAR_COLORS[i % BAR_COLORS.length] }}>{CATEGORY[c.category] ?? c.category} {c.share.toFixed(1)}%</span>)}</div>
             <div className="tiny-caption">类别占比按本位币折算后计算。</div></> : null}
         </Panel>
         <div className="right-panel-stack">

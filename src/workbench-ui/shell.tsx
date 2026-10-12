@@ -22,6 +22,9 @@ const LAST = 'marketpilot.v4.project'
 
 export interface Route { page: PageId; pid: string | undefined }
 
+/** Bottom tab bar labels (≤760px); full names do not fit six tabs. */
+const SHORT: Record<string, string> = { overview: '总览', change: '资料', research: '研究', solution: '方案', cost: '成本', deliver: '交付' }
+
 /** `#/overview?p=<projectId>` — the project id travels in the hash so every view is bookmarkable. */
 export function parseHash(hash: string): Route {
   const m = /^#\/([a-z]+)(?:\?p=([^&]+))?/.exec(hash)
@@ -92,8 +95,8 @@ function Frame({ route, children }: { route: Route; children: ReactNode }) {
       </div>
       {pid ? (
         <nav className="mobile-tabbar" aria-label="项目工作区">
-          {(['overview', 'change', 'research', 'solution', 'deliver'] as const).map(id => (
-            <a key={id} className={cx(route.page === id && 'active')} href={href(id, pid)}><Icon name={ICONS[id]} />{NAMES[id].slice(0, 4)}</a>
+          {(['overview', 'change', 'research', 'solution', 'cost', 'deliver'] as const).map(id => (
+            <a key={id} className={cx(route.page === id && 'active')} href={href(id, pid)}><Icon name={ICONS[id]} />{SHORT[id] ?? NAMES[id]}</a>
           ))}
         </nav>
       ) : null}

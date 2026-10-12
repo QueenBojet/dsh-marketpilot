@@ -284,7 +284,7 @@ function AssistantPanel({ q, onClose }: { q: Question | undefined; onClose: () =
 export function ResearchPage() {
   const { ov } = useStore()
   const [sel, setSel] = useState<string>()
-  const [chat, setChat] = useState(true)
+  const [chat, setChat] = useState(() => window.innerWidth > 1110)
   const [qModal, setQModal] = useState<Question | 'new'>()
   const [preset, setPreset] = useState<Preset>()
   if (!ov) return <Empty>正在加载项目…</Empty>
@@ -303,7 +303,7 @@ export function ResearchPage() {
       <div className={cx('research-grid', !chat && 'chat-collapsed')}>
         <aside className="card research-left">
           <div className="micro-title">研究问题（{qs.length}）</div>
-          {qs.map(x => <button key={x.id} className={cx('topic', x.id === q?.id && 'active')} onClick={() => setSel(x.id)}><span />{x.title}
+          {qs.map(x => <button key={x.id} className={cx('topic', x.id === q?.id && 'active')} onClick={() => setSel(x.id)}><span className="topic-dot" />{x.title}
             <Badge tone={Q_STATUS[x.status][1]}>{Q_STATUS[x.status][0]}</Badge></button>)}
           <button className="topic" onClick={() => setQModal('new')}><Icon name="plus" />新增问题</button>
           <div className="thin-rule" />
