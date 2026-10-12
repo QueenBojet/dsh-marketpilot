@@ -6,7 +6,7 @@ import type { ConfigItem, CostLine } from '../../domain/v4.ts'
 import { computeCost } from '../../domain/cost.ts'
 import type { CostResult } from '../../domain/cost.ts'
 import { requiredRecord } from '../records.ts'
-import { V4Base, costHash, reviewStatus, routeState } from './base.ts'
+import { V4Base, costHash, reviewStatus, routeState, sentOnly } from './base.ts'
 import type { ReviewStatus } from './base.ts'
 import type { DecisionService } from '../decision.ts'
 import type { ServiceContext } from '../project.ts'
@@ -67,7 +67,8 @@ export class SolutionService extends V4Base {
     return row
   }
   async updateConfig(projectId: string, itemId: string, input: unknown) {
-    const patch = configPatch.parse(clean(input))
+    const raw = clean(input)
+    const patch = sentOnly(raw, configPatch.parse(raw))
     await this.mutate(projectId, s => {
       const row = s.v4.configItems.find(c => c.id === itemId)
       ensure(row, 'RECORD_NOT_FOUND', '配置项不存在。')
@@ -89,7 +90,8 @@ export class SolutionService extends V4Base {
     return row
   }
   async updateCostLine(projectId: string, lineId: string, input: unknown) {
-    const patch = costLineInput.partial().parse(clean(input))
+    const raw = clean(input)
+    const patch = sentOnly(raw, costLineInput.partial().parse(raw))
     // Explicitly cleared optional fields arrive as null and remove the value.
     const cleared = Object.entries((input ?? {}) as Record<string, unknown>).filter(([, v]) => v === null || v === '').map(([k]) => k)
     await this.mutate(projectId, s => {

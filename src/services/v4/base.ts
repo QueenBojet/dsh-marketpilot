@@ -22,6 +22,12 @@ export interface WebLike {
 
 export function v4Of(state: ProjectState): V4State { return state.v4 ?? emptyV4() }
 
+/** Zod applies defaults even inside `.partial()`; a patch must only carry the keys the caller actually sent. */
+export function sentOnly<T extends object>(raw: unknown, parsed: T): Partial<T> {
+  const keys = raw && typeof raw === 'object' ? Object.keys(raw) : []
+  return Object.fromEntries(Object.entries(parsed).filter(([k]) => keys.includes(k))) as Partial<T>
+}
+
 export class V4Base {
   constructor(protected readonly ctx: ServiceContext) {}
   /** Mutate the project with `s.v4` guaranteed to exist. */

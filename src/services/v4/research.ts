@@ -4,7 +4,7 @@ import { ensure, id, ids, text } from '../../domain/common.ts'
 import { sourceRefSchema } from '../../domain/v4.ts'
 import type { Finding } from '../../domain/v4.ts'
 import { sha256 } from '../../domain/v4-text.ts'
-import { V4RunBase, errorText, truncate } from './base.ts'
+import { V4RunBase, errorText, sentOnly, truncate } from './base.ts'
 import type { RunDeps, RunMode } from './base.ts'
 
 const optText = (max: number) => z.string().trim().max(max).optional()
@@ -57,7 +57,7 @@ export class ResearchV4Service extends V4RunBase {
     return row
   }
   async updateQuestion(projectId: string, questionId: string, input: unknown) {
-    const patch = questionPatch.parse(input)
+    const patch = sentOnly(input, questionPatch.parse(input))
     await this.mutate(projectId, s => {
       const q = s.v4.questions.find(x => x.id === questionId)
       ensure(q, 'RECORD_NOT_FOUND', '研究问题不存在。')
