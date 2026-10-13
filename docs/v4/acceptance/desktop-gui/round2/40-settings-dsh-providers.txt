@@ -1,0 +1,91 @@
+- complementary "主导航":
+  - generic: M
+  - generic: MarketPilot 智策
+  - generic: WORKSPACE
+  - link "工作台":
+    - /url: "#/home?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 工作台
+  - link "我的项目":
+    - /url: "#/projects?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 我的项目
+  - link "研究资料库":
+    - /url: "#/library?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 研究资料库
+  - link "运行记录":
+    - /url: "#/runs?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 运行记录
+  - generic: CURRENT PROJECT
+  - link "V4 GUI 验收 - CALM 合成案例 - 2026-10-13 虚构客户 test_data · 修订 54":
+    - /url: "#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - text: V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+    - generic: 虚构客户 test_data · 修订 54
+  - link "项目总览":
+    - /url: "#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 项目总览
+  - link "资料与变更":
+    - /url: "#/change?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 资料与变更
+  - link "智能研究":
+    - /url: "#/research?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 智能研究
+  - link "方案与决策":
+    - /url: "#/solution?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 方案与决策
+  - link "成本与报价":
+    - /url: "#/cost?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 成本与报价
+  - link "文档与交付":
+    - /url: "#/deliver?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 文档与交付
+  - link "设置" [active]:
+    - /url: "#/settings?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 设置
+- banner:
+  - strong: 设置
+  - button "选择模型与思考强度":
+    - generic: qwen3.8-flash
+    - generic: low
+    - generic: ⌄
+  - link "设置":
+    - /url: "#/settings?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+- main:
+  - heading "设置" [level=1]
+  - heading "模型供应商" [level=2]
+  - button "刷新"
+  - paragraph: 与 DSH 配置同步。模型与思考强度在右上角切换。
+  - generic: O
+  - strong: okai-deepseek
+  - generic: okai
+  - generic: 已配置
+  - generic: O
+  - strong: okai-qwen
+  - generic: okai2
+  - generic: 使用中
+  - generic: O
+  - strong: okai-kimi
+  - generic: okai3
+  - generic: 已配置
+  - generic: O
+  - strong: okai-glm
+  - generic: okai1
+  - generic: 已配置
+  - generic: Z
+  - strong: zai
+  - generic: 已配置
+  - generic: D
+  - strong: DeepSeek
+  - generic: deepseek-official
+  - generic: 已配置
+  - generic: D
+  - strong: DeepSeek Account
+  - generic: deepseek-account
+  - generic: 已配置
+  - heading "连接状态" [level=2]
+  - strong: 当前模型
+  - generic: okai2 / qwen3.8-flash
+  - strong: 思考强度
+  - generic: low
+  - strong: 联网研究
+  - generic: 未连接
+  - generic "查看连接详情"
+- alert

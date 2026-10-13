@@ -1,0 +1,98 @@
+- complementary "主导航":
+  - generic: M
+  - generic: MarketPilot 智策
+  - generic: WORKSPACE
+  - link "工作台":
+    - /url: "#/home?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 工作台
+  - link "我的项目":
+    - /url: "#/projects?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 我的项目
+  - link "研究资料库":
+    - /url: "#/library?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 研究资料库
+  - link "运行记录":
+    - /url: "#/runs?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 运行记录
+  - generic: CURRENT PROJECT
+  - link "V4 GUI 验收 - CALM 合成案例 - 2026-10-13 虚构客户 test_data · 修订 54":
+    - /url: "#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - text: V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+    - generic: 虚构客户 test_data · 修订 54
+  - link "项目总览":
+    - /url: "#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 项目总览
+  - link "资料与变更":
+    - /url: "#/change?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 资料与变更
+  - link "智能研究":
+    - /url: "#/research?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 智能研究
+  - link "方案与决策":
+    - /url: "#/solution?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 方案与决策
+  - link "成本与报价":
+    - /url: "#/cost?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 成本与报价
+  - link "文档与交付":
+    - /url: "#/deliver?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 文档与交付
+  - link "设置":
+    - /url: "#/settings?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 设置
+- banner:
+  - strong: 工作台
+  - button "选择模型与思考强度" [active]:
+    - generic: glm-5.3-flash
+    - generic: max
+    - generic: ⌄
+  - dialog "模型":
+    - heading "模型" [level=2]
+    - text: 供应商
+    - combobox "供应商":
+      - option "选择供应商"
+      - option "okai-deepseek"
+      - option "okai-qwen" [selected]
+      - option "okai-kimi"
+      - option "okai-glm"
+      - option "zai"
+      - option "DeepSeek"
+      - option "DeepSeek Account"
+    - text: 模型
+    - combobox "模型":
+      - option "选择模型"
+      - option "qwen3.8-flash" [selected]
+      - option "qwen3.8-max"
+    - text: 思考强度
+    - combobox "思考强度":
+      - option "自动"
+      - option "Low" [selected]
+      - option "High"
+      - option "Max"
+    - button "取消"
+    - button "使用此模型"
+  - link "设置":
+    - /url: "#/settings?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+- main:
+  - heading "工作台" [level=1]
+  - button "新建项目":
+    - text: 新建项目
+  - text: 项目
+  - generic: "2"
+  - text: 路线已确认
+  - generic: "1"
+  - text: 最近更新
+  - generic: 2026-10-13 03:10
+  - generic: test
+  - heading "最近项目" [level=2]
+  - textbox "搜索项目":
+    - /placeholder: 搜索名称/客户/行业
+  - text: test
+  - generic: 未填写客户/行业 · 更新 2026-10-13 03:10
+  - generic: 草稿
+  - button "进入项目"
+  - text: V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+  - generic: 虚构客户 test_data · 海洋工程（软件验收） · 合成 CALM 单点系泊油污报警 · 更新 2026-10-13 02:52
+  - generic: 需求已确认
+  - button "进入项目"
+- alert

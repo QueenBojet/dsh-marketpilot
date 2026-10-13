@@ -6,6 +6,7 @@ import type { Finding } from '../../domain/v4.ts'
 import { sha256 } from '../../domain/v4-text.ts'
 import { V4RunBase, errorText, sentOnly, truncate } from './base.ts'
 import type { RunDeps, RunMode } from './base.ts'
+import { researchSkill } from './research-skill.ts'
 
 const optText = (max: number) => z.string().trim().max(max).optional()
 export const questionInput = z.strictObject({
@@ -87,7 +88,8 @@ export class ResearchV4Service extends V4RunBase {
     const model = this.requireModel(deps)
     const q = this.question(projectId, questionId)
     const state = this.ctx.state(projectId)
-    const prompt = ['为以下工程技术问题拟定简明研究计划（3-6 步）和至多 4 条联网检索关键词。仅输出 JSON。',
+    const skill = await researchSkill()
+    const prompt = [skill.text, '为以下工程技术问题拟定简明研究计划（3-6 步）和至多 4 条联网检索关键词。仅输出 JSON。',
       `问题：${q.title}`, q.description ?? '', '相关需求：', ...state.requirements.filter(r => q.requirementIds.includes(r.id)).map(r => `- ${r.normalizedText}`)].join('\n')
     return model.generate({ prompt, schema: planOutput, signal: deps.signal })
   }
@@ -152,6 +154,7 @@ export class ResearchV4Service extends V4RunBase {
    * those stay behind the Human Gate. Both turns are persisted with the actual model route.
    */
   async chat(projectId: string, input: unknown, deps: RunDeps) {
+    const skill = await researchSkill()
     const data = chatInput.parse(input)
     const model = this.requireModel(deps)
     if (data.questionId) this.question(projectId, data.questionId)
@@ -171,7 +174,7 @@ export class ResearchV4Service extends V4RunBase {
       '对话：', ...history.map(m => `${m.role === 'user' ? '用户' : '助手'}：${truncate(m.content, 4000)}`),
     ].filter(Boolean).join('\n')
     try {
-      const out = await model.generate({ prompt, schema: chatOutput, signal: deps.signal })
+      const out = await model.generate({ prompt: `${skill.text}\n\n${prompt}`, schema: chatOutput, signal: deps.signal })
       const reply = { ...this.ctx.fields(projectId), thread: data.thread, role: 'assistant' as const, content: out.answer, runId,
         modelRoute: deps.route, status: deps.signal.aborted ? 'cancelled' as const : 'done' as const }
       await this.finishRun(projectId, runId, deps.signal, { status: 'completed' }, s => { s.v4.messages.push(reply) })
@@ -192,19 +195,21 @@ export class ResearchV4Service extends V4RunBase {
    * in the material it cites, otherwise it is stored without a source and flagged for review.
    */
   async research(projectId: string, questionId: string, deps: RunDeps, modeOverride?: RunMode) {
+    const skill = await researchSkill()
     const model = this.requireModel(deps)
     const q = this.question(projectId, questionId)
     ensure(q.status !== 'researching', 'RUN_IN_PROGRESS', '该问题正在研究中。')
     const mode: RunMode = modeOverride ?? q.plan?.mode ?? 'local'
     const runId = await this.startRun(projectId, 'research', mode, deps.route, questionId)
     await this.mutate(projectId, s => { Object.assign(s.v4.questions.find(x => x.id === questionId)!, { status: 'researching', updatedAt: this.ctx.now() }) })
+    let web: Awaited<ReturnType<ResearchV4Service['webPass']>> | undefined
     try {
-      let web: Awaited<ReturnType<ResearchV4Service['webPass']>> | undefined
       if (mode !== 'local') web = await this.webPass(projectId, runId, questionId, q.plan?.queries.length ? q.plan.queries : [q.title], deps)
       const state = this.ctx.state(projectId)
-      const materials = this.materials(projectId, questionId).filter(m => mode !== 'web' || m.kind === 'web' || !web || web.status === 'unavailable')
-      ensure(materials.length > 0, 'NO_MATERIAL', '没有可用于研究的资料：请先导入资料或启用联网。')
+      const materials = this.materials(projectId, questionId).filter(m => mode !== 'web' || m.kind === 'web' && web?.sourceIds.includes(m.refId))
+      ensure(materials.length > 0, 'NO_MATERIAL', web?.note ?? '没有可用于研究的资料：请先导入资料或启用联网。')
       const prompt = [
+        skill.text,
         '你是工程方案研究员。针对研究问题，仅依据下列编号资料撰写结构化研究报告（Markdown，含结论、依据、不确定性与待确认事项）。',
         '同时提炼至多 8 条候选发现：每条给出 sourceKind（document/web/none）、sourceIndex（资料编号）和 quote（逐字摘自该资料的原文片段，≤200字）。',
         '找不到原文依据的发现必须 sourceKind=none。不得编造引用、数据或价格。仅输出 JSON。',
@@ -228,7 +233,7 @@ export class ResearchV4Service extends V4RunBase {
           needsReview: !located, ...located ? {} : { reviewReason: f.sourceKind === 'none' ? '无资料依据，需人工核实' : '模型引用无法在原文中定位，已移除来源' },
           history: [], requirementIds: [...q.requirementIds], alternativeIds: [], decisionIds: [], configItemIds: [] })
       }
-      const note = [web?.note, `生成候选发现 ${findings.length} 条${unlocated ? `，其中 ${unlocated} 条引用无法定位` : ''}。`].filter(Boolean).join(' ')
+      const note = [skill.receipt, web?.note, `生成候选发现 ${findings.length} 条${unlocated ? `，其中 ${unlocated} 条引用无法定位` : ''}。`].filter(Boolean).join(' ')
       await this.finishRun(projectId, runId, deps.signal, { status: 'completed', note, webStatus: web?.status ?? 'not_requested', sourceIds: web?.sourceIds ?? [] }, s => {
         Object.assign(s.v4.questions.find(x => x.id === questionId)!, { report: out.report, reportRunId: runId, status: 'answered', updatedAt: this.ctx.now() })
         s.v4.findings.push(...findings)
@@ -236,7 +241,8 @@ export class ResearchV4Service extends V4RunBase {
       if (deps.signal.aborted) await this.reopen(projectId, questionId)
       return { runId, findings: findings.length, webStatus: web?.status ?? 'not_requested', note }
     } catch (error) {
-      await this.finishRun(projectId, runId, deps.signal, { status: 'failed', error: errorText(error) })
+      await this.finishRun(projectId, runId, deps.signal, { status: 'failed', error: errorText(error),
+        note: [skill.receipt, web?.note].filter(Boolean).join(' '), webStatus: web?.status ?? 'not_requested', sourceIds: web?.sourceIds ?? [] })
       await this.reopen(projectId, questionId)
       throw error
     }

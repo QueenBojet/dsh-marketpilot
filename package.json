@@ -28,6 +28,7 @@
   "files": [
     "lib",
     "client",
+    "skills",
     "cordis.patch.yml",
     "README.md"
   ],

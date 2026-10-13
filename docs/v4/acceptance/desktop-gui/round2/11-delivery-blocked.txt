@@ -1,0 +1,86 @@
+- complementary "主导航":
+  - generic: M
+  - generic: MarketPilot 智策
+  - generic: ENGINEERING INTELLIGENCE
+  - generic: WORKSPACE
+  - link "工作台":
+    - /url: "#/home?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 工作台
+  - link "我的项目":
+    - /url: "#/projects?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 我的项目
+  - link "研究资料库":
+    - /url: "#/library?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 研究资料库
+  - link "运行记录":
+    - /url: "#/runs?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 运行记录
+  - generic: CURRENT PROJECT
+  - link "V4 GUI 验收 - CALM 合成案例 - 2026-10-13 虚构客户 test_data · 修订 10":
+    - /url: "#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - text: V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+    - generic: 虚构客户 test_data · 修订 10
+  - link "项目总览":
+    - /url: "#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 项目总览
+  - link "资料与变更 有待处理事项":
+    - /url: "#/change?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 资料与变更
+    - generic "有待处理事项"
+  - link "智能研究":
+    - /url: "#/research?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 智能研究
+  - link "方案与决策":
+    - /url: "#/solution?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 方案与决策
+  - link "成本与报价":
+    - /url: "#/cost?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 成本与报价
+  - link "文档与交付" [active]:
+    - /url: "#/deliver?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 文档与交付
+  - link "设置":
+    - /url: "#/settings?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 设置
+  - generic: 工
+  - text: 工程师工作空间
+  - generic: 本机独立网页 · 仅回环地址
+- banner:
+  - text: 工作台
+  - generic: /
+  - text: V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+  - generic: /
+  - strong: 文档与交付
+  - generic "已注册模型路由；调用可用性仍以实际任务为准。": 模型可用 · glm-5.3-flash
+  - link "设置":
+    - /url: "#/settings?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+- main:
+  - generic: 文档与交付
+  - heading "文档、审核与正式版本" [level=1]
+  - paragraph: 文档章节由项目数据确定性生成，可逐节编辑或请 AI 提出建议。已审核、已导出、已对外发送是三个独立状态；编辑会使审核失效。
+  - button "新建文档":
+    - text: 新建文档
+  - button "发布正式版本":
+    - text: 发布正式版本
+  - generic: 项目文档（0）
+  - generic: 暂无文档，点击“新建文档”。
+  - generic: 暂无文档。新建技术方案或成本文档后，可在此 A4 预览、审核并导出 DOCX。
+  - heading "正式版本（0）" [level=2]
+  - button "发布正式版本":
+    - text: 发布正式版本
+  - generic: 尚未发布正式版本。工作草稿可持续修改；只有人工发布才会生成 V1、V2…
+  - heading "DOCX 模板（1）" [level=2]
+  - strong: 默认模板
+  - generic: 系统内置 A4 版式；未选择模板的文档使用此模板。
+  - generic: 内置
+  - generic: "上传公司 .docx 模板：可使用 {{project.name}}、{{doc.title}} 等占位符，及 {{sections}} 或 {{section:KEY}} 章节槽位；未提供槽位时章节追加在正文末尾。"
+  - text: 模板名称
+  - textbox "模板名称":
+    - /placeholder: 留空使用文件名
+  - text: 文件
+  - button "文件"
+  - button "上传模板" [disabled]:
+    - text: 上传模板
+  - heading "版本差异（业务级）" [level=2]
+  - generic: 至少发布两个正式版本后，才能比较业务差异。
+- alert: "运行失败：Error: 模型步骤结束：error"

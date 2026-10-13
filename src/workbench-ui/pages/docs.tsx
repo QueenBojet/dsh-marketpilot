@@ -328,7 +328,6 @@ export function DeliverPage() {
   return (
     <>
       <PageHead eyebrow="文档与交付" title="文档、审核与正式版本"
-        lede="文档章节由项目数据确定性生成，可逐节编辑或请 AI 提出建议。已审核、已导出、已对外发送是三个独立状态；编辑会使审核失效。"
         actions={<><Btn kind="ghost" onClick={() => setCreate(true)}><Icon name="plus" />新建文档</Btn>
           <Btn kind="primary" onClick={() => setPublish(true)}><Icon name="layers" />发布正式版本</Btn></>} />
       <div className="doc-layout">
@@ -350,15 +349,15 @@ export function DeliverPage() {
             <select className="option-select" aria-label="DOCX 模板" value={dv.doc.templateId ?? ''} onChange={e => { void setTpl(e.target.value) }}>
               <option value="">默认模板</option>{ov.v4.templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}</select>
             {dv.outdated.length ? <Btn small kind="teal" onClick={sync}><Icon name="refresh" />同步项目数据（{dv.outdated.length}）</Btn> : null}
-            <Btn small kind={dv.review === 'valid' ? 'ghost' : 'primary'} disabled={active ? '已有运行进行中' : ''} onClick={() => setReview(true)}><Icon name="shield" />{dv.review === 'valid' ? '重新审核' : '人工审核'}</Btn>
+            <Btn small kind={dv.review === 'valid' ? 'ghost' : 'primary'} disabled={active ? '已有运行进行中' : dv.outdated.length ? '请先同步项目数据' : dv.doc.sections.some(s => s.proposal) ? '请先处理章节建议' : ''} onClick={() => setReview(true)}><Icon name="shield" />{dv.review === 'valid' ? '重新审核' : '人工审核'}</Btn>
             <Btn small kind="ghost" disabled={busy ? '正在导出' : ''} onClick={download}><Icon name="file" />导出 DOCX</Btn>
-            <Btn small kind="ghost" showReason disabled={dv.sendBlockers[0] ?? (active ? '已有运行进行中' : '')} onClick={() => setSent(true)}><Icon name="send" />记录对外发送</Btn>
+            <Btn small kind="text" disabled={dv.sendBlockers[0] ?? (active ? '已有运行进行中' : '')} onClick={() => setSent(true)}><Icon name="send" />记录对外发送</Btn>
           </div>
           {dv.outdated.length ? <div className="reconcile-note"><Icon name="refresh" /> 以下章节与当前项目数据不一致：{dv.outdated.map(k => dv.doc.sections.find(s => s.key === k)?.title ?? k).join('、')}。同步时人工编辑过的章节只会生成建议，不会被覆盖。</div> : null}
           <div className="paper">
             <div className="paper-cap">{ov.project.name} · {DOC_KIND[dv.doc.kind]}</div>
             <h1>{dv.doc.title}</h1>
-            <div className="minor">修订 {dv.doc.revisionNo} · {tplName(dv.doc.templateId)} · 指纹 {dv.hash.slice(0, 12)}{dv.doc.review ? ` · 审核 ${dv.doc.review.review.reviewer} ${fmtTime(dv.doc.review.review.reviewedAt)}` : ''}</div>
+            <div className="minor" title={`内容指纹：${dv.hash}`}>修订 {dv.doc.revisionNo} · {tplName(dv.doc.templateId)}{dv.doc.review ? ` · 审核于 ${fmtTime(dv.doc.review.review.reviewedAt)}` : ''}</div>
             <div className="paper-rule" />
             {dv.doc.sections.map(s => (
               <section key={s.key}>

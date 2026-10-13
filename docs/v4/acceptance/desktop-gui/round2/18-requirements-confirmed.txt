@@ -1,0 +1,140 @@
+- complementary "主导航":
+  - generic: M
+  - generic: MarketPilot 智策
+  - generic: ENGINEERING INTELLIGENCE
+  - generic: WORKSPACE
+  - link "工作台":
+    - /url: "#/home?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 工作台
+  - link "我的项目":
+    - /url: "#/projects?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 我的项目
+  - link "研究资料库":
+    - /url: "#/library?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 研究资料库
+  - link "运行记录":
+    - /url: "#/runs?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 运行记录
+  - generic: CURRENT PROJECT
+  - link "V4 GUI 验收 - CALM 合成案例 - 2026-10-13 虚构客户 test_data · 修订 18":
+    - /url: "#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - text: V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+    - generic: 虚构客户 test_data · 修订 18
+  - link "项目总览":
+    - /url: "#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 项目总览
+  - link "资料与变更":
+    - /url: "#/change?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 资料与变更
+  - link "智能研究":
+    - /url: "#/research?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 智能研究
+  - link "方案与决策":
+    - /url: "#/solution?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 方案与决策
+  - link "成本与报价":
+    - /url: "#/cost?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 成本与报价
+  - link "文档与交付":
+    - /url: "#/deliver?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 文档与交付
+  - link "设置":
+    - /url: "#/settings?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 设置
+  - generic: 工
+  - text: 工程师工作空间
+  - generic: 本机独立网页 · 仅回环地址
+- banner:
+  - text: 工作台
+  - generic: /
+  - text: V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+  - generic: /
+  - strong: 资料与变更
+  - generic "已注册模型路由；调用可用性仍以实际任务为准。": 模型可用 · glm-5.3-flash
+  - link "设置":
+    - /url: "#/settings?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+- main:
+  - generic: 资料与变更
+  - heading "资料增量与需求" [level=1]
+  - paragraph: 每批资料先做轻量规则识别；需要时由你启动深度分析。候选变更必须人工采纳，需求必须人工确认。
+  - button "上传资料":
+    - text: 上传资料
+  - heading "资料批次（1）" [level=2]
+  - heading "第一批客户要求 test_data 已深度分析" [level=3]:
+    - text: 第一批客户要求 test_data
+    - generic: 已深度分析
+  - paragraph:
+    - text: 1 个文件 · 2026-10-13 02:03 · 来源：合成 CALM 软件验收；非真实船东资料
+    - text: 轻量提示：可能新增 2 · 可能修改 0 · 可能冲突 0 · 背景 2。
+  - generic: · 轻量识别仅基于文本规则比对，结果是“可能的变化”；请人工启动深度分析或逐条审阅。
+  - button "重新深度分析":
+    - text: 重新深度分析
+  - generic: 全部文档（1）
+  - generic: batch1.txt
+  - generic: 客户需求 · 85 字
+  - heading "候选变更（0 待处理）" [level=2]
+  - button "待处理"
+  - button "全部"
+  - button "批量忽略" [disabled]
+  - button "批量采纳" [disabled]
+  - generic: 没有待处理的候选变更。
+  - complementary:
+    - button: ×
+    - button: 忽略
+    - button: 待澄清
+    - button: 转研究
+    - button: 无需变更
+    - button: 采纳为需求
+  - heading "需求（3/3 已确认）" [level=2]
+  - checkbox "显示已替代"
+  - text: 显示已替代
+  - button "新增":
+    - text: 新增
+  - button "人工确认所选（0）" [disabled]:
+    - text: 人工确认所选（0）
+  - table:
+    - rowgroup:
+      - row "全选待确认 需求 类型 优先级 来源 状态":
+        - columnheader "全选待确认":
+          - checkbox "全选待确认"
+        - columnheader "需求"
+        - columnheader "类型"
+        - columnheader "优先级"
+        - columnheader "来源"
+        - columnheader "状态"
+        - columnheader
+    - rowgroup:
+      - row "选择 系统应记录单点系泊区域的疑似漏油报警事件。 功能 应当 batch1.txt · batch1.txt 已确认 编辑":
+        - cell "选择":
+          - checkbox "选择"
+        - cell "系统应记录单点系泊区域的疑似漏油报警事件。"
+        - cell "功能"
+        - cell "应当"
+        - cell "batch1.txt · batch1.txt"
+        - cell "已确认":
+          - generic: 已确认
+        - cell "编辑":
+          - button "编辑"
+      - row "选择 报警信息在 5 分钟内展示到监控端。 安全 应当 batch1.txt · batch1.txt 已确认 编辑":
+        - cell "选择":
+          - checkbox "选择"
+        - cell "报警信息在 5 分钟内展示到监控端。"
+        - cell "安全"
+        - cell "应当"
+        - cell "batch1.txt · batch1.txt"
+        - cell "已确认":
+          - generic: 已确认
+        - cell "编辑":
+          - button "编辑"
+      - row "选择 至少保留一份可追溯的报警历史记录。 安全 应当 batch1.txt · batch1.txt 已确认 编辑":
+        - cell "选择":
+          - checkbox "选择"
+        - cell "至少保留一份可追溯的报警历史记录。"
+        - cell "安全"
+        - cell "应当"
+        - cell "batch1.txt · batch1.txt"
+        - cell "已确认":
+          - generic: 已确认
+        - cell "编辑":
+          - button "编辑"
+- alert

@@ -1,0 +1,7 @@
+{
+  "formalSha256": "669636b62c40dd2c87b78d05e578c2529bb85f064cc76d780f4eeee48fec6f20",
+  "formalUnchanged": true,
+  "v1v2DeepEqualBeforeFixes": true,
+  "baselineCount": 3,
+  "v3Requirements": 4
+}

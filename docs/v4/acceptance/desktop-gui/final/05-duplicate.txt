@@ -1,0 +1,141 @@
+- complementary "主导航":
+  - generic: M
+  - generic: MarketPilot 智策
+  - generic: WORKSPACE
+  - link "工作台":
+    - /url: "#/home?p=4fb25b35-2068-4eb4-b9c7-a9054e2cae71"
+    - generic: 工作台
+  - link "我的项目":
+    - /url: "#/projects?p=4fb25b35-2068-4eb4-b9c7-a9054e2cae71"
+    - generic: 我的项目
+  - link "研究资料库":
+    - /url: "#/library?p=4fb25b35-2068-4eb4-b9c7-a9054e2cae71"
+    - generic: 研究资料库
+  - link "运行记录":
+    - /url: "#/runs?p=4fb25b35-2068-4eb4-b9c7-a9054e2cae71"
+    - generic: 运行记录
+  - generic: CURRENT PROJECT
+  - link "V4 产品异常场景实测 test_data 未填写客户 · 修订 2":
+    - /url: "#/overview?p=4fb25b35-2068-4eb4-b9c7-a9054e2cae71"
+    - text: V4 产品异常场景实测 test_data
+    - generic: 未填写客户 · 修订 2
+  - link "项目总览":
+    - /url: "#/overview?p=4fb25b35-2068-4eb4-b9c7-a9054e2cae71"
+    - generic: 项目总览
+  - link "资料与变更 有待处理事项":
+    - /url: "#/change?p=4fb25b35-2068-4eb4-b9c7-a9054e2cae71"
+    - generic: 资料与变更
+    - generic "有待处理事项"
+  - link "智能研究":
+    - /url: "#/research?p=4fb25b35-2068-4eb4-b9c7-a9054e2cae71"
+    - generic: 智能研究
+  - link "方案与决策":
+    - /url: "#/solution?p=4fb25b35-2068-4eb4-b9c7-a9054e2cae71"
+    - generic: 方案与决策
+  - link "成本与报价":
+    - /url: "#/cost?p=4fb25b35-2068-4eb4-b9c7-a9054e2cae71"
+    - generic: 成本与报价
+  - link "文档与交付":
+    - /url: "#/deliver?p=4fb25b35-2068-4eb4-b9c7-a9054e2cae71"
+    - generic: 文档与交付
+  - link "设置":
+    - /url: "#/settings?p=4fb25b35-2068-4eb4-b9c7-a9054e2cae71"
+    - generic: 设置
+- banner:
+  - text: V4 产品异常场景实测 test_data
+  - generic: /
+  - strong: 资料与变更
+  - button "选择模型与思考强度":
+    - generic: qwen3.8-flash
+    - generic: low
+    - generic: ⌄
+  - link "设置":
+    - /url: "#/settings?p=4fb25b35-2068-4eb4-b9c7-a9054e2cae71"
+- main:
+  - heading "资料增量与需求" [level=1]
+  - button "上传资料":
+    - text: 上传资料
+  - heading "资料批次（2）" [level=2]
+  - heading "重复上传验证 已轻量识别" [level=3]:
+    - text: 重复上传验证
+    - generic: 已轻量识别
+  - paragraph:
+    - text: 0 个文件 · 2026-10-13 07:52
+    - text: 轻量提示：可能新增 0 · 可能修改 0 · 可能冲突 0 · 背景 0。
+  - generic: 重复未导入：public-test.pdf（与已导入「public-test.pdf」内容相同）
+  - generic: · 轻量识别仅基于文本规则比对，结果是“可能的变化”；请人工启动深度分析或逐条审阅。
+  - generic: · 本批次文件均与已有资料重复，未新增文档。
+  - generic: · 来源未填写：请补充资料来源以便追溯。
+  - button "启动深度分析" [disabled]:
+    - text: 启动深度分析
+  - generic: 本批次无新文档
+  - heading "有效 PDF TXT CSV 实测 已轻量识别" [level=3]:
+    - text: 有效 PDF TXT CSV 实测
+    - generic: 已轻量识别
+  - paragraph:
+    - text: 3 个文件 · 2026-10-13 07:51 · 来源：本地生成的非敏感合成测试文件
+    - text: 轻量提示：可能新增 3 · 可能修改 0 · 可能冲突 0 · 背景 2。 尚有 5 条待处理。
+  - generic: · 轻量识别仅基于文本规则比对，结果是“可能的变化”；请人工启动深度分析或逐条审阅。
+  - generic: · public-test.pdf：PDF 的版式与表格结构未被保留，均以纯文本行提取。
+  - button "启动深度分析":
+    - text: 启动深度分析
+  - generic: 全部文档（3）
+  - generic: public-test.pdf
+  - generic: 客户需求 · 48 字
+  - generic: valid.txt
+  - generic: 客户需求 · 44 字
+  - generic: sample.csv
+  - generic: 客户需求 · 30 字
+  - heading "候选变更（5 待处理）" [level=2]
+  - button "待处理"
+  - button "全部"
+  - checkbox "全选候选变更"
+  - text: 全选
+  - button "批量忽略" [disabled]
+  - button "批量采纳" [disabled]
+  - checkbox "选择"
+  - text: "可能新增要求：TEST_DATA: Alarm records must retain timestamps."
+  - generic: "TEST_DATA: Alarm records must retain timestamps."
+  - generic: 可能新增
+  - generic: 待处理
+  - button "处理"
+  - checkbox "选择"
+  - text: "可能新增要求：TEST_DATA: 系统应记录报警事件。"
+  - generic: "TEST_DATA: 系统应记录报警事件。"
+  - generic: 可能新增
+  - generic: 待处理
+  - button "处理"
+  - checkbox "选择"
+  - text: "可能新增要求：TEST_DATA: 报警日志必须可追溯。"
+  - generic: "TEST_DATA: 报警日志必须可追溯。"
+  - generic: 可能新增
+  - generic: 待处理
+  - button "处理"
+  - checkbox "选择"
+  - text: 背景信息：名称 | 数量 | 说明
+  - generic: 名称 | 数量 | 说明
+  - generic: 背景信息
+  - generic: 待处理
+  - button "处理"
+  - checkbox "选择"
+  - text: 背景信息：测试传感器 | 2 | 仅软件验收
+  - generic: 测试传感器 | 2 | 仅软件验收
+  - generic: 背景信息
+  - generic: 待处理
+  - button "处理"
+  - complementary:
+    - button: ×
+    - button: 忽略
+    - button: 待澄清
+    - button: 转研究
+    - button: 无需变更
+    - button: 采纳为需求
+  - heading "需求（0/0 已确认）" [level=2]
+  - checkbox "显示已替代"
+  - text: 显示已替代
+  - button "新增":
+    - text: 新增
+  - button "人工确认所选（0）" [disabled]:
+    - text: 人工确认所选（0）
+  - generic: 暂无需求。可以从候选变更采纳，或手工新增。
+- alert

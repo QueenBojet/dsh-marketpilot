@@ -1,0 +1,106 @@
+- complementary "主导航":
+  - generic: M
+  - generic: MarketPilot 智策
+  - generic: WORKSPACE
+  - link "工作台":
+    - /url: "#/home?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 工作台
+  - link "我的项目":
+    - /url: "#/projects?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 我的项目
+  - link "研究资料库":
+    - /url: "#/library?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 研究资料库
+  - link "运行记录":
+    - /url: "#/runs?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 运行记录
+  - generic: CURRENT PROJECT
+  - link "V4 GUI 验收 - CALM 合成案例 - 2026-10-13 虚构客户 test_data · 修订 59":
+    - /url: "#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - text: V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+    - generic: 虚构客户 test_data · 修订 59
+  - link "项目总览":
+    - /url: "#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 项目总览
+  - link "资料与变更":
+    - /url: "#/change?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 资料与变更
+  - link "智能研究":
+    - /url: "#/research?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 智能研究
+  - link "方案与决策":
+    - /url: "#/solution?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 方案与决策
+  - link "成本与报价":
+    - /url: "#/cost?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 成本与报价
+  - link "文档与交付":
+    - /url: "#/deliver?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 文档与交付
+  - link "设置":
+    - /url: "#/settings?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 设置
+- banner:
+  - text: V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+  - generic: /
+  - strong: 方案与决策
+  - button "选择模型与思考强度":
+    - generic: qwen3.8-flash
+    - generic: low
+    - generic: ⌄
+  - link "设置":
+    - /url: "#/settings?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+- main:
+  - heading "技术路线与配置" [level=1]
+  - link "查看研究依据":
+    - /url: "#/research?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - text: 查看研究依据
+  - link "去发布版本":
+    - /url: "#/deliver?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - text: 去发布版本
+  - text: 当前正式版本
+  - generic: V1
+  - generic: 正式版本不可修改，草稿编辑不会覆盖
+  - text: 草稿路线
+  - generic: 路线 A：检测网关与监控平台 test_data
+  - generic: 2026-10-13 05:52 · Harness human (eca9a389-bc97-4e22-9900-e36f1036c11b)
+  - text: 人工决策
+  - generic: 已确认
+  - generic: Harness human (eca9a389-bc97-4e22-9900-e36f1036c11b) · 2026-10-13 05:52
+  - heading "方案工作空间" [level=2]
+  - button "技术路线"
+  - button "设备配置"
+  - heading "候选技术路线（2）" [level=2]
+  - paragraph: 选择只写入工作草稿；确认需要人工记录理由。
+  - button "手工新增":
+    - text: 手工新增
+  - button "AI 生成候选":
+    - text: AI 生成候选
+  - generic: 已选定
+  - generic: 已人工确认
+  - heading "路线 A：检测网关与监控平台 test_data" [level=3]
+  - paragraph: 合成验收方案：事件采集、网关传输、平台展示与历史留存。非真实工程选型。
+  - generic: 组成：合成检测器、合成网关、监控与历史记录平台
+  - generic: 待核实：检测性能、现场防爆与通信条件均未技术核实
+  - button "当前草稿采用" [disabled]
+  - button "重新确认":
+    - text: 重新确认
+  - generic: 候选
+  - heading "路线 B：人工辅助上报 test_data" [level=3]
+  - paragraph: 合成比较方案：人工发现、移动端上报和中心历史记录。响应时效待核查。
+  - generic: 组成：人工巡查终端、中心记录平台
+  - button "选为草稿路线"
+  - text: AI 生成的路线只是建议，不能代替工程师确认；更换草稿路线会使路线确认失效，并提示重新核查成本与文档。
+  - heading "工程决策记录" [level=2]
+  - heading "技术路线已确认" [level=3]
+  - paragraph: 隔离 test_data 第二版沿用路线 A，覆盖 2 分钟展示和人工处置备注要求，旧 5 分钟要求不作为本次依据。仅验证软件流程，工程适用性未核实。
+  - generic: 历史决策（2）
+  - strong: 路线 A：检测网关与监控平台 test_data
+  - generic: Harness human (eca9a389-bc97-4e22-9900-e36f1036c11b) · 2026-10-13 05:52
+  - generic: 当前
+  - strong: 路线 A：检测网关与监控平台 test_data
+  - generic: Harness human (d20a2e7a-e93b-4177-9400-8045aa36e9ec) · 2026-10-13 02:52
+  - generic: 历史
+  - button "重新确认路线":
+    - text: 重新确认路线
+- alert

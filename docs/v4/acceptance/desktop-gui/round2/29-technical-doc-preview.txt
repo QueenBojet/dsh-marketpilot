@@ -1,0 +1,181 @@
+- complementary "主导航":
+  - generic: M
+  - generic: MarketPilot 智策
+  - generic: ENGINEERING INTELLIGENCE
+  - generic: WORKSPACE
+  - link "工作台":
+    - /url: "#/home?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 工作台
+  - link "我的项目":
+    - /url: "#/projects?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 我的项目
+  - link "研究资料库":
+    - /url: "#/library?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 研究资料库
+  - link "运行记录":
+    - /url: "#/runs?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 运行记录
+  - generic: CURRENT PROJECT
+  - link "V4 GUI 验收 - CALM 合成案例 - 2026-10-13 虚构客户 test_data · 修订 40":
+    - /url: "#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - text: V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+    - generic: 虚构客户 test_data · 修订 40
+  - link "项目总览":
+    - /url: "#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 项目总览
+  - link "资料与变更":
+    - /url: "#/change?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 资料与变更
+  - link "智能研究":
+    - /url: "#/research?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 智能研究
+  - link "方案与决策":
+    - /url: "#/solution?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 方案与决策
+  - link "成本与报价":
+    - /url: "#/cost?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 成本与报价
+  - link "文档与交付":
+    - /url: "#/deliver?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 文档与交付
+  - link "设置":
+    - /url: "#/settings?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 设置
+  - generic: 工
+  - text: 工程师工作空间
+  - generic: 本机独立网页 · 仅回环地址
+- banner:
+  - text: 工作台
+  - generic: /
+  - text: V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+  - generic: /
+  - strong: 文档与交付
+  - generic "已注册模型路由；调用可用性仍以实际任务为准。": 模型可用 · glm-5.3-flash
+  - link "设置":
+    - /url: "#/settings?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+- main:
+  - generic: 文档与交付
+  - heading "文档、审核与正式版本" [level=1]
+  - paragraph: 文档章节由项目数据确定性生成，可逐节编辑或请 AI 提出建议。已审核、已导出、已对外发送是三个独立状态；编辑会使审核失效。
+  - button "新建文档":
+    - text: 新建文档
+  - button "发布正式版本":
+    - text: 发布正式版本
+  - generic: 项目文档（1）
+  - button "CALM 合成技术方案 test_data 技术方案 · 修订 1 未审核":
+    - text: CALM 合成技术方案 test_data
+    - generic: 技术方案 · 修订 1
+    - generic: 未审核
+  - generic: 未审核
+  - generic: 未导出
+  - generic: 未对外发送
+  - combobox "DOCX 模板":
+    - option "默认模板" [selected]
+  - button "人工审核":
+    - text: 人工审核
+  - button "导出 DOCX":
+    - text: 导出 DOCX
+  - button "记录对外发送" [disabled]:
+    - text: 记录对外发送
+  - generic: 文档需先通过人工审核（且审核后未再修改）。
+  - generic: V4 GUI 验收 - CALM 合成案例 - 2026-10-13 · 技术方案
+  - heading "CALM 合成技术方案 test_data" [level=1]
+  - generic: 修订 1 · 默认模板 · 指纹 08c9b8a25116
+  - heading "需求概述 编辑" [level=3]:
+    - text: 需求概述
+    - button "编辑"
+  - paragraph: 已确认需求 3 条。
+  - table:
+    - rowgroup:
+      - row "编号 优先级 需求 来源":
+        - columnheader "编号"
+        - columnheader "优先级"
+        - columnheader "需求"
+        - columnheader "来源"
+    - rowgroup:
+      - row "R1 应当 系统应记录单点系泊区域的疑似漏油报警事件。 batch1.txt":
+        - cell "R1"
+        - cell "应当"
+        - cell "系统应记录单点系泊区域的疑似漏油报警事件。"
+        - cell "batch1.txt"
+      - row "R2 应当 报警信息在 5 分钟内展示到监控端。 batch1.txt":
+        - cell "R2"
+        - cell "应当"
+        - cell "报警信息在 5 分钟内展示到监控端。"
+        - cell "batch1.txt"
+      - row "R3 应当 至少保留一份可追溯的报警历史记录。 batch1.txt":
+        - cell "R3"
+        - cell "应当"
+        - cell "至少保留一份可追溯的报警历史记录。"
+        - cell "batch1.txt"
+  - heading "研究结论 编辑" [level=3]:
+    - text: 研究结论
+    - button "编辑"
+  - paragraph: 采纳的研究发现 1 条。
+  - list:
+    - listitem: test_data：合成资料明确要求保留可追溯报警历史，保存周期尚未定义。（适用条件：软件流程验收，未独立技术核实）【来源未核实】
+  - generic: 标记为“来源未核实”的结论尚未经人工回溯原始资料，引用前需核实。
+  - heading "技术路线与决策 编辑" [level=3]:
+    - text: 技术路线与决策
+    - button "编辑"
+  - paragraph: 推荐路线：路线 A：检测网关与监控平台 test_data。合成验收方案：事件采集、网关传输、平台展示与历史留存。非真实工程选型。
+  - paragraph: 该路线已由 Harness human (d20a2e7a-e93b-4177-9400-8045aa36e9ec) 于 2026-10-13 确认：选定路线：路线 A：检测网关与监控平台 test_data
+  - paragraph: 决策理由：仅为隔离软件验收选用路线 A，以覆盖事件记录、展示时效和历史留存数据链；现场性能、防爆与适用条件未核实，不构成真实工程批准。
+  - heading "主要组成" [level=4]
+  - list:
+    - listitem: 合成检测器
+    - listitem: 合成网关
+    - listitem: 监控与历史记录平台
+  - heading "待确认" [level=4]
+  - list:
+    - listitem: 检测性能、现场防爆与通信条件均未技术核实
+  - heading "比较过的其他路线" [level=4]
+  - list:
+    - listitem: 路线 B：人工辅助上报 test_data（备选）：合成比较方案：人工发现、移动端上报和中心历史记录。响应时效待核查。
+  - heading "系统配置 编辑" [level=3]:
+    - text: 系统配置
+    - button "编辑"
+  - paragraph: 配置项 1 项。
+  - table:
+    - rowgroup:
+      - row "分组 名称 型号 关键参数 数量 接口 安装":
+        - columnheader "分组"
+        - columnheader "名称"
+        - columnheader "型号"
+        - columnheader "关键参数"
+        - columnheader "数量"
+        - columnheader "接口"
+        - columnheader "安装"
+    - rowgroup:
+      - row "合成传感器 test_data 合成漏油事件检测器 test_data TEST-SENSOR-01 — 4 套 — —":
+        - cell "合成传感器 test_data"
+        - cell "合成漏油事件检测器 test_data"
+        - cell "TEST-SENSOR-01"
+        - cell "—"
+        - cell "4 套"
+        - cell "—"
+        - cell "—"
+  - complementary:
+    - generic: 系统生成内容
+    - button: ×
+    - button: 取消
+    - button: 保存章节
+  - heading "正式版本（0）" [level=2]
+  - button "发布正式版本":
+    - text: 发布正式版本
+  - generic: 尚未发布正式版本。工作草稿可持续修改；只有人工发布才会生成 V1、V2…
+  - heading "DOCX 模板（1）" [level=2]
+  - strong: 默认模板
+  - generic: 系统内置 A4 版式；未选择模板的文档使用此模板。
+  - generic: 内置
+  - generic: "上传公司 .docx 模板：可使用 {{project.name}}、{{doc.title}} 等占位符，及 {{sections}} 或 {{section:KEY}} 章节槽位；未提供槽位时章节追加在正文末尾。"
+  - text: 模板名称
+  - textbox "模板名称":
+    - /placeholder: 留空使用文件名
+  - text: 文件
+  - button "文件"
+  - button "上传模板" [disabled]:
+    - text: 上传模板
+  - heading "版本差异（业务级）" [level=2]
+  - generic: 至少发布两个正式版本后，才能比较业务差异。
+- alert

@@ -198,7 +198,6 @@ export function CostPage() {
   return (
     <>
       <PageHead eyebrow="成本与报价" title="BOM 成本与报价"
-        lede="金额由系统确定性计算，不由 AI 生成。价格必须注明来源；测试价格、估算与过期报价会被标出，多币种缺汇率时不出合计。"
         actions={<><Btn kind="ghost" onClick={() => setSettings(true)}><Icon name="coins" />口径与汇率</Btn>
           <Btn kind="primary" onClick={() => setEdit('new')}><Icon name="plus" />新增成本行</Btn></>} />
       {r.testData ? <div className="reconcile-note"><Icon name="shield" /> 当前包含 {r.testData} 行测试价格（非真实报价），仅用于演示计算，不能用于对外报价。</div> : null}

@@ -31,8 +31,8 @@ describe('V4 acceptance §7.1 synthetic story (isolated storage, synthetic data 
     const altB = (await call('POST', `projects/${pid}/v4/alternatives`, { name: '点式传感器路线', summary: '点式传感器网格布设。', components: ['点式传感器'] })).body as unknown as Json[]
     expect(altA[0]!.id).not.toBe(altB[0]!.id)
     expect((await call('PUT', `projects/${pid}/v4/route/draft`, { alternativeId: altA[0]!.id })).status).toBe(200)
-    const confirmRoute = async () => {
-      const reqs = ((await ov()).requirements as Json[]).filter(r => r.status === 'confirmed').map(r => r.id as string)
+    const confirmRoute = async (exclude?: string) => {
+      const reqs = ((await ov()).requirements as Json[]).filter(r => r.status === 'confirmed' && r.id !== exclude).map(r => r.id as string)
       await run(call, pid, 'marketpilot_v4_route_confirm', { input: { alternativeId: altA[0]!.id, decision: '选定路线：开路激光路线', rationale: '合成样例中的人工比选。', requirementIds: reqs, evidenceIds: [] } })
     }
     await confirmRoute()
@@ -59,6 +59,8 @@ describe('V4 acceptance §7.1 synthetic story (isolated storage, synthetic data 
     }
     expect((await call('GET', `projects/${pid}/v4/checks?type=full`)).body.blockers).toEqual([])
     await run(call, pid, 'marketpilot_v4_baseline_publish', { input: { type: 'full', note: 'V1（合成样例）' } })
+    const firstBaseline = ((await call('GET', `projects/${pid}/v4/baselines`)).body.baselines as Json[])[0]!
+    const frozenV1 = (await call('GET', `projects/${pid}/v4/baselines/${firstBaseline.id}`)).body
 
     // 6. second batch: only the differences are proposed and adopted by a human
     await intakeAndAdopt(call, pid, '第二批资料', BATCH2)
@@ -69,7 +71,13 @@ describe('V4 acceptance §7.1 synthetic story (isolated storage, synthetic data 
     expect(cost2.reviews.cost_draft).toBe('stale')
     const stale = (await call('GET', `projects/${pid}/v4/checks?type=full`)).body.blockers as string[]
     expect(stale.length).toBeGreaterThan(0)
-    if (!(await ov()).route.confirmed) await confirmRoute()
+    // A selected route must be confirmable again when its covered requirements change.
+    const firstDecision = (await ov()).decisions[0]
+    const retired = ((await ov()).requirements as Json[]).find(r => String(r.normalizedText).includes('5 秒'))!
+    await confirmRoute(retired.id as string)
+    expect((await call('PATCH', `projects/${pid}/v4/requirements/${retired.id as string}`, { status: 'superseded' })).status).toBe(200)
+    expect((await ov()).decisions).toHaveLength(2)
+    expect((await ov()).decisions[0]).toEqual(firstDecision)
     await run(call, pid, 'marketpilot_v4_cost_review', { input: { kind: 'cost_draft' } })
     for (const id of docIds) {
       expect((await call('POST', `projects/${pid}/v4/docs/${id}/refresh`)).status).toBe(200)
@@ -81,6 +89,9 @@ describe('V4 acceptance §7.1 synthetic story (isolated storage, synthetic data 
     // 8. business-level diff, then persistence across a restart
     const list = (await call('GET', `projects/${pid}/v4/baselines`)).body.baselines as Json[]
     expect(list.map(b => b.label)).toEqual(['V1', 'V2'])
+    expect((await call('GET', `projects/${pid}/v4/baselines/${list[0]!.id}`)).body).toEqual(frozenV1)
+    const v2Snapshot = (await call('GET', `projects/${pid}/v4/baselines/${list[1]!.id}`)).body.snapshot as Json
+    expect(JSON.stringify(v2Snapshot.requirements)).not.toContain('报警响应时间不超过 5 秒。')
     const diff = (await call('GET', `projects/${pid}/v4/diff?a=${list[0]!.id as string}&b=${list[1]!.id as string}`)).body as Json
     expect(JSON.stringify(diff.cost.lines.changed)).toContain('1000 → 1200')
     expect(JSON.stringify(diff)).toContain('2 秒')

@@ -284,6 +284,12 @@ function replaceSlots(root: XmlNode, input: RenderInput): boolean {
         const fragments = collectRunFragments(child)
         if (fragments.length === 1) {
           const trimmed = fragments[0]!.text.trim()
+          if (trimmed === '{{contents}}') {
+            const nodes = input.sections.map((section, index) => paragraphWithStyle('MPBody', `${index + 1}. ${section.title}`))
+            node.children.splice(i, 1, ...nodes)
+            i += nodes.length - 1
+            continue
+          }
           if (trimmed === '{{sections}}') {
             const nodes = input.sections.flatMap(renderSectionNodes)
             node.children.splice(i, 1, ...nodes)
@@ -347,6 +353,7 @@ export function inspectTemplate(bytes: Uint8Array): TemplateInfo {
     const allText = textOf(parseXml(requirePart(zip, name)))
     for (const m of allText.matchAll(PLACEHOLDER_RE)) {
       const key = m[1]!
+      if (key === 'contents') continue
       if (key === 'sections') { hasSectionsSlot = true; continue }
       if (key.startsWith('section:')) { sectionSlots.add(key.slice('section:'.length)); continue }
       placeholders.add(key)
@@ -437,13 +444,13 @@ const STYLES_XML = XML_DECL + `<w:styles xmlns:w="http://schemas.openxmlformats.
 </w:docDefaults>
 <w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style>
 <w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/><w:basedOn w:val="Normal"/>
-<w:pPr><w:spacing w:before="360" w:after="160"/><w:outlineLvl w:val="0"/></w:pPr>
+<w:pPr><w:keepNext/><w:keepLines/><w:spacing w:before="360" w:after="160"/><w:outlineLvl w:val="0"/></w:pPr>
 <w:rPr><w:rFonts w:eastAsia="SimHei"/><w:b/><w:sz w:val="32"/></w:rPr></w:style>
 <w:style w:type="paragraph" w:styleId="Heading2"><w:name w:val="heading 2"/><w:basedOn w:val="Normal"/>
-<w:pPr><w:spacing w:before="280" w:after="120"/><w:outlineLvl w:val="1"/></w:pPr>
+<w:pPr><w:keepNext/><w:keepLines/><w:spacing w:before="280" w:after="120"/><w:outlineLvl w:val="1"/></w:pPr>
 <w:rPr><w:rFonts w:eastAsia="SimHei"/><w:b/><w:sz w:val="26"/></w:rPr></w:style>
 <w:style w:type="paragraph" w:styleId="Heading3"><w:name w:val="heading 3"/><w:basedOn w:val="Normal"/>
-<w:pPr><w:spacing w:before="200" w:after="100"/><w:outlineLvl w:val="2"/></w:pPr>
+<w:pPr><w:keepNext/><w:keepLines/><w:spacing w:before="200" w:after="100"/><w:outlineLvl w:val="2"/></w:pPr>
 <w:rPr><w:rFonts w:eastAsia="SimHei"/><w:b/><w:sz w:val="24"/></w:rPr></w:style>
 <w:style w:type="paragraph" w:styleId="MPBody"><w:name w:val="MP Body"/><w:basedOn w:val="Normal"/>
 <w:pPr><w:spacing w:after="120" w:line="276" w:lineRule="auto"/></w:pPr></w:style>
@@ -496,7 +503,7 @@ const APP_PROPS_XML = XML_DECL + `<Properties xmlns="http://schemas.openxmlforma
 <Application>MarketPilot</Application>
 </Properties>`
 
-/** The default body: a cover block, a TOC field, a page break, then a `{{sections}}` slot. */
+/** A readable contents list is generated at export; page numbers are left to Word's layout engine. */
 const DOCUMENT_XML = XML_DECL + `<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
 <w:body>
 <w:p><w:pPr><w:jc w:val="center"/><w:spacing w:before="2000" w:after="200"/></w:pPr>
@@ -505,12 +512,7 @@ const DOCUMENT_XML = XML_DECL + `<w:document xmlns:w="http://schemas.openxmlform
 <w:r><w:rPr><w:sz w:val="28"/></w:rPr><w:t xml:space="preserve">{{project.name}}</w:t></w:r></w:p>
 <w:p><w:r><w:br w:type="page"/></w:r></w:p>
 <w:p><w:pPr><w:pStyle w:val="Heading1"/></w:pPr><w:r><w:t>目录</w:t></w:r></w:p>
-<w:p>
-<w:r><w:fldChar w:fldCharType="begin" w:dirty="true"/></w:r>
-<w:r><w:instrText xml:space="preserve"> TOC \\o "1-3" \\h \\z \\u </w:instrText></w:r>
-<w:r><w:fldChar w:fldCharType="separate"/></w:r>
-<w:r><w:fldChar w:fldCharType="end"/></w:r>
-</w:p>
+<w:p><w:r><w:t>{{contents}}</w:t></w:r></w:p>
 <w:p><w:r><w:br w:type="page"/></w:r></w:p>
 <w:p><w:r><w:t xml:space="preserve">{{sections}}</w:t></w:r></w:p>
 <w:sectPr>
@@ -522,7 +524,7 @@ const DOCUMENT_XML = XML_DECL + `<w:document xmlns:w="http://schemas.openxmlform
 </w:body>
 </w:document>`
 
-/** Build the built-in A4 default template: cover page, TOC field, header/footer, and a `{{sections}}` slot. */
+/** Build the built-in A4 default template: cover, contents, header/footer, and a `{{sections}}` slot. */
 export function defaultTemplate(): Uint8Array {
   const enc = (s: string) => new TextEncoder().encode(s)
   return writeZip([

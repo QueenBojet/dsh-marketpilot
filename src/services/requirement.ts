@@ -18,10 +18,20 @@ export class RequirementService extends RecordService<'requirements'> {
   async update(projectId: string, id: string, input: unknown) {
     const patch = requirementInput.partial().parse(input)
     const state = await this.ctx.repository.update(projectId, s => {
-      assertEditable(s, id)
       const row = requiredRecord(s, 'requirements', id)
+      // Historical decisions retain their original text and confirmation. Retiring a
+      // requirement is allowed only after the active decision no longer depends on it.
+      const retiringOnly = patch.status === 'superseded'
+        && Object.entries(patch).every(([key, value]) => key === 'status' || value === row[key as keyof typeof row])
+      const active = s.decisions.find(d => d.id === s.project.activeDecisionId)
+      if (retiringOnly && !active?.requirementIds.includes(id)) {
+        row.status = 'superseded'
+        row.updatedAt = this.ctx.now()
+        return
+      }
+      assertEditable(s, id)
       Object.assign(row, patch, { updatedAt: this.ctx.now() })
-      if (row.confirmation) { row.status = 'proposed'; delete row.confirmation }
+      if (row.confirmation) { row.status = patch.status ?? 'proposed'; delete row.confirmation }
     })
     return requiredRecord(state, 'requirements', id)
   }

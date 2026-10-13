@@ -219,7 +219,7 @@ function ReportPanel({ q, onEdit, onSave }: { q: Question; onEdit: () => void; o
           <option value="">按计划（{MODE[q.plan?.mode ?? 'local']}）</option>{Object.entries(MODE).map(([m, v]) => <option key={m} value={m}>{v}</option>)}</select>
         <Btn small kind="primary" disabled={reason} showReason onClick={go}><Icon name="spark" />开始研究</Btn>
       </div>
-      {eff !== 'local' && !cap.research.available ? <div className="boxnote">联网研究不可用：{cap.research.reason}。本次运行会记录为“联网不可用（未验证）”，报告只基于本地资料。</div> : null}
+      {eff !== 'local' && !cap.research.available ? <div className="boxnote">{cap.research.reason} {eff === 'web' ? '仅联网模式需要成功获取网页正文，否则报告生成会停止。' : '联网失败时会记录原因，并明确区分本地资料与网页来源。'}</div> : null}
       {last ? <div className="tiny-caption">最近运行：{fmtTime(last.startedAt)} · {last.status} · 模型 {last.modelRoute.provider}/{last.modelRoute.model}（{ROUTE_SRC[last.modelRoute.source]}）· {WEB_STATUS[last.webStatus]}{last.note ? ` · ${last.note}` : ''}{last.error ? ` · 错误：${last.error}` : ''}</div> : null}
       <div className="thin-rule" />
       {q.report ? <>
@@ -258,7 +258,6 @@ function AssistantPanel({ q, onClose }: { q: Question | undefined; onClose: () =
           <div className="assistant-name"><span className="bot-mark"><Icon name="spark" /></span>项目 AI 助手</div>
           <button className="icon-btn" style={{ width: 27, height: 27, border: 0 }} onClick={onClose} title="收起 AI 面板" aria-label="收起 AI 面板"><Icon name="close" /></button>
         </div>
-        <div className="tiny-caption" style={{ marginTop: 8 }}>{model.available ? `模型：${model.provider ?? ''}/${model.model ?? ''}（可在设置中调整）` : `模型不可用：${model.reason}`}</div>
         <div className="tiny-caption">{q ? `当前问题：${q.title}` : '通用对话（未选择研究问题）'}</div>
       </div>
       <div className="conversation">
@@ -267,7 +266,7 @@ function AssistantPanel({ q, onClose }: { q: Question | undefined; onClose: () =
             <div style={{ whiteSpace: 'pre-wrap' }}>{m.content}</div>
             {m.status !== 'done' ? <Badge tone={m.status === 'failed' ? 'red' : 'gray'}>{m.status === 'failed' ? '失败' : '已取消'}</Badge> : null}
             {m.role === 'assistant' && m.modelRoute ? <div className="tiny-caption">{m.modelRoute.provider}/{m.modelRoute.model} · {ROUTE_SRC[m.modelRoute.source]}</div> : null}
-          </div>)) : <div className="tiny-caption">针对当前问题提问。回答仅供参考，不会自动写入发现、需求或方案。</div>}
+          </div>)) : <div className="chat-empty">{q ? '围绕这个问题展开讨论' : '有什么需要一起研究？'}</div>}
       </div>
       <div className="chat-compose">
         <textarea value={text} onChange={e => setText(e.target.value)} placeholder="针对当前研究问题继续提问…" aria-label="对话输入"
@@ -293,10 +292,10 @@ export function ResearchPage() {
   const adopted = ov.v4.findings.filter(f => f.adoption === 'adopted').length
   return (
     <>
-      <PageHead eyebrow="智能研究" title="智能研究空间" lede="围绕研究问题开展本地资料与联网研究；报告与发现均为草稿，采纳和核实由人工完成。"
+      <PageHead eyebrow="智能研究" title="智能研究空间"
         actions={<Btn kind="primary" onClick={() => setQModal('new')}><Icon name="plus" />新增问题</Btn>} />
       <div className="research-toolbar">
-        <Badge tone="blue">联网：{ov.capabilities.research.available ? '可用' : '不可用'}</Badge>
+        <Badge tone="blue">联网：{ov.capabilities.research.mode === 'unverified' ? '待验证' : ov.capabilities.research.available ? '可用' : '不可用'}</Badge>
         <span className="tiny-caption">{ov.capabilities.research.reason}</span>
         <button type="button" className="btn small ghost reopen-chat" onClick={() => setChat(!chat)}><Icon name="message" />{chat ? '收起' : '展开'} AI 助手</button>
       </div>

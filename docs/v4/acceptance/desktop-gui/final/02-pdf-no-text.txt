@@ -1,0 +1,107 @@
+- complementary "主导航":
+  - generic: M
+  - generic: MarketPilot 智策
+  - generic: WORKSPACE
+  - link "工作台":
+    - /url: "#/home?p=4fb25b35-2068-4eb4-b9c7-a9054e2cae71"
+    - generic: 工作台
+  - link "我的项目":
+    - /url: "#/projects?p=4fb25b35-2068-4eb4-b9c7-a9054e2cae71"
+    - generic: 我的项目
+  - link "研究资料库":
+    - /url: "#/library?p=4fb25b35-2068-4eb4-b9c7-a9054e2cae71"
+    - generic: 研究资料库
+  - link "运行记录":
+    - /url: "#/runs?p=4fb25b35-2068-4eb4-b9c7-a9054e2cae71"
+    - generic: 运行记录
+  - generic: CURRENT PROJECT
+  - link "V4 产品异常场景实测 test_data 未填写客户 · 修订 0":
+    - /url: "#/overview?p=4fb25b35-2068-4eb4-b9c7-a9054e2cae71"
+    - text: V4 产品异常场景实测 test_data
+    - generic: 未填写客户 · 修订 0
+  - link "项目总览":
+    - /url: "#/overview?p=4fb25b35-2068-4eb4-b9c7-a9054e2cae71"
+    - generic: 项目总览
+  - link "资料与变更":
+    - /url: "#/change?p=4fb25b35-2068-4eb4-b9c7-a9054e2cae71"
+    - generic: 资料与变更
+  - link "智能研究":
+    - /url: "#/research?p=4fb25b35-2068-4eb4-b9c7-a9054e2cae71"
+    - generic: 智能研究
+  - link "方案与决策":
+    - /url: "#/solution?p=4fb25b35-2068-4eb4-b9c7-a9054e2cae71"
+    - generic: 方案与决策
+  - link "成本与报价":
+    - /url: "#/cost?p=4fb25b35-2068-4eb4-b9c7-a9054e2cae71"
+    - generic: 成本与报价
+  - link "文档与交付":
+    - /url: "#/deliver?p=4fb25b35-2068-4eb4-b9c7-a9054e2cae71"
+    - generic: 文档与交付
+  - link "设置":
+    - /url: "#/settings?p=4fb25b35-2068-4eb4-b9c7-a9054e2cae71"
+    - generic: 设置
+- banner:
+  - text: V4 产品异常场景实测 test_data
+  - generic: /
+  - strong: 资料与变更
+  - button "选择模型与思考强度":
+    - generic: qwen3.8-flash
+    - generic: low
+    - generic: ⌄
+  - link "设置":
+    - /url: "#/settings?p=4fb25b35-2068-4eb4-b9c7-a9054e2cae71"
+- main:
+  - heading "资料增量与需求" [level=1]
+  - button "上传资料":
+    - text: 上传资料
+  - heading "资料批次（0）" [level=2]
+  - generic: 还没有资料。点击“上传资料”导入客户需求、招标文件或会议纪要。
+  - heading "候选变更（0 待处理）" [level=2]
+  - button "待处理"
+  - button "全部"
+  - button "批量忽略" [disabled]
+  - button "批量采纳" [disabled]
+  - generic: 上传资料后，这里会列出规则识别或深度分析得到的候选变更。
+  - complementary:
+    - button: ×
+    - button: 忽略
+    - button: 待澄清
+    - button: 转研究
+    - button: 无需变更
+    - button [disabled]: 采纳为需求
+  - heading "需求（0/0 已确认）" [level=2]
+  - checkbox "显示已替代"
+  - text: 显示已替代
+  - button "新增":
+    - text: 新增
+  - button "人工确认所选（0）" [disabled]:
+    - text: 人工确认所选（0）
+  - generic: 暂无需求。可以从候选变更采纳，或手工新增。
+  - dialog "上传一批资料":
+    - heading "上传一批资料" [level=2]
+    - generic: 支持 .md .txt .csv .docx .xlsx .pdf。上传后只做轻量规则识别；是否深度分析由你决定。
+    - text: 批次名称 *
+    - textbox "批次名称 *":
+      - /placeholder: 例如：客户第二轮技术澄清
+      - text: 无文字 PDF 错误提示
+    - text: 资料类型
+    - combobox "资料类型":
+      - option "客户需求" [selected]
+      - option "招标文件"
+      - option "会议纪要"
+      - option "内部资料"
+      - option "竞品资料"
+      - option "标准规范"
+      - option "报告"
+      - option "其他"
+    - text: 收到日期
+    - textbox "收到日期"
+    - text: 来源说明
+    - textbox "来源说明 例如：客户邮件 / 会议 / 招标平台。便于追溯。"
+    - text: 例如：客户邮件 / 会议 / 招标平台。便于追溯。
+    - text: 文件
+    - button "文件"
+    - generic: no-text.pdf（1 KB）
+    - button "取消"
+    - button "上传并识别"
+- alert: 未能从 PDF 提取文本（可能为扫描件），请提供文本版或人工录入摘要。（EXTRACTION_EMPTY）

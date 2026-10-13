@@ -176,7 +176,7 @@ export class SolutionService extends V4Base {
 export class RouteService extends V4Base {
   constructor(ctx: ServiceContext, private readonly decisions: DecisionService) { super(ctx) }
   async confirmRoute(projectId: string, input: unknown) {
-    const decision = await this.decisions.confirm(projectId, input)
+    const decision = await this.decisions.confirm(projectId, input, { allowSelected: true })
     await this.mutate(projectId, s => {
       s.v4.draftRoute = { alternativeId: decision.alternativeId, selectedAt: this.ctx.now(), by: decision.confirmedBy }
     })

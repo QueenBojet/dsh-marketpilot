@@ -1,0 +1,121 @@
+- complementary "主导航":
+  - generic: M
+  - generic: MarketPilot 智策
+  - generic: ENGINEERING INTELLIGENCE
+  - generic: WORKSPACE
+  - link "工作台":
+    - /url: "#/home?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 工作台
+  - link "我的项目":
+    - /url: "#/projects?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 我的项目
+  - link "研究资料库":
+    - /url: "#/library?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 研究资料库
+  - link "运行记录":
+    - /url: "#/runs?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 运行记录
+  - generic: CURRENT PROJECT
+  - link "V4 GUI 验收 - CALM 合成案例 - 2026-10-13 虚构客户 test_data · 修订 33":
+    - /url: "#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - text: V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+    - generic: 虚构客户 test_data · 修订 33
+  - link "项目总览":
+    - /url: "#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 项目总览
+  - link "资料与变更":
+    - /url: "#/change?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 资料与变更
+  - link "智能研究":
+    - /url: "#/research?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 智能研究
+  - link "方案与决策":
+    - /url: "#/solution?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 方案与决策
+  - link "成本与报价":
+    - /url: "#/cost?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 成本与报价
+  - link "文档与交付":
+    - /url: "#/deliver?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 文档与交付
+  - link "设置":
+    - /url: "#/settings?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 设置
+  - generic: 工
+  - text: 工程师工作空间
+  - generic: 本机独立网页 · 仅回环地址
+- banner:
+  - text: 工作台
+  - generic: /
+  - text: V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+  - generic: /
+  - strong: 方案与决策
+  - generic "已注册模型路由；调用可用性仍以实际任务为准。": 模型可用 · glm-5.3-flash
+  - link "设置":
+    - /url: "#/settings?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+- main:
+  - generic: 方案与决策
+  - heading "技术路线与配置" [level=1]
+  - paragraph: 围绕候选路线比选、人工决策和结构化配置持续修订；草稿可随时修改，正式版本只能由人工发布。
+  - link "查看研究依据":
+    - /url: "#/research?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - text: 查看研究依据
+  - link "去发布版本":
+    - /url: "#/deliver?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - text: 去发布版本
+  - text: 当前正式版本
+  - generic: 未发布
+  - generic: 正式版本不可修改，草稿编辑不会覆盖
+  - text: 草稿路线
+  - generic: 路线 A：检测网关与监控平台 test_data
+  - generic: 2026-10-13 02:52 · Harness human (d20a2e7a-e93b-4177-9400-8045aa36e9ec)
+  - text: 人工决策
+  - generic: 已确认
+  - generic: Harness human (d20a2e7a-e93b-4177-9400-8045aa36e9ec) · 2026-10-13 02:52
+  - heading "方案工作空间" [level=2]
+  - button "技术路线"
+  - button "设备配置"
+  - heading "方案设备配置清单" [level=2]
+  - paragraph: 数量为非负整数；成本行可“跟随配置”数量。
+  - checkbox "显示已移除"
+  - text: 显示已移除
+  - button "新增配置":
+    - text: 新增配置
+  - table:
+    - rowgroup:
+      - row "配置项 分组 数量 依据 状态":
+        - columnheader "配置项"
+        - columnheader "分组"
+        - columnheader "数量"
+        - columnheader "依据"
+        - columnheader "状态"
+        - columnheader
+    - rowgroup:
+      - row "合成漏油事件检测器 test_data TEST-SENSOR-01 · 路线 A：检测网关与监控平台 test_data 合成传感器 test_data 4 套 1 需求 · 0 结论 有效 编辑 移除":
+        - cell "合成漏油事件检测器 test_data TEST-SENSOR-01 · 路线 A：检测网关与监控平台 test_data":
+          - strong: 合成漏油事件检测器 test_data
+          - generic: TEST-SENSOR-01 · 路线 A：检测网关与监控平台 test_data
+        - cell "合成传感器 test_data"
+        - cell "4 套"
+        - cell "1 需求 · 0 结论"
+        - cell "有效":
+          - generic: 有效
+        - cell "编辑 移除":
+          - button "编辑"
+          - button "移除"
+  - complementary:
+    - generic: 配置是成本与方案正文的共同数据源
+    - heading [level=2]: 新增配置项
+    - button: ×
+    - button: 取消
+    - button: 保存至工作草稿
+  - heading "工程决策记录" [level=2]
+  - heading "技术路线已确认" [level=3]
+  - paragraph: 仅为隔离软件验收选用路线 A，以覆盖事件记录、展示时效和历史留存数据链；现场性能、防爆与适用条件未核实，不构成真实工程批准。
+  - generic: 历史决策（1）
+  - strong: 路线 A：检测网关与监控平台 test_data
+  - generic: Harness human (d20a2e7a-e93b-4177-9400-8045aa36e9ec) · 2026-10-13 02:52
+  - generic: 当前
+  - button "重新确认路线":
+    - text: 重新确认路线
+- alert

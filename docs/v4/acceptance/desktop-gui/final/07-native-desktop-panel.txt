@@ -1,0 +1,116 @@
+Window: "", App: DSH Desktop.exe.
+	0 窗口 Secondary Actions: Raise
+		1 窗格 (disabled)
+		2 区域
+			3 区域
+				4 区域
+					5 区域
+						6 按钮 最小化
+						7 按钮 最大化
+						8 按钮 关闭
+					9 区域
+						10 区域
+							11 区域
+								12 区域
+									13 文档 DeepSeek Harness Value: http://127.0.0.1:3181/ ID: RootWebArea
+										14 组 ID: root
+											15 按钮 新建会话
+											16 按钮 收起侧边栏
+											17 按钮 新建会话
+											18 导航 全局面板
+												19 按钮 插件
+												20 按钮 MarketPilot 智策
+											21 文本 工作区
+											22 组
+												23 按钮 搜索会话
+												24 编辑 (settable, string) 搜索会话名称 Description: 搜索会话名称
+											25 按钮 视图选项
+											26 按钮 添加工作区
+											27 树 会话
+												28 树项目 默认工作区
+												29 树项目 (selectable) 新会话
+											30 按钮 设置
+											31 按钮 连接手机 Description: 连接手机 ID: dsh-desktop-mobile-button
+											49 标题
+												50 文本 MarketPilot 智策
+												51 文本 资料 → 需求分析 → 技术研究 → 路线比选 → 技术方案
+												52 链接 打开 MarketPilot V4 独立网页工作台 Value: http://127.0.0.1:3181/marketpilot/workbench
+												53 导航 MarketPilot 智策
+													54 按钮 首页
+													55 按钮 我的项目
+													56 按钮 任务中心
+											57 标题 MarketPilot 智策
+											58 文本 资料 → 需求分析 → 技术研究 → 路线比选 → 技术方案
+											59 按钮 新建项目
+											60 区域 五步生成技术方案
+												61 标题 从项目资料，到技术方案
+												62 文本 AI协助分析与研究，关键需求和技术路线由你确认。
+												63 列表
+													64 列表项目 1上传资料
+														65 文本 上传资料
+													66 列表项目 2AI分析需求
+														67 文本 AI分析需求
+													68 列表项目 3技术研究
+														69 文本 技术研究
+													70 列表项目 4方案路线比选
+														71 文本 方案路线比选
+													72 列表项目 5生成技术方案
+														73 文本 生成技术方案
+											76 区域 继续项目
+												77 文本 从上次进度继续
+												78 按钮 V4 产品异常场景实测 test_data
+												79 文本 草稿
+												80 文本 2026/10/13 15:45:08
+												81 按钮 继续项目
+											82 详细信息
+												83 开合三角标记 项目与任务概况
+													84 文本 项目与任务概况
+											85 标题 最近项目
+											86 按钮 查看全部项目
+											87 表格
+												88 行
+													89 列标题 项目名称
+													90 列标题 业务场景
+													91 列标题 状态
+													92 列标题 更新时间
+													93 列标题 操作
+												94 行
+													95 项 V4 产品异常场景实测 test_data
+														96 按钮 V4 产品异常场景实测 test_data
+													97 项 未填写
+													98 项 草稿
+													99 项 2026/10/13 15:45:08
+													100 项 打开
+														101 按钮 打开
+												102 行
+													103 项 V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+														104 按钮 V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+													105 项 合成 CALM 单点系泊油污报警
+													106 项 路线已定
+													107 项 2026/10/13 13:52:28
+													108 项 打开
+														109 按钮 打开
+												110 行
+													111 项 test
+														112 按钮 test
+													113 项 未填写
+													114 项 草稿
+													115 项 2026/10/13 11:10:57
+													116 项 打开
+														117 按钮 打开
+											118 补充
+												119 标题 需要处理
+												120 文本 暂无待人工审核的事项。
+												121 标题 运行任务
+												122 文本 暂无运行任务。
+												123 按钮 进入任务中心
+										45 菜单栏 应用菜单
+											46 菜单项 应用
+											47 菜单项 编辑
+								48 区域
+
+Selected text: ```
+接手机
+```
+
+Note: Pay special attention to the content selected by the user. If the user asks a question or refers to the content they are looking at on-screen, they might be referring to the selected content (but they might be referring to something else that's visible, too).

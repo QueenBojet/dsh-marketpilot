@@ -1,0 +1,164 @@
+- complementary "主导航":
+  - generic: M
+  - generic: MarketPilot 智策
+  - generic: WORKSPACE
+  - link "工作台":
+    - /url: "#/home?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 工作台
+  - link "我的项目":
+    - /url: "#/projects?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 我的项目
+  - link "研究资料库":
+    - /url: "#/library?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 研究资料库
+  - link "运行记录":
+    - /url: "#/runs?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 运行记录
+  - generic: CURRENT PROJECT
+  - link "V4 GUI 验收 - CALM 合成案例 - 2026-10-13 虚构客户 test_data · 修订 64":
+    - /url: "#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - text: V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+    - generic: 虚构客户 test_data · 修订 64
+  - link "项目总览":
+    - /url: "#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 项目总览
+  - link "资料与变更":
+    - /url: "#/change?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 资料与变更
+  - link "智能研究":
+    - /url: "#/research?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 智能研究
+  - link "方案与决策":
+    - /url: "#/solution?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 方案与决策
+  - link "成本与报价":
+    - /url: "#/cost?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 成本与报价
+  - link "文档与交付":
+    - /url: "#/deliver?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 文档与交付
+  - link "设置":
+    - /url: "#/settings?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 设置
+- banner:
+  - text: V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+  - generic: /
+  - strong: 文档与交付
+  - button "选择模型与思考强度":
+    - generic: qwen3.8-flash
+    - generic: low
+    - generic: ⌄
+  - link "设置":
+    - /url: "#/settings?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+- main:
+  - heading "文档、审核与正式版本" [level=1]
+  - button "新建文档":
+    - text: 新建文档
+  - button "发布正式版本":
+    - text: 发布正式版本
+  - generic: 项目文档（2）
+  - button "CALM 合成技术方案 test_data 技术方案 · 修订 2 审核有效":
+    - text: CALM 合成技术方案 test_data
+    - generic: 技术方案 · 修订 2
+    - generic: 审核有效
+  - button "CALM 合成成本 test_data 成本与报价 · 修订 2 审核已失效":
+    - text: CALM 合成成本 test_data
+    - generic: 成本与报价 · 修订 2
+    - generic: 审核已失效
+  - generic: 审核已失效
+  - generic: 未导出
+  - generic: 未对外发送
+  - combobox "DOCX 模板":
+    - option "默认模板" [selected]
+  - button "人工审核":
+    - text: 人工审核
+  - button "导出 DOCX":
+    - text: 导出 DOCX
+  - button "记录对外发送" [disabled]:
+    - text: 记录对外发送
+  - generic: V4 GUI 验收 - CALM 合成案例 - 2026-10-13 · 成本与报价
+  - heading "CALM 合成成本 test_data" [level=1]
+  - generic "内容指纹：34f13fa9ca2c76c68019d378835933d7e55ccd4d6fc70e885481ef3f16b14757": 修订 2 · 默认模板 · 审核于 2026-10-13 02:56
+  - heading "系统配置 编辑" [level=3]:
+    - text: 系统配置
+    - button "编辑"
+  - paragraph: 配置项 1 项。
+  - table:
+    - rowgroup:
+      - row "分组 名称 型号 关键参数 数量 接口 安装":
+        - columnheader "分组"
+        - columnheader "名称"
+        - columnheader "型号"
+        - columnheader "关键参数"
+        - columnheader "数量"
+        - columnheader "接口"
+        - columnheader "安装"
+    - rowgroup:
+      - row "合成传感器 test_data 合成漏油事件检测器 test_data TEST-SENSOR-01 — 5 套 — —":
+        - cell "合成传感器 test_data"
+        - cell "合成漏油事件检测器 test_data"
+        - cell "TEST-SENSOR-01"
+        - cell "—"
+        - cell "5 套"
+        - cell "—"
+        - cell "—"
+  - heading "成本估算 编辑" [level=3]:
+    - text: 成本估算
+    - button "编辑"
+  - table:
+    - rowgroup:
+      - row "类别 名称 数量 币种 单价 金额 价格状态":
+        - columnheader "类别"
+        - columnheader "名称"
+        - columnheader "数量"
+        - columnheader "币种"
+        - columnheader "单价"
+        - columnheader "金额"
+        - columnheader "价格状态"
+    - rowgroup:
+      - row "设备 检测器成本 test_data 5 CNY 1200.00 6,000.00 测试数据":
+        - cell "设备"
+        - cell "检测器成本 test_data"
+        - cell "5"
+        - cell "CNY"
+        - cell "1200.00"
+        - cell "6,000.00"
+        - cell "测试数据"
+      - row "服务 集成服务 test_data 2 CNY 500.00 1,000.00 测试数据":
+        - cell "服务"
+        - cell "集成服务 test_data"
+        - cell "2"
+        - cell "CNY"
+        - cell "500.00"
+        - cell "1,000.00"
+        - cell "测试数据"
+  - paragraph: 合计（CNY）：7,910.00
+  - generic: 含 2 行测试数据，仅用于演示流程，不构成报价。
+  - generic: 税费说明：test_data：统一未税测试单价，演示税率13%，非税务结论
+  - complementary:
+    - generic: 系统生成内容
+    - button: ×
+    - button: 取消
+    - button: 保存章节
+  - heading "正式版本（1）" [level=2]
+  - button "发布正式版本":
+    - text: 发布正式版本
+  - generic: 完整方案包（含成本） · 不可修改
+  - generic: V1
+  - generic: Harness human (06e0ad47-ebc6-41fe-8930-4435fbf723a3) · 2026-10-13 03:00 · 用户通过 Harness 人工审核入口明确确认。
+  - generic: 快照指纹 dc8b6b97c722
+  - heading "DOCX 模板（1）" [level=2]
+  - strong: 默认模板
+  - generic: 系统内置 A4 版式；未选择模板的文档使用此模板。
+  - generic: 内置
+  - generic: "上传公司 .docx 模板：可使用 {{project.name}}、{{doc.title}} 等占位符，及 {{sections}} 或 {{section:KEY}} 章节槽位；未提供槽位时章节追加在正文末尾。"
+  - text: 模板名称
+  - textbox "模板名称":
+    - /placeholder: 留空使用文件名
+  - text: 文件
+  - button "文件"
+  - button "上传模板" [disabled]:
+    - text: 上传模板
+  - heading "版本差异（业务级）" [level=2]
+  - generic: 至少发布两个正式版本后，才能比较业务差异。
+- alert

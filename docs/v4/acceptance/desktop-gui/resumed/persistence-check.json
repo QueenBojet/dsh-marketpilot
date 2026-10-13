@@ -1,0 +1,37 @@
+{
+  "v1Unchanged": true,
+  "baselineCount": 2,
+  "documents": 2,
+  "researchFindings": 7,
+  "modelRuns": [
+    {
+      "id": "2fe67f69-7d63-47c1-b54d-e07687fffa8a",
+      "status": "failed"
+    },
+    {
+      "id": "895ef822-1de8-46c8-bc1c-c97f22f7dd6a",
+      "status": "failed"
+    },
+    {
+      "id": "8710f80e-8ce9-4672-a69e-e6b689699a75",
+      "status": "completed"
+    },
+    {
+      "id": "4776b720-ef45-4300-bbdc-4237c41773f0",
+      "status": "completed"
+    },
+    {
+      "id": "ab4572f4-7e8b-476d-b6b0-0f72a0826bfd",
+      "status": "completed"
+    },
+    {
+      "id": "012db505-985c-4f48-b883-47d71d2eaddc",
+      "status": "completed"
+    },
+    {
+      "id": "5b6d9ac8-9619-478a-b395-8b85276ba0a7",
+      "status": "completed"
+    }
+  ],
+  "costLines": 2
+}

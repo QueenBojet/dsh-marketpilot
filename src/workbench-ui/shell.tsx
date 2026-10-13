@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import { Icon } from './icons.tsx'
 import { StoreProvider, useStore } from './store.tsx'
 import { cx } from './ui.tsx'
+import { ModelPicker } from './model-picker.tsx'
 
 export const GLOBAL_PAGES = ['home', 'projects', 'library', 'runs'] as const
 export const WORKSPACES = ['overview', 'change', 'research', 'solution', 'cost', 'deliver'] as const
@@ -59,7 +60,6 @@ function NavItem({ id, route, dot }: { id: PageId; route: Route; dot?: boolean }
 function Frame({ route, children }: { route: Route; children: ReactNode }) {
   const { ov, pid } = useStore()
   const pending = ov?.v4.changes.some(c => c.status === 'pending') ?? false
-  const cap = ov?.capabilities.model
   return (
     <div className="app">
       <aside className="sidebar" aria-label="主导航">
@@ -78,16 +78,13 @@ function Frame({ route, children }: { route: Route; children: ReactNode }) {
         {pid ? WORKSPACES.map(id => <NavItem key={id} id={id} route={route} dot={id === 'change' && pending} />) : null}
         <div className="nav-bottom">
           <NavItem id="settings" route={route} />
-          <div className="profile"><span className="avatar">工</span><span>工程师工作空间<small>本机独立网页 · 仅回环地址</small></span></div>
         </div>
       </aside>
       <div className="main">
         <header className="topbar">
-          <div className="breadcrumb">工作台{ov && isWorkspace(route.page) ? <><span>/</span>{ov.project.name}</> : null}<span>/</span><strong>{NAMES[route.page]}</strong></div>
+          <div className="breadcrumb">{ov && isWorkspace(route.page) ? <>{ov.project.name}<span>/</span></> : null}<strong>{NAMES[route.page]}</strong></div>
           <div className="tools">
-            {cap ? <span className={cx('chip-online', !cap.available && 'off')} title={cap.reason}>
-              <span className="online-dot" />{cap.available ? `模型可用 · ${cap.mode === 'offline' ? '离线夹具' : cap.model ?? cap.provider ?? 'DSH'}` : '模型不可用'}
-            </span> : null}
+            <ModelPicker />
             <a className="icon-btn" href={href('settings', route.pid)} title="设置" aria-label="设置"><Icon name="settings" /></a>
           </div>
         </header>

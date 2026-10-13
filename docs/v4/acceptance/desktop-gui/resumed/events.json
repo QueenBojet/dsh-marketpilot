@@ -1,0 +1,27 @@
+[
+  {
+    "label": "01-cost-doc-synced",
+    "url": "http://127.0.0.1:3180/marketpilot/workbench#/deliver?p=9145a82a-3c13-470c-99f2-b7de73993fe2",
+    "time": "2026-10-13T06:05:24.018Z"
+  },
+  {
+    "label": "02-v2-human-gate",
+    "url": "http://127.0.0.1:3180/marketpilot/workbench#/deliver?p=9145a82a-3c13-470c-99f2-b7de73993fe2",
+    "time": "2026-10-13T06:09:04.312Z"
+  },
+  {
+    "label": "03-v1-v2-comparison",
+    "url": "http://127.0.0.1:3180/marketpilot/workbench#/deliver?p=9145a82a-3c13-470c-99f2-b7de73993fe2",
+    "time": "2026-10-13T06:09:46.002Z"
+  },
+  {
+    "label": "04-restart-persistence",
+    "url": "http://127.0.0.1:3180/marketpilot/workbench#/deliver?p=9145a82a-3c13-470c-99f2-b7de73993fe2",
+    "time": "2026-10-13T06:12:21.484Z"
+  },
+  {
+    "label": "05-restart-comparison-visible",
+    "url": "http://127.0.0.1:3180/marketpilot/workbench#/deliver?p=9145a82a-3c13-470c-99f2-b7de73993fe2",
+    "time": "2026-10-13T06:12:41.510Z"
+  }
+]

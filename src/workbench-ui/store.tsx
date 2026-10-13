@@ -5,9 +5,10 @@ import { ApiError, cancelRun, get, pp, runTool } from './api.ts'
 import type { Execution, HumanQuestion, Selection } from './api.ts'
 import type { Overview } from './types.ts'
 import { Btn, Modal } from './ui.tsx'
+import { useModelSelection } from './model-selection.ts'
 
 interface Ask { exec: Execution & { question: HumanQuestion }; resolve: (a: { selected: string; custom?: string } | undefined) => void }
-export interface Store {
+export interface Store extends ReturnType<typeof useModelSelection> {
   pid: string | undefined
   ov: Overview | undefined
   loading: boolean
@@ -31,15 +32,17 @@ export const useStore = () => {
 export const errText = (e: unknown) => e instanceof ApiError ? `${e.message}（${e.code}）` : e instanceof Error ? e.message : String(e)
 
 export function StoreProvider({ pid, children }: { pid: string | undefined; children: ReactNode }) {
+  const models = useModelSelection()
   const [ov, setOv] = useState<Overview>()
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string>()
+  const [failure, setFailure] = useState<{ pid: string; message: string }>()
   const [toastMsg, setToast] = useState<{ msg: string; tone: string }>()
   const [ask, setAsk] = useState<Ask>()
   const [custom, setCustom] = useState('')
   const [active, setActive] = useState<Execution>()
   const timer = useRef<number | undefined>(undefined)
   const pidRef = useRef(pid)
+  const refreshId = useRef(0)
   pidRef.current = pid
 
   const toast = useCallback((msg: string, tone: 'ok' | 'err' = 'ok') => {
@@ -50,12 +53,17 @@ export function StoreProvider({ pid, children }: { pid: string | undefined; chil
 
   const refresh = useCallback(async () => {
     const id = pidRef.current
-    if (!id) { setOv(undefined); return }
+    const request = ++refreshId.current
+    if (!id) { setOv(undefined); setLoading(false); setFailure(undefined); return }
     setLoading(true)
     try {
       const data = await get<Overview>(pp(id, 'overview'))
-      if (pidRef.current === id) { setOv(data); setError(undefined) }
-    } catch (e) { setError(errText(e)) } finally { setLoading(false) }
+      if (pidRef.current === id && refreshId.current === request) { setOv(data); setFailure(undefined) }
+    } catch (e) {
+      if (pidRef.current === id && refreshId.current === request) setFailure({ pid: id, message: errText(e) })
+    } finally {
+      if (pidRef.current === id && refreshId.current === request) setLoading(false)
+    }
   }, [])
 
   const act = useCallback(async <T,>(fn: () => Promise<T>, ok?: string) => {
@@ -73,16 +81,19 @@ export function StoreProvider({ pid, children }: { pid: string | undefined; chil
       const exec = await runTool(id, tool, args, {
         onUpdate: e => setActive(e),
         ask: exec => new Promise(resolve => { setCustom(''); setAsk({ exec, resolve }) }),
-      }, opts.model)
+      }, opts.model ?? models.selection)
       if (exec.status === 'completed') { if (opts.ok) toast(opts.ok) }
       else if (exec.status === 'cancelled') toast('已取消，本次未产生任何变更。', 'err')
       else toast(`运行失败：${exec.error ?? exec.status}`, 'err')
       return exec
     } catch (e) { toast(errText(e), 'err'); return undefined } finally { setActive(undefined); await refresh() }
-  }, [refresh, toast])
+  }, [refresh, toast, models.selection])
 
   const answer = (a: { selected: string; custom?: string } | undefined) => { ask?.resolve(a); setAsk(undefined) }
-  const store: Store = { pid, ov, loading, error, refresh, toast, act, run, active }
+  // A new route must never expose the old project's controls while its request is pending.
+  const currentOverview = ov?.project.id === pid ? ov : undefined
+  const error = failure && failure.pid === pid ? failure.message : undefined
+  const store: Store = { pid, ov: currentOverview, loading, error, refresh, toast, act, run, active, ...models }
   return (
     <Ctx.Provider value={store}>
       {children}

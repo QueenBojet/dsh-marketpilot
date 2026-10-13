@@ -1,0 +1,42 @@
+[
+  {
+    "file": "--E-PythonProjects-Work_Platform-marketpilot--\\500e8840-cadd-4d2f-a594-bcc638af5ea0\\session.v4.jsonl.zstd",
+    "event": "{\"type\":\"assistant/attempt\",\"seq\":13,\"time\":1791857183675,\"data\":{\"turn\":1,\"step\":1,\"stream\":[{\"type\":\"chunk\",\"time\":1791857183673,\"chunk\":{\"type\":\"usage\",\"usage\":{\"inputTokens\":0,\"outputTokens\":0,\"totalTokens\":0}}},{\"type\":\"chunk\",\"time\":1791857183674,\"chunk\":{\"type\":\"finish\",\"reason\":{\"kind\":\"error\",\"failure\":{\"message\":\"429: {\\\"code\\\":\\\"1310\\\",\\\"message\\\":\\\"Weekly/Monthly Limit Exhausted. Your limit will reset at 2026-10-13 22:11:04\\\"}\",\"code\":\"RATE_LIMIT\"}}}}]}}"
+  },
+  {
+    "file": "--E-PythonProjects-Work_Platform-marketpilot--\\500e8840-cadd-4d2f-a594-bcc638af5ea0\\session.v4.jsonl.zstd",
+    "event": "{\"type\":\"llm/retry\",\"seq\":14,\"time\":1791857183676,\"data\":{\"retryId\":\"9c1b1552-cf2d-47ef-a6bb-1517c7b0f1f3\",\"turn\":1,\"step\":1,\"provider\":\"zai\",\"mode\":\"normal\",\"policyKey\":\"[\\\"normal\\\",5,[\\\"EMPTY_RESPONSE\\\",\\\"RATE_LIMIT\\\",\\\"SERVER\\\",\\\"TIMEOUT\\\",\\\"TRANSPORT\\\"],500,10000,0.1]\",\"retry\":1,\"maxRetries\":5,\"delayMs\":464.4031334630345,\"failure\":{\"message\":\"429: {\\\"code\\\":\\\"1310\\\",\\\"message\\\":\\\"Weekly/Monthly Limit Exhausted. Your limit will reset at 2026-10-13 22:11:04\\\"}\",\"code\":\"RATE_LIMIT\"}}}"
+  },
+  {
+    "file": "--E-PythonProjects-Work_Platform-marketpilot--\\500e8840-cadd-4d2f-a594-bcc638af5ea0\\session.v4.jsonl.zstd",
+    "event": "{\"type\":\"assistant/attempt\",\"seq\":16,\"time\":1791857184520,\"data\":{\"turn\":1,\"step\":1,\"stream\":[{\"type\":\"chunk\",\"time\":1791857184520,\"chunk\":{\"type\":\"usage\",\"usage\":{\"inputTokens\":0,\"outputTokens\":0,\"totalTokens\":0}}},{\"type\":\"chunk\",\"time\":1791857184520,\"chunk\":{\"type\":\"finish\",\"reason\":{\"kind\":\"error\",\"failure\":{\"message\":\"429: {\\\"code\\\":\\\"1310\\\",\\\"message\\\":\\\"Weekly/Monthly Limit Exhausted. Your limit will reset at 2026-10-13 22:11:04\\\"}\",\"code\":\"RATE_LIMIT\"}}}}]}}"
+  },
+  {
+    "file": "--E-PythonProjects-Work_Platform-marketpilot--\\500e8840-cadd-4d2f-a594-bcc638af5ea0\\session.v4.jsonl.zstd",
+    "event": "{\"type\":\"assistant/attempt\",\"seq\":19,\"time\":1791857185839,\"data\":{\"turn\":1,\"step\":1,\"stream\":[{\"type\":\"chunk\",\"time\":1791857185839,\"chunk\":{\"type\":\"usage\",\"usage\":{\"inputTokens\":0,\"outputTokens\":0,\"totalTokens\":0}}},{\"type\":\"chunk\",\"time\":1791857185839,\"chunk\":{\"type\":\"finish\",\"reason\":{\"kind\":\"error\",\"failure\":{\"message\":\"429: {\\\"code\\\":\\\"1310\\\",\\\"message\\\":\\\"Weekly/Monthly Limit Exhausted. Your limit will reset at 2026-10-13 22:11:04\\\"}\",\"code\":\"RATE_LIMIT\"}}}}]}}"
+  },
+  {
+    "file": "--E-PythonProjects-Work_Platform-marketpilot--\\500e8840-cadd-4d2f-a594-bcc638af5ea0\\session.v4.jsonl.zstd",
+    "event": "{\"type\":\"assistant/attempt\",\"seq\":22,\"time\":1791857188282,\"data\":{\"turn\":1,\"step\":1,\"stream\":[{\"type\":\"chunk\",\"time\":1791857188282,\"chunk\":{\"type\":\"usage\",\"usage\":{\"inputTokens\":0,\"outputTokens\":0,\"totalTokens\":0}}},{\"type\":\"chunk\",\"time\":1791857188282,\"chunk\":{\"type\":\"finish\",\"reason\":{\"kind\":\"error\",\"failure\":{\"message\":\"429: {\\\"code\\\":\\\"1310\\\",\\\"message\\\":\\\"Weekly/Monthly Limit Exhausted. Your limit will reset at 2026-10-13 22:11:04\\\"}\",\"code\":\"RATE_LIMIT\"}}}}]}}"
+  },
+  {
+    "file": "--E-PythonProjects-Work_Platform-marketpilot--\\500e8840-cadd-4d2f-a594-bcc638af5ea0\\session.v4.jsonl.zstd",
+    "event": "{\"type\":\"assistant/attempt\",\"seq\":25,\"time\":1791857192800,\"data\":{\"turn\":1,\"step\":1,\"stream\":[{\"type\":\"chunk\",\"time\":1791857192800,\"chunk\":{\"type\":\"usage\",\"usage\":{\"inputTokens\":0,\"outputTokens\":0,\"totalTokens\":0}}},{\"type\":\"chunk\",\"time\":1791857192800,\"chunk\":{\"type\":\"finish\",\"reason\":{\"kind\":\"error\",\"failure\":{\"message\":\"429: {\\\"code\\\":\\\"1310\\\",\\\"message\\\":\\\"Weekly/Monthly Limit Exhausted. Your limit will reset at 2026-10-13 22:11:04\\\"}\",\"code\":\"RATE_LIMIT\"}}}}]}}"
+  },
+  {
+    "file": "--E-PythonProjects-Work_Platform-marketpilot--\\500e8840-cadd-4d2f-a594-bcc638af5ea0\\session.v4.jsonl.zstd",
+    "event": "{\"type\":\"assistant/attempt\",\"seq\":28,\"time\":1791857200925,\"data\":{\"turn\":1,\"step\":1,\"stream\":[{\"type\":\"chunk\",\"time\":1791857200925,\"chunk\":{\"type\":\"usage\",\"usage\":{\"inputTokens\":0,\"outputTokens\":0,\"totalTokens\":0}}},{\"type\":\"chunk\",\"time\":1791857200925,\"chunk\":{\"type\":\"finish\",\"reason\":{\"kind\":\"error\",\"failure\":{\"message\":\"429: {\\\"code\\\":\\\"1310\\\",\\\"message\\\":\\\"Weekly/Monthly Limit Exhausted. Your limit will reset at 2026-10-13 22:11:04\\\"}\",\"code\":\"RATE_LIMIT\"}}}}]}}"
+  },
+  {
+    "file": "--E-PythonProjects-Work_Platform-marketpilot--\\500e8840-cadd-4d2f-a594-bcc638af5ea0\\session.v4.jsonl.zstd",
+    "event": "{\"type\":\"turn/end\",\"seq\":30,\"time\":1791857200926,\"data\":{\"turn\":1,\"reason\":{\"kind\":\"error\",\"error\":{\"message\":\"429: {\\\"code\\\":\\\"1310\\\",\\\"message\\\":\\\"Weekly/Monthly Limit Exhausted. Your limit will reset at 2026-10-13 22:11:04\\\"}\",\"code\":\"RATE_LIMIT\"}}}}"
+  },
+  {
+    "file": "--E-PythonProjects-Work_Platform-marketpilot--\\1a1ab085-e1c2-4b1e-b599-e246135edc7c\\session.v4.jsonl.zstd",
+    "event": "{\"type\":\"assistant/attempt\",\"seq\":13,\"time\":1791857002969,\"data\":{\"turn\":1,\"step\":1,\"stream\":[{\"type\":\"chunk\",\"time\":1791857002968,\"chunk\":{\"type\":\"finish\",\"reason\":{\"kind\":\"error\",\"failure\":{\"message\":\"llm-pi-ai: no credential for provider route \\\"zai\\\"; its profile resolves ZAI_API_KEY, which is not set — store ZAI_API_KEY through the credentials service (the web Models page writes it) or export it, and remove apiKeyEnv only if this provider should authenticate from pi-ai's own environment discovery\",\"code\":\"MISSING_CREDENTIAL\"}}}}]}}"
+  },
+  {
+    "file": "--E-PythonProjects-Work_Platform-marketpilot--\\1a1ab085-e1c2-4b1e-b599-e246135edc7c\\session.v4.jsonl.zstd",
+    "event": "{\"type\":\"turn/end\",\"seq\":15,\"time\":1791857002970,\"data\":{\"turn\":1,\"reason\":{\"kind\":\"error\",\"error\":{\"message\":\"llm-pi-ai: no credential for provider route \\\"zai\\\"; its profile resolves ZAI_API_KEY, which is not set — store ZAI_API_KEY through the credentials service (the web Models page writes it) or export it, and remove apiKeyEnv only if this provider should authenticate from pi-ai's own environment discovery\",\"code\":\"MISSING_CREDENTIAL\"}}}}"
+  }
+]

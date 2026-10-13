@@ -80,7 +80,7 @@ export function Panel(props: { title: ReactNode; extra?: ReactNode; children: Re
 export function PageHead(props: { eyebrow: string; title: string; lede?: ReactNode; actions?: ReactNode }) {
   return (
     <div className="pagehead">
-      <div><div className="eyebrow">{props.eyebrow}</div><h1>{props.title}</h1>{props.lede ? <p className="lede">{props.lede}</p> : null}</div>
+      <div><h1>{props.title}</h1>{props.lede ? <p className="lede">{props.lede}</p> : null}</div>
       {props.actions ? <div className="actions">{props.actions}</div> : null}
     </div>
   )

@@ -1,0 +1,112 @@
+- complementary "主导航":
+  - generic: M
+  - generic: MarketPilot 智策
+  - generic: ENGINEERING INTELLIGENCE
+  - generic: WORKSPACE
+  - link "工作台":
+    - /url: "#/home?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 工作台
+  - link "我的项目":
+    - /url: "#/projects?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 我的项目
+  - link "研究资料库":
+    - /url: "#/library?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 研究资料库
+  - link "运行记录":
+    - /url: "#/runs?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 运行记录
+  - generic: CURRENT PROJECT
+  - link "V4 GUI 验收 - CALM 合成案例 - 2026-10-13 虚构客户 test_data · 修订 10":
+    - /url: "#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - text: V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+    - generic: 虚构客户 test_data · 修订 10
+  - link "项目总览":
+    - /url: "#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 项目总览
+  - link "资料与变更 有待处理事项":
+    - /url: "#/change?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 资料与变更
+    - generic "有待处理事项"
+  - link "智能研究":
+    - /url: "#/research?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 智能研究
+  - link "方案与决策":
+    - /url: "#/solution?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 方案与决策
+  - link "成本与报价" [active]:
+    - /url: "#/cost?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 成本与报价
+  - link "文档与交付":
+    - /url: "#/deliver?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 文档与交付
+  - link "设置":
+    - /url: "#/settings?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 设置
+  - generic: 工
+  - text: 工程师工作空间
+  - generic: 本机独立网页 · 仅回环地址
+- banner:
+  - text: 工作台
+  - generic: /
+  - text: V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+  - generic: /
+  - strong: 成本与报价
+  - generic "已注册模型路由；调用可用性仍以实际任务为准。": 模型可用 · glm-5.3-flash
+  - link "设置":
+    - /url: "#/settings?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+- main:
+  - generic: 成本与报价
+  - heading "BOM 成本与报价" [level=1]
+  - paragraph: 金额由系统确定性计算，不由 AI 生成。价格必须注明来源；测试价格、估算与过期报价会被标出，多币种缺汇率时不出合计。
+  - button "口径与汇率":
+    - text: 口径与汇率
+  - button "新增成本行":
+    - text: 新增成本行
+  - heading "成本明细（0）" [level=2]
+  - generic: 暂无成本行。可新增设备、安装、集成、服务等成本行；数量可跟随方案配置。
+  - generic: 合计（CNY）
+  - generic: "0.00"
+  - generic: 不可预见费 0.0000
+  - generic: 税金 0.0000
+  - generic: ⚠ 未配置税率，合计不含税费
+  - heading "价格可信度" [level=2]
+  - strong: 缺价格
+  - generic: "0"
+  - strong: 估算价格
+  - generic: "0"
+  - strong: 测试价格（非真实）
+  - generic: "0"
+  - strong: 过期报价
+  - generic: "0"
+  - heading "三项独立成本审核" [level=2]
+  - generic: 任一成本输入、配置或路线变化都会使已有审核失效
+  - heading "成本草稿审核" [level=3]
+  - paragraph: 确认 BOM 与数量、计算口径正确；路线需已确认。
+  - generic: 未审核
+  - generic: · 尚无成本行。
+  - generic: · 草稿路线未经人工确认（与已确认决策不一致或尚无决策）。
+  - button "人工审核" [disabled]:
+    - text: 人工审核
+  - generic: 前置检查未通过
+  - heading "供应商报价已核验" [level=3]
+  - paragraph: 所有价格均来自有效的供应商报价或目录价，无估算、测试价或过期报价。
+  - generic: 未审核
+  - generic: · 需先完成成本草稿审核（且审核后未再修改）。
+  - button "人工审核" [disabled]:
+    - text: 人工审核
+  - generic: 前置检查未通过
+  - heading "对外报价已批准" [level=3]
+  - paragraph: 允许对外报价；需要可计算的合计（币种与汇率完整）。
+  - generic: 未审核
+  - generic: · 需先完成供应商报价核验。
+  - button "人工审核" [disabled]:
+    - text: 人工审核
+  - generic: 前置检查未通过
+  - complementary:
+    - generic: 金额由系统按 数量 × 系数 × 单价 确定性计算
+    - heading [level=2]: 新增成本行
+    - button: ×
+    - button: 取消
+    - button [disabled]: 保存
+    - generic: 请填写名称
+- alert: "运行失败：Error: 模型步骤结束：error"

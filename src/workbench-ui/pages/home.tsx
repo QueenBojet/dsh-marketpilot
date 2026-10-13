@@ -32,7 +32,7 @@ function CreateModal({ open, onClose, onDone }: { open: boolean; onClose: () => 
     try { const p = await post<Project>('v4/projects', body); toast('项目已创建'); onDone(p) } catch (e) { toast(errText(e), 'err') }
   }
   return (
-    <Modal open={open} title="新建项目" subtitle="项目数据保存在本机 DSH 存储中，不会上传到外部。" onClose={onClose}
+    <Modal open={open} title="新建项目" onClose={onClose}
       actions={<><Btn kind="ghost" onClick={onClose}>取消</Btn><Btn kind="primary" disabled={!f.name.trim() && '请填写项目名称'} onClick={submit}>创建项目</Btn></>}>
       <Field label="项目名称 *"><input className="text-field" value={f.name} onChange={set('name')} maxLength={200} autoFocus /></Field>
       <div className="form-two">
@@ -73,14 +73,13 @@ export function HomePage({ mode }: { mode: 'home' | 'projects' }) {
   return (
     <>
       {mode === 'home' ? (
-        <PageHead eyebrow="MARKETPILOT V4 · 工作台" title="工程方案工作台"
-          lede="从资料到正式版本：资料增量分析、智能研究、方案决策、BOM 成本与 DOCX 交付。所有关键结论都需要人工确认。" actions={create} />
-      ) : <PageHead eyebrow="项目" title="我的项目" lede="选择一个项目进入六个工作区；V3.4 历史项目以只读兼容方式打开。" actions={create} />}
+        <PageHead eyebrow="工作台" title="工作台" actions={create} />
+      ) : <PageHead eyebrow="项目" title="我的项目" actions={create} />}
       {error ? <Empty>项目列表加载失败：{error} <Btn small kind="text" onClick={load}>重试</Btn></Empty> : null}
       {mode === 'home' && list ? (
         <div className="summary-grid">
-          <div className="summary-box"><div className="cap"><Icon name="folder" />项目</div><div className="val">{list.length}</div><div className="detail">本机存储中的全部项目</div></div>
-          <div className="summary-box"><div className="cap"><Icon name="check" />路线已确认</div><div className="val">{list.filter(p => p.activeDecisionId).length}</div><div className="detail">已有人工确认的技术路线</div></div>
+          <div className="summary-box"><div className="cap"><Icon name="folder" />项目</div><div className="val">{list.length}</div></div>
+          <div className="summary-box"><div className="cap"><Icon name="check" />路线已确认</div><div className="val">{list.filter(p => p.activeDecisionId).length}</div></div>
           <div className="summary-box"><div className="cap"><Icon name="clock" />最近更新</div><div className="val" style={{ fontSize: 15 }}>{fmtTime(shown[0]?.updatedAt)}</div><div className="detail">{shown[0]?.name ?? '暂无项目'}</div></div>
         </div>
       ) : null}

@@ -8,6 +8,7 @@ import { v4Of } from '../services/v4/base.ts'
 import type { MarketPilotService } from './service.ts'
 import type { WorkbenchManager } from './workbench.ts'
 import { readJsonBody, readRawBody, sendJson } from './routes.ts'
+import { modelCatalog } from './model-catalog.ts'
 
 const MAX_UPLOAD_BYTES = 16 * 1024 * 1024
 const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
@@ -99,6 +100,7 @@ const svc = (i: V4RouteInput) => i.marketpilot.services
 const body = (i: V4RouteInput) => readJsonBody(i.request)
 
 on('GET', 'v4/projects', i => ({ projects: svc(i).projects.list() }))
+on('GET', 'v4/model-catalog', i => modelCatalog(i.ctx, i.parsedUrl.searchParams.get('provider') || undefined, i.parsedUrl.searchParams.get('model') || undefined))
 on('POST', 'v4/projects', async i => svc(i).projects.create(await body(i)), 201)
 on('GET', 'projects/:pid/v4/overview', (i, [p]) => overview(i, p!))
 on('GET', 'projects/:pid/v4/cost', (i, [p]) => svc(i).v4.solution.cost(p!))

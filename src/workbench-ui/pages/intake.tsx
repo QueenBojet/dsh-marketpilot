@@ -84,7 +84,7 @@ function BatchCard({ b }: { b: Batch }) {
 type ChangeAction = 'adopt' | 'ignore' | 'clarify' | 'to_research' | 'no_change'
 
 function ChangeDrawer({ c, onClose }: { c: Change | undefined; onClose: () => void }) {
-  const { pid, ov, act } = useStore()
+  const { ov, run, active } = useStore()
   const [text, setText] = useState('')
   const [prio, setPrio] = useState('should')
   const [type, setType] = useState('functional')
@@ -95,11 +95,11 @@ function ChangeDrawer({ c, onClose }: { c: Change | undefined; onClose: () => vo
   const doAct = async (action: ChangeAction) => {
     if (!c) return
     const edits = action === 'adopt' ? { ...text.trim() && text !== c.newText ? { normalizedText: text.trim() } : {}, priority: prio, type } : undefined
-    const out = await act(() => post(pp(pid!, 'changes/act'), { changeIds: [c.id], action, ...edits ? { edits } : {}, ...note.trim() ? { note: note.trim() } : {} }),
-      action === 'adopt' ? '已采纳，写入为待确认需求' : '已记录处理结果')
-    if (out !== undefined) onClose()
+    const out = await run('marketpilot_v4_intake_act', { input: { changeIds: [c.id], action, ...edits ? { edits } : {}, ...note.trim() ? { note: note.trim() } : {} } },
+      { ok: action === 'adopt' ? '已采纳，写入为待确认需求' : '已记录处理结果' })
+    if (out?.status === 'completed') onClose()
   }
-  const done = c && c.status !== 'pending' ? `该变更已处理：${CHANGE_STATUS[c.status]}` : ''
+  const done = active ? '已有运行进行中' : c && c.status !== 'pending' ? `该变更已处理：${CHANGE_STATUS[c.status]}` : ''
   return (
     <Drawer open={Boolean(c)} title={c?.summary ?? ''} cap={c ? `${CHANGE_KIND[c.kind][0]} · ${c.detectedBy === 'model' ? '深度分析' : '规则提示'}` : ''} onClose={onClose}
       footer={<>
@@ -133,17 +133,23 @@ function ChangeDrawer({ c, onClose }: { c: Change | undefined; onClose: () => vo
 }
 
 function ChangeList() {
-  const { ov, pid, act } = useStore()
+  const { ov, run, active } = useStore()
   const [filter, setFilter] = useState<'pending' | 'all'>('pending')
   const [open, setOpen] = useState<string>()
   const [sel, setSel] = useState<string[]>([])
   const all = ov!.v4.changes
   const shown = filter === 'pending' ? all.filter(c => c.status === 'pending') : all
-  const bulk = (action: ChangeAction) => act(() => post(pp(pid!, 'changes/act'), { changeIds: sel, action }), `已处理 ${sel.length} 条`).then(() => setSel([]))
-  const noSel = sel.length ? '' : '请先勾选候选变更'
+  const bulk = async (action: ChangeAction) => {
+    const out = await run('marketpilot_v4_intake_act', { input: { changeIds: sel, action } }, { ok: `已处理 ${sel.length} 条` })
+    if (out?.status === 'completed') setSel([])
+  }
+  const noSel = active ? '已有运行进行中' : sel.length ? '' : '请先勾选候选变更'
   return (
     <Panel title={`候选变更（${all.filter(c => c.status === 'pending').length} 待处理）`} extra={<>
       <div className="segment">{(['pending', 'all'] as const).map(f => <button key={f} className={cx(filter === f && 'active')} onClick={() => setFilter(f)}>{f === 'pending' ? '待处理' : '全部'}</button>)}</div>
+      {shown.some(c => c.status === 'pending') ? <label className="batch-select"><input type="checkbox" aria-label="全选候选变更"
+        checked={shown.filter(c => c.status === 'pending').every(c => sel.includes(c.id))}
+        onChange={e => setSel(e.target.checked ? shown.filter(c => c.status === 'pending').map(c => c.id) : [])} />全选{sel.length ? ` · ${sel.length}` : ''}</label> : null}
       <Btn small kind="ghost" disabled={noSel} onClick={() => bulk('ignore')}>批量忽略</Btn>
       <Btn small kind="teal" disabled={noSel} onClick={() => bulk('adopt')}>批量采纳</Btn>
     </>}>
@@ -183,7 +189,7 @@ function ReqModal({ req, open, onClose }: { req: Requirement | undefined; open: 
   }
   return (
     <Modal open={open} wide title={req ? '编辑需求' : '新增需求'} onClose={onClose}
-      subtitle={req?.status === 'confirmed' ? '修改已确认需求会撤销其确认，需要重新人工确认，并使依赖的审核失效。' : '新增或编辑的需求均为“待确认”，需人工确认后才计入正式范围。'}
+      subtitle={f.status === 'superseded' ? '已替代需求退出当前范围，历史内容保留。若当前路线仍引用它，请先重新确认路线。' : req?.status === 'confirmed' ? '修改已确认需求会撤销其确认，需要重新人工确认，并使依赖的审核失效。' : '待确认需求需经人工确认后才计入正式范围。'}
       actions={<><Btn kind="ghost" onClick={onClose}>取消</Btn><Btn kind="primary" disabled={!f.normalizedText.trim() && '请填写需求表述'} onClick={save}>保存</Btn></>}>
       <Field label="需求表述 *"><textarea className="text-field" rows={3} value={f.normalizedText} onChange={set('normalizedText')} /></Field>
       <Field label="原文" hint="留空则与需求表述相同"><textarea className="text-field" rows={2} value={f.originalText} onChange={set('originalText')} /></Field>
@@ -245,7 +251,6 @@ export function IntakePage() {
   return (
     <>
       <PageHead eyebrow="资料与变更" title="资料增量与需求"
-        lede="每批资料先做轻量规则识别；需要时由你启动深度分析。候选变更必须人工采纳，需求必须人工确认。"
         actions={<Btn kind="primary" onClick={() => setUp(true)}><Icon name="upload" />上传资料</Btn>} />
       <div className="dual-grid">
         <Panel title={`资料批次（${batches.length}）`}>

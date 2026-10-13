@@ -1,0 +1,62 @@
+{
+  "publishedBaselinesUnchanged": true,
+  "requirements": [
+    {
+      "id": "32f2ac58-7f1a-4dc7-823a-4eefbc4f5b80",
+      "status": "confirmed"
+    },
+    {
+      "id": "90d03354-28a1-4776-95e1-569d1a9efa1c",
+      "status": "superseded"
+    },
+    {
+      "id": "3f93d692-66a1-4559-84a2-166a1027b6ba",
+      "status": "confirmed"
+    },
+    {
+      "id": "71b28063-3ec4-4f95-a27a-78a783c7a9f7",
+      "status": "confirmed"
+    },
+    {
+      "id": "f78a4c32-6866-42ec-a1ef-eeffd2bd6312",
+      "status": "confirmed"
+    }
+  ],
+  "runs": [
+    {
+      "id": "26de0408-848e-494c-a6cd-46984831ecfd",
+      "status": "failed",
+      "webStatus": "unavailable",
+      "modelRoute": {
+        "provider": "okai2",
+        "model": "qwen3.8-flash",
+        "reasoningEffort": "low",
+        "source": "override"
+      }
+    },
+    {
+      "id": "abcc93d1-d70e-4026-b1c4-1f90d104cc6e",
+      "status": "failed",
+      "webStatus": "failed",
+      "modelRoute": {
+        "provider": "okai2",
+        "model": "qwen3.8-flash",
+        "reasoningEffort": "low",
+        "source": "override"
+      },
+      "note": "skill:marketpilot-deep-research@5960e4d525ed 联网检索：获取正文 0 个，失败 0 个；检索失败 IMO MARPOL Annex I oil pollution prevention：DeepSeek search has no API key for \"DEEPSEEK_API_KEY\"; store it through the credentials service (the web Models page writes it), export it in the launching environment, or set a literal \"apiKey\" in t…。"
+    },
+    {
+      "id": "5932a0a0-4885-40a3-91a8-e3b00d395a21",
+      "status": "completed",
+      "webStatus": "not_requested",
+      "modelRoute": {
+        "provider": "okai2",
+        "model": "qwen3.8-flash",
+        "reasoningEffort": "low",
+        "source": "override"
+      },
+      "note": "skill:marketpilot-deep-research@5960e4d525ed 生成候选发现 8 条。"
+    }
+  ]
+}

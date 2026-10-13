@@ -371,6 +371,16 @@ describe('docx.ts: defaultTemplate + inspectTemplate', () => {
 })
 
 describe('docx.ts: renderDocx', () => {
+  it('exports a readable contents list without requiring Word to update fields', () => {
+    const out = renderDocx(defaultTemplate(), { values: { 'doc.title': 'T', 'project.name': 'P' },
+      sections: [{ key: 'requirements', title: '需求概述', blocks: [] }, { key: 'cost', title: '成本估算', blocks: [] }] })
+    const xml = dec(readZip(out).get('word/document.xml')!)
+    const pages = xml.split('<w:br w:type="page"/>')
+    expect(pages[1]).toContain('需求概述')
+    expect(pages[1]).toContain('成本估算')
+    expect(xml).not.toContain(' TOC ')
+    expect(xml).not.toContain('{{contents}}')
+  })
   const sections: DocSection[] = [
     {
       key: 'overview',

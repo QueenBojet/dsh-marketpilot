@@ -1,0 +1,113 @@
+- complementary "主导航":
+  - generic: M
+  - generic: MarketPilot 智策
+  - generic: WORKSPACE
+  - link "工作台":
+    - /url: "#/home?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 工作台
+  - link "我的项目":
+    - /url: "#/projects?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 我的项目
+  - link "研究资料库":
+    - /url: "#/library?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 研究资料库
+  - link "运行记录":
+    - /url: "#/runs?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 运行记录
+  - generic: CURRENT PROJECT
+  - link "V4 GUI 验收 - CALM 合成案例 - 2026-10-13 虚构客户 test_data · 修订 78":
+    - /url: "#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - text: V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+    - generic: 虚构客户 test_data · 修订 78
+  - link "项目总览":
+    - /url: "#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 项目总览
+  - link "资料与变更":
+    - /url: "#/change?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 资料与变更
+  - link "智能研究":
+    - /url: "#/research?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 智能研究
+  - link "方案与决策":
+    - /url: "#/solution?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 方案与决策
+  - link "成本与报价":
+    - /url: "#/cost?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 成本与报价
+  - link "文档与交付":
+    - /url: "#/deliver?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 文档与交付
+  - link "设置":
+    - /url: "#/settings?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 设置
+- banner:
+  - text: V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+  - generic: /
+  - strong: 智能研究
+  - button "选择模型与思考强度":
+    - generic: qwen3.8-flash
+    - generic: low
+    - generic: ⌄
+  - link "设置":
+    - /url: "#/settings?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+- main:
+  - heading "智能研究空间" [level=1]
+  - button "新增问题":
+    - text: 新增问题
+  - generic: 联网：待验证
+  - generic: DSH Web 已加载；搜索与抓取是否可用，以本次研究的实际结果为准。
+  - complementary:
+    - generic: 研究问题（2）
+    - button "IMO MARPOL Annex I oil pollution prevention 待研究":
+      - text: IMO MARPOL Annex I oil pollution prevention
+      - generic: 待研究
+    - button "单点系泊区域油污事件的监测链路如何组织？ 已有报告":
+      - text: 单点系泊区域油污事件的监测链路如何组织？
+      - generic: 已有报告
+    - button "新增问题":
+      - text: 新增问题
+    - generic: 知识沉淀
+    - generic: 已采纳 1 条 · 候选 6 条
+  - article:
+    - text: 研究问题 ·
+    - generic: 待研究
+    - heading "IMO MARPOL Annex I oil pollution prevention" [level=2]
+    - paragraph: 软件验收：仅检索公开 IMO 官方资料，回答一句概述并提供一条真实网页依据；不使用项目客户资料，不推断技术符合性。
+    - button "编辑"
+    - button "关闭问题"
+    - generic: 计划：未制定（将直接按问题研究本地资料）
+    - button "制定计划"
+    - combobox "本次研究模式":
+      - option "按计划（仅本地资料）"
+      - option "仅本地资料"
+      - option "仅联网" [selected]
+      - option "本地 + 联网"
+    - button "开始研究":
+      - text: 开始研究
+    - generic: DSH Web 已加载；搜索与抓取是否可用，以本次研究的实际结果为准。 仅联网模式需要成功获取网页正文，否则报告生成会停止。
+    - generic: 最近运行：2026-10-13 06:43 · failed · 模型 okai2/qwen3.8-flash（本次指定）· 获取失败 · skill:marketpilot-deep-research@5960e4d525ed 联网检索：获取正文 0 个，失败 0 个；检索失败 IMO MARPOL Annex I oil pollution prevention：DeepSeek search has no API key for "DEEPSEEK_API_KEY"; store it through the credentials service (the web Models page writes it), export it in the launching environment, or set a literal "apiKey" in t…。 · 错误：联网检索：获取正文 0 个，失败 0 个；检索失败 IMO MARPOL Annex I oil pollution prevention：DeepSeek search has no API key for "DEEPSEEK_API_KEY"; store it through the credentials service (the web Models page writes it), export it in the launching environment, or set a literal "apiKey" in t…。
+    - generic: 尚无报告。制定计划（可选）后点击“开始研究”。
+    - heading "研究发现（0）" [level=3]
+    - button "从资料摘录":
+      - text: 从资料摘录
+    - generic: 暂无发现。研究运行会提出候选发现，也可以手工从资料中摘录。
+    - complementary:
+      - generic: IMO MARPOL Annex I oil pollution prevention
+      - heading [level=2]: 研究计划
+      - button: ×
+      - button:
+        - text: AI 拟定草稿
+      - button [disabled]: 确认计划
+    - complementary:
+      - button: ×
+      - button [disabled]: 选中文字保存为发现
+  - complementary:
+    - text: 项目 AI 助手
+    - button "收起 AI 面板":
+    - generic: 当前问题：IMO MARPOL Annex I oil pollution prevention
+    - generic: 围绕这个问题展开讨论
+    - textbox "对话输入":
+      - /placeholder: 针对当前研究问题继续提问…
+    - generic: AI 只提供建议，不能确认、采纳或发布
+    - button "发送" [disabled]:
+- alert

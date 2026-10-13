@@ -1,0 +1,89 @@
+- complementary "主导航":
+  - generic: M
+  - generic: MarketPilot 智策
+  - generic: ENGINEERING INTELLIGENCE
+  - generic: WORKSPACE
+  - link "工作台":
+    - /url: "#/home?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 工作台
+  - link "我的项目":
+    - /url: "#/projects?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 我的项目
+  - link "研究资料库":
+    - /url: "#/library?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 研究资料库
+  - link "运行记录":
+    - /url: "#/runs?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 运行记录
+  - generic: CURRENT PROJECT
+  - link "V4 GUI 验收 - CALM 合成案例 - 2026-10-13 虚构客户 test_data · 修订 5":
+    - /url: "#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - text: V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+    - generic: 虚构客户 test_data · 修订 5
+  - link "项目总览":
+    - /url: "#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 项目总览
+  - link "资料与变更 有待处理事项":
+    - /url: "#/change?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 资料与变更
+    - generic "有待处理事项"
+  - link "智能研究":
+    - /url: "#/research?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 智能研究
+  - link "方案与决策":
+    - /url: "#/solution?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 方案与决策
+  - link "成本与报价":
+    - /url: "#/cost?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 成本与报价
+  - link "文档与交付":
+    - /url: "#/deliver?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 文档与交付
+  - link "设置" [active]:
+    - /url: "#/settings?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 设置
+  - generic: 工
+  - text: 工程师工作空间
+  - generic: 本机独立网页 · 仅回环地址
+- banner:
+  - text: 工作台
+  - generic: /
+  - strong: 设置
+  - generic "已注册模型路由；调用可用性仍以实际任务为准。": 模型可用 · glm-5.3-flash
+  - link "设置":
+    - /url: "#/settings?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+- main:
+  - generic: 设置
+  - heading "模型与能力设置" [level=1]
+  - paragraph: 模型选择优先级：全局默认 → 项目偏好 → 本次运行指定。每次运行都会记录实际使用的路由，可在“运行记录”中查看。
+  - heading "模型路由" [level=2]
+  - strong: ① 全局默认（DSH）
+  - generic: 由 DSH 配置决定，此处只读
+  - generic: 读取中…
+  - strong: ② 项目偏好
+  - generic: V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+  - generic: 未设置（使用全局默认）
+  - strong: ③ 本次运行指定
+  - generic: 在智能研究、对话等运行入口临时选择
+  - generic: 仅作用于单次运行
+  - generic: 设置项目偏好
+  - text: Provider
+  - textbox "Provider":
+    - /placeholder: 未读取到 Provider 列表
+  - text: 模型 ID
+  - textbox "模型 ID"
+  - text: 思考强度（可选）
+  - textbox "思考强度（可选） 留空继承默认"
+  - text: 留空继承默认
+  - button "保存项目偏好" [disabled]
+  - generic: 请选择 Provider
+  - button "清除偏好" [disabled]
+  - heading "能力状态" [level=2]
+  - strong: 模型
+  - generic: 已注册模型路由；调用可用性仍以实际任务为准。
+  - generic: 在线可用
+  - strong: 联网研究
+  - generic: Harness Web 已加载，但此宿主无只读 Provider 检测接口；联网能力未验证，可使用本地资料研究。
+  - generic: 仅本地 / 联网未验证
+  - text: 不可用的能力对应按钮会被禁用并说明原因；网页只有在正文成功抓取后才计为来源。
+- alert

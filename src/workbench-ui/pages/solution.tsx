@@ -208,7 +208,6 @@ export function SolutionPage() {
   return (
     <>
       <PageHead eyebrow="方案与决策" title="技术路线与配置"
-        lede="围绕候选路线比选、人工决策和结构化配置持续修订；草稿可随时修改，正式版本只能由人工发布。"
         actions={<><a className="btn ghost" href={href('research', pid)}><Icon name="microscope" />查看研究依据</a>
           <a className="btn primary" href={href('deliver', pid)}><Icon name="check" />去发布版本</a></>} />
       {mismatch ? <div className="reconcile-note"><Icon name="shield" /> 草稿路线「{draft!.name}」与已确认决策「{conf!.name}」不一致：路线确认已失效，请重新人工确认。</div> : null}
