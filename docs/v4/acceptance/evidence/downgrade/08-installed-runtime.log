@@ -1,0 +1,14 @@
+{
+  "installedNode": "24.17.0",
+  "backend": "json",
+  "officialRootExpression": "dshHomePath('storages')",
+  "actualHome": "C:\\Users\\zjdzc\\AppData\\Roaming\\dsh-desktop\\harness",
+  "configuredModel": "zai / glm-5.3-flash / max",
+  "desktopProcessCount": 0,
+  "isolatedDryRun": true,
+  "projectCount": 10,
+  "sourceSha256": "669636b62c40dd2c87b78d05e578c2529bb85f064cc76d780f4eeee48fec6f20",
+  "productionDataRead": false,
+  "productionDataWritten": false,
+  "guiLaunched": false
+}

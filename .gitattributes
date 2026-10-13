@@ -1,3 +1,6 @@
 # Preserve the recorded model snapshot bytes on Windows checkouts.
 docs/gui-acceptance/v3.3-m5/m5-CALM-solution-review.md text eol=lf
 docs/gui-acceptance/v3.3-m5/exports/CALM-M5-ART-06.md text eol=lf
+# Frozen V3.4 source bytes must retain provenance hashes across checkouts.
+src/storage/v34-schema/*.ts text eol=lf
+docs/v4/acceptance/evidence/downgrade/*.log text eol=lf

@@ -1,0 +1,59 @@
+{
+  "ok": true,
+  "root": "C:\\Users\\zjdzc\\AppData\\Local\\Temp\\marketpilot-test-cli-downgrade-VEUzYM",
+  "cliChecks": 11,
+  "sourceSha256": "e8c7c63ac1e747f656119b2acbaf0b9f0f1b19daa5136b38a216baf08481507c",
+  "projects": 2,
+  "hardTermination": {
+    "code": null,
+    "signal": "SIGTERM"
+  },
+  "originalUnchanged": true,
+  "downgradeSummary": {
+    "00000000-0000-4000-8000-000000000001": {
+      "legacyHash": "dbf62082fc243533de20da000088a50f24ef95bd46a1e1abb65fa4b5d4f17f24",
+      "v4Hash": "39fde75ac86f04011c4d0f421843145c384fb425ba326dad07fdc81e69cccb71",
+      "counts": {
+        "documents": 1,
+        "requirements": 1,
+        "evidence": 1,
+        "competitors": 1,
+        "policies": 1,
+        "alternatives": 1,
+        "decisions": 1,
+        "tenderItems": 1,
+        "artifacts": 1,
+        "workflowRuns": 1,
+        "v4_intakeBatches": 1,
+        "v4_changes": 1,
+        "v4_questions": 0,
+        "v4_runs": 0,
+        "v4_sources": 0,
+        "v4_messages": 0,
+        "v4_findings": 1,
+        "v4_impacts": 0,
+        "v4_configItems": 1,
+        "v4_costLines": 1,
+        "v4_templates": 0,
+        "v4_docs": 1,
+        "v4_baselines": 2
+      }
+    },
+    "00000000-0000-4000-8000-000000000020": {
+      "legacyHash": "b312880ddd72431f8c43afef502ecff25039f60e4acc4fb3565337f30e0e756d",
+      "counts": {
+        "documents": 0,
+        "requirements": 0,
+        "evidence": 0,
+        "competitors": 0,
+        "policies": 0,
+        "alternatives": 0,
+        "decisions": 0,
+        "tenderItems": 0,
+        "artifacts": 0,
+        "workflowRuns": 0
+      }
+    }
+  },
+  "profilePrepared": false
+}

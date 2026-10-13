@@ -14,6 +14,11 @@ npx vitest run
 
 ## 启动
 
+**已有 V4 写入的数据不能直接交给 V3.4。** 版本切换前先阅读
+[ROLLBACK.md](ROLLBACK.md)，在复制件上运行 `scripts/v4-storage.ps1`。
+当前代码仍以完整项目记录保存 V4 数据；只有转换生成的 V3 副本可以被旧版本加载。
+正式入口先构建，再用 PowerShell `-Mode downgrade|restore|validate`，`-DryRun` 只检查不写入。
+
 按 V3 README 的 DSH 流程启动（已有 profile 时跳过第一条命令）：
 
 ```powershell
@@ -50,3 +55,18 @@ MARKETPILOT_LEGACY_STORE='E:/PythonProjects/Work_Platform/marketpilot-backups/20
 ```
 
 截图测试需要本机安装 Chrome。旧数据检查只读取备份的副本，不修改备份本身。
+
+## 回退回归与隔离 Desktop 前置准备
+
+```powershell
+$env:MARKETPILOT_LEGACY_STORE = 'E:/PythonProjects/Work_Platform/marketpilot-backups/20261012-225649-v4-m0'
+npx vitest run tests/v4-downgrade.spec.ts
+node scripts/verify-v4-storage.mjs
+node scripts/prepare-v4-isolated.mjs --profile 'C:/Users/zjdzc/AppData/Roaming/dsh-desktop/harness/profiles/web' --backup 'E:/PythonProjects/Work_Platform/marketpilot-backups/20261012-225649-v4-m0/marketpilot.json'
+```
+
+前置脚本在系统临时目录复制已构建插件、准备隔离 JSON 存储和清理过的 Profile；
+不复制用户 Provider patch、凭据、Desktop UI 状态或会话，不启动 Desktop。
+依赖目录复用已有目录链接，链接并不提供系统层面的写保护；不能在该克隆中安装/更新依赖。
+后续启动只对该克隆设置 `DSH_HOME=<脚本返回 root>/harness`，选择独立回环端口。
+需继续验证安装版宿主解析和原生窗口入口，不把准备 Profile 当作实机通过。

@@ -1,0 +1,48 @@
+
+ RUN  v4.1.8 E:/PythonProjects/Work_Platform/marketpilot
+
+(node:6472) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ tests/v4-downgrade.spec.ts (1 test | 1 failed) 64ms
+   × original V3.4 must reopen a V4-written JSON store (pre-fix red reproduction) 64ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/v4-downgrade.spec.ts > original V3.4 must reopen a V4-written JSON store (pre-fix red reproduction)
+DomainError: domain 'marketpilot': stored record '00000000-0000-4000-8000-000000000001' in table 'projects' does not match its schema
+ ❯ parseRecord ../deepseek-harness/packages/storage/storage-domain/src/index.ts:203:11
+    201|   } catch (error) {
+    202|     const slot = table === '' ? 'global' : `record '${key}' in table '…
+    203|     throw new DomainError(
+       |           ^
+    204|       'invalid-record',
+    205|       `domain '${domain}': stored ${slot} does not match its schema`,
+ ❯ DomainFacility.open ../deepseek-harness/packages/storage/storage-domain/src/index.ts:126:24
+ ❯ legacyAt tests/v4-downgrade.spec.ts:22:20
+ ❯ tests/v4-downgrade.spec.ts:40:24
+
+Caused by: ZodError: [
+  {
+    "code": "unrecognized_keys",
+    "keys": [
+      "v4"
+    ],
+    "path": [],
+    "message": "Unrecognized key: \"v4\""
+  }
+]
+ ❯ ../deepseek-harness/packages/storage/storage-domain/src/index.ts:126:87
+ ❯ parseRecord ../deepseek-harness/packages/storage/storage-domain/src/index.ts:200:12
+ ❯ DomainFacility.open ../deepseek-harness/packages/storage/storage-domain/src/index.ts:126:24
+ ❯ legacyAt tests/v4-downgrade.spec.ts:22:20
+ ❯ tests/v4-downgrade.spec.ts:40:24
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { _zod: { def: [ { code: 'unrecognized_keys', keys: [ 'v4' ], path: [], message: 'Unrecognized key: "v4"' } ], constr: 'Function<ZodError>', traits: { constructor: 'Function<Set>', has: 'Function<has>', add: 'Function<add>', delete: 'Function<delete>', difference: 'Function<difference>', clear: 'Function<clear>', entries: 'Function<entries>', forEach: 'Function<forEach>', intersection: 'Function<intersection>', isSubsetOf: 'Function<isSubsetOf>', isSupersetOf: 'Function<isSupersetOf>', isDisjointFrom: 'Function<isDisjointFrom>', size: 2, symmetricDifference: 'Function<symmetricDifference>', union: 'Function<union>', values: 'Function<values>', keys: 'Function<values>' }, deferred: [] }, issues: [ { code: 'unrecognized_keys', keys: [ 'v4' ], path: [], message: 'Unrecognized key: "v4"' } ], format: 'Function<value>', flatten: 'Function<value>', addIssue: 'Function<value>', addIssues: 'Function<value>', isEmpty: false }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  08:23:47
+   Duration  1.25s (transform 402ms, setup 0ms, import 1.06s, tests 64ms, environment 0ms)

@@ -2,6 +2,27 @@
 
 环境：Windows 11，Node 24.14，vitest 4.1.8，分支 `feat/v4-workbench-foundation`，日期 2026-10-13。
 
+## 回退兼容修复后的最新复验（2026-10-13）
+
+下面历史记录仅证明 V4 读取 V3，不证明反向兼容。新测试使用固定 V3.4 提交
+`9aae1d851346d41d191f447e4f7282ddf285771d` 的原版 schema 和官方 StorageDomain，
+实际复现 `unrecognized_keys: v4` / `invalid-record`，并完成两轮安全副本往返。
+
+| 命令 | 新的实际结果 |
+| --- | --- |
+| `npx tsc --noEmit -p .` | 退出码 0 |
+| `npx vitest run`（设置 `MARKETPILOT_LEGACY_STORE` 为 M0 备份目录） | 43 文件：42 通过、1 跳过；358 用例：357 通过、1 跳过（截图 opt-in）；8.17 秒 |
+| `npx vitest run tests/v4-downgrade.spec.ts`（同一环境变量） | 23/23，4.44 秒；含 10 个旧项目的备份复制件往返 |
+| `npm run build` | 退出码 0；workbench 288.7 KiB；client 462.19 kB |
+| `node scripts/verify-v4-storage.mjs` | 11 次正式 PowerShell CLI 调用、真实转换进程强制终止与重试均通过 |
+| `node scripts/prepare-v4-isolated.mjs --profile <本机 web profile> --backup <M0 marketpilot.json>` | 新临时 Profile、构建复制件和存储复制件已准备；未启动 GUI |
+
+唯一跳过项为截图生成；此次没有改 UI。原版 V3.4 必须先经过数据转换才能回退，
+不能自然忽略 V4 字段。失败日志、通过日志、逐轮 SHA 和记录数量在
+`evidence/downgrade/`，设计与结论见 [DOWNGRADE_COMPAT_REPORT.md](DOWNGRADE_COMPAT_REPORT.md)。
+
+## V4 原验收记录（保留历史证据）
+
 | 命令 | 结果 |
 | --- | --- |
 | `tsc --noEmit -p .` | 通过 |
