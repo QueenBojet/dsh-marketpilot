@@ -72,7 +72,7 @@ function BatchCard({ b }: { b: Batch }) {
           {pending ? ` 尚有 ${pending} 条待处理。` : ''}</p>
         {h?.duplicates.length ? <div className="tiny-caption">重复未导入：{h.duplicates.join('；')}</div> : null}
         {[...(h?.notes ?? []), ...b.warnings].map(n => <div key={n} className="tiny-caption">· {n}</div>)}
-        {b.error ? <div className="tiny-caption">失败原因：{b.error}</div> : null}
+        {b.error ? <div className="tiny-caption" style={{ color: '#b91c1c' }}>失败原因：{b.error}</div> : null}
         {b.status !== 'received' && !ov!.v4.discovery ? <div className="actions" style={{ marginTop: 10 }}>
           <Btn small kind="primary" onClick={() => run('marketpilot_v4_intake_deep_analyze', { batchId: b.id }, { ok: '深度分析完成，请逐条审阅候选变更' }).then(() => {})}
             disabled={!model.available ? `模型不可用：${model.reason}` : b.status === 'analyzing' ? '正在分析' : active ? '已有运行进行中' : !b.documentIds.length ? '本批次无新文档' : ''} showReason>
@@ -220,11 +220,13 @@ function ReqTable() {
   const docName = (id?: string) => ov!.documents.find(d => d.id === id)?.name
   const confirm = () => run('marketpilot_requirement_confirm', { requirementIds: proposed }, { ok: `已确认 ${proposed.length} 条需求` }).then(() => setSel([]))
   return (
-    <Panel title={`需求（${rows.filter(r => r.status === 'confirmed').length}/${rows.length} 已确认）`} extra={<>
-      <label className="tiny-caption"><input type="checkbox" checked={showOld} onChange={e => setShowOld(e.target.checked)} /> 显示已替代</label>
-      <Btn small kind="ghost" onClick={() => setEdit('new')}><Icon name="plus" />新增</Btn>
-      <Btn small kind="primary" disabled={!proposed.length ? '请勾选“待确认”的需求' : active ? '已有运行进行中' : ''} onClick={confirm}><Icon name="check" />人工确认所选（{proposed.length}）</Btn>
-    </>}>
+    <Panel title={`工程需求清单（${rows.filter(r => r.status === 'confirmed').length}/${rows.length} 已确认）`}
+      subtitle="确认简报会自动同步验收要求至此表；也可从候选变更采纳或手工新增。被当前路线决策引用的需求受覆写保护。"
+      extra={<>
+        <label className="tiny-caption"><input type="checkbox" checked={showOld} onChange={e => setShowOld(e.target.checked)} /> 显示已替代</label>
+        <Btn small kind="ghost" onClick={() => setEdit('new')}><Icon name="plus" />新增</Btn>
+        <Btn small kind="primary" disabled={!proposed.length ? '请勾选“待确认”的需求' : active ? '已有运行进行中' : ''} onClick={confirm}><Icon name="check" />人工确认所选（{proposed.length}）</Btn>
+      </>}>
       {rows.length ? <div className="table-scroll"><table className="data-table">
         <thead><tr><th><input type="checkbox" aria-label="全选待确认" checked={rows.some(r => r.status === 'proposed') && rows.filter(r => r.status === 'proposed').every(r => sel.includes(r.id))}
           onChange={e => setSel(e.target.checked ? rows.filter(r => r.status === 'proposed').map(r => r.id) : [])} /></th>
@@ -238,7 +240,7 @@ function ReqTable() {
             <td><Badge tone={REQ_STATUS[r.status]![1]}>{REQ_STATUS[r.status]![0]}</Badge></td>
             <td><Btn small kind="text" onClick={() => setEdit(r)}>编辑</Btn></td>
           </tr>))}</tbody>
-      </table></div> : <Empty>暂无需求。可以从候选变更采纳，或手工新增。</Empty>}
+      </table></div> : <Empty>暂无需求。可在“需求访谈”中确认需求简报，或从候选变更采纳、手工新增。</Empty>}
       <ReqModal open={Boolean(edit)} req={edit === 'new' ? undefined : edit} onClose={() => setEdit(undefined)} />
     </Panel>
   )
@@ -251,17 +253,33 @@ export function IntakePage() {
   const batches = [...ov.v4.intakeBatches].sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''))
   return (
     <>
-      <PageHead eyebrow="资料与变更" title="资料与精选支撑"
+      <PageHead eyebrow="STAGE 2 · MATERIALS & CURATED SUPPORT" title="资料与精选支撑"
+        lede="上传客户现场资料、标准规范或招标文件（支持 .md .txt .csv .docx .xlsx .pdf）；精选影响方案决策的关键事实与约束并人工固化。"
         actions={<Btn kind="primary" onClick={() => setUp(true)}><Icon name="upload" />上传资料</Btn>} />
       <div className="dual-grid">
-        <Panel title={`资料批次（${batches.length}）`}>
-          {batches.length ? batches.map(b => <BatchCard key={b.id} b={b} />) : <Empty>还没有资料。点击“上传资料”导入客户需求、招标文件或会议纪要。</Empty>}
-          {ov.documents.length ? <><div className="thin-rule" /><div className="micro-title">全部文档（{ov.documents.length}）</div>
-            {ov.documents.map(d => <div key={d.id} className="source-mini"><b>{d.name}</b><span className="tiny-caption">{DOC_KINDS[d.kind] ?? d.kind} · {d.length} 字</span></div>)}</> : null}
+        <Panel title={`资料批次（${batches.length}）`} subtitle="自动校验 SHA-256 防止重复导入；被支撑摘要或发现引用的原文受修改保护。">
+          {batches.length ? batches.map(b => <BatchCard key={b.id} b={b} />) : <Empty>还没有资料。点击右上角“上传资料”导入客户需求、招标文件或会议纪要。</Empty>}
+          {ov.documents.length ? (
+            <>
+              <div className="thin-rule" />
+              <div className="micro-title">全部已归档文档（{ov.documents.length}）</div>
+              {ov.documents.map(d => (
+                <div key={d.id} className="source-mini">
+                  <b>{d.name}</b>
+                  <span className="tiny-caption">{DOC_KINDS[d.kind] ?? d.kind} · {d.length} 字</span>
+                </div>
+              ))}
+            </>
+          ) : null}
         </Panel>
         <SupportPanel />
       </div>
-      {ov.v4.changes.length ? <details className="section-spacer"><summary>历史候选变更</summary><ChangeList /></details> : null}
+      {ov.v4.changes.length ? (
+        <details className="section-spacer" open={ov.v4.changes.some(c => c.status === 'pending')}>
+          <summary style={{ cursor: 'pointer', fontWeight: 700, fontSize: 13, marginBottom: 10 }}>历史候选变更（{ov.v4.changes.length}）</summary>
+          <ChangeList />
+        </details>
+      ) : null}
       <div className="section-spacer" />
       <ReqTable />
       <UploadModal open={up} onClose={() => setUp(false)} />

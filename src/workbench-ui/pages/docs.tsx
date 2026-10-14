@@ -1,10 +1,10 @@
 /** 文档与交付: templated documents, section proposals, human review, DOCX export, send record, baselines V1/V2 and diff. */
-import { useState, type ReactNode } from 'react'
+import { useState } from 'react'
 import { del, downloadDocx, fileToBase64, get, patch, post, pp, put } from '../api.ts'
 import { Icon } from '../icons.tsx'
 import { useStore } from '../store.tsx'
 import type { Baseline, DiffView, DocView, ListDiff, Section } from '../types.ts'
-import { Badge, Btn, Drawer, Empty, Field, Modal, PageHead, Panel, REVIEW, cx, fmtTime } from '../ui.tsx'
+import { Badge, Blocks, Btn, Drawer, Empty, Field, Modal, PageHead, Panel, REVIEW, cx, fmtTime } from '../ui.tsx'
 
 const DOC_KIND: Record<DocView['doc']['kind'], string> = { technical: '技术方案', cost: '成本与报价', change_summary: '变更说明' }
 const BASE_TYPE: Record<Baseline['type'], [string, string]> = {
@@ -12,44 +12,6 @@ const BASE_TYPE: Record<Baseline['type'], [string, string]> = {
   full: ['完整方案包（含成本）', '在技术基线基础上冻结成本明细与三项成本审核、成本文档。'],
 }
 
-function inlineText(text: string) {
-  return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
-    part.startsWith('**') && part.endsWith('**') && part.length > 4 ? <strong key={i}>{part.slice(2, -2)}</strong> : part)
-}
-
-/** Render section content into paper blocks as React elements (headings, bullets, notes, tables, paragraphs). */
-function Blocks({ content }: { content: string }) {
-  const out: ReactNode[] = []
-  let list: string[] = []
-  let table: string[][] = []
-  const flush = () => {
-    if (list.length) { out.push(<ul key={`l${out.length}`}>{list.map((x, i) => <li key={i}>{inlineText(x)}</li>)}</ul>); list = [] }
-    if (table.length) {
-      const [head, ...rows] = table
-      out.push(<table key={`t${out.length}`} className="paper-table"><thead><tr>{head!.map((c, i) => <th key={i}>{inlineText(c)}</th>)}</tr></thead>
-        <tbody>{rows.map((r, i) => <tr key={i}>{r.map((c, j) => <td key={j}>{inlineText(c)}</td>)}</tr>)}</tbody></table>)
-      table = []
-    }
-  }
-  for (const raw of content.split('\n')) {
-    const line = raw.trim()
-    if (/^\|.*\|$/.test(line)) {
-      if (list.length) { const t = table; table = []; flush(); table = t }
-      const cells = line.slice(1, -1).split('|').map(c => c.trim())
-      if (!cells.every(c => /^:?-{2,}:?$/.test(c))) table.push(cells)
-      continue
-    }
-    if (/^[-*] /.test(line)) { if (table.length) { const l = list; list = []; flush(); list = l } list.push(line.slice(2)); continue }
-    flush()
-    if (!line) continue
-    if (line.startsWith('### ')) out.push(<h4 key={out.length}>{inlineText(line.slice(4))}</h4>)
-    else if (line.startsWith('## ')) out.push(<h4 key={out.length}>{inlineText(line.slice(3))}</h4>)
-    else if (line.startsWith('> ')) out.push(<div key={out.length} className="boxnote">{inlineText(line.slice(2))}</div>)
-    else out.push(<p key={out.length}>{inlineText(line)}</p>)
-  }
-  flush()
-  return <>{out}</>
-}
 function CreateModal({ open, onClose, onCreated }: { open: boolean; onClose: () => void; onCreated: (id: string) => void }) {
   const { ov, pid, act } = useStore()
   const [kind, setKind] = useState<DocView['doc']['kind']>('technical')
@@ -78,7 +40,8 @@ function SectionDrawer({ dv, sec, onClose }: { dv: DocView; sec: Section | undef
   const [text, setText] = useState('')
   const [ask, setAsk] = useState('')
   const [key, setKey] = useState<string>()
-  if (sec?.key !== key) { setKey(sec?.key); setText(sec?.content ?? ''); setAsk('') }
+  const signature = sec ? `${sec.key}:${sec.content}` : undefined
+  if (signature !== key) { setKey(signature); setText(sec?.content ?? ''); setAsk('') }
   const model = ov!.capabilities.model
   const base = `docs/${encodeURIComponent(dv.doc.id)}`
   const save = async () => {
@@ -319,10 +282,14 @@ export function DeliverPage() {
   const tplName = (id?: string) => id ? ov.v4.templates.find(t => t.id === id)?.name ?? '（模板已删除）' : '默认模板'
   const currentExports = dv ? dv.doc.exports.filter(e => e.hash === dv.hash) : []
   const sentNow = dv ? dv.doc.sent.filter(s => currentExports.some(e => e.sha256 === s.exportSha256)) : []
+  const pendingProps = dv ? dv.doc.sections.filter(s => s.proposal) : []
+
   const sync = async () => {
     const out = await act(() => post<DocView & { replaced: number; proposed: number }>(pp(pid, `${base}/refresh`), {}))
     if (out) toast(`已同步：直接更新 ${out.replaced} 节，${out.proposed} 节已人工编辑，改为建议待处理`, 'ok')
   }
+  const decideKeys = (keys: string[], accept: boolean) =>
+    act(() => post(pp(pid, `${base}/proposals`), { keys, accept }), accept ? `已接受 ${keys.length} 节建议并写入正文` : `已拒绝 ${keys.length} 节建议`)
   const setTpl = (v: string) => act(() => patch(pp(pid, base), { templateId: v || null }), '模板已切换；导出将使用新模板').then(() => {})
   const download = async () => {
     setBusy(true)
@@ -336,7 +303,8 @@ export function DeliverPage() {
   const [rl, rt] = dv ? REVIEW[dv.review]! : ['', 'gray']
   return (
     <>
-      <PageHead eyebrow="文档与交付" title="文档、审核与正式版本"
+      <PageHead eyebrow="STAGE 7 · WORD TEMPLATE AUTHORING & BASELINE DELIVERY" title="文档、审核与正式版本"
+        lede="支持上传公司 .docx 模板按章节撰写与逐节审阅建议。严格区分“已人工审核”“当前版本已导出”“已对外发送”三种独立状态。"
         actions={<><Btn kind="ghost" onClick={() => setCreate(true)}><Icon name="plus" />新建文档</Btn>
           <Btn kind="primary" onClick={() => setPublish(true)}><Icon name="layers" />发布正式版本</Btn></>} />
       <div className="doc-layout">
@@ -350,18 +318,39 @@ export function DeliverPage() {
           {!ov.docs.length ? <div className="empty-note">暂无文档，点击“新建文档”。</div> : null}
         </div>
         {dv ? <div>
-          <div className="actions" style={{ marginBottom: 12, flexWrap: 'wrap' }}>
-            <Badge tone={rt as 'teal' | 'red' | 'gray'}>{rl}</Badge>
-            <Badge tone={dv.outdated.length && currentExports.length ? 'warn' : currentExports.length ? 'teal' : 'gray'}>{currentExports.length ? dv.outdated.length ? '已导出 · 依据已变化' : '当前版本已导出' : dv.doc.exports.length ? '导出已过期' : '未导出'}</Badge>
-            <Badge tone={sentNow.length ? 'teal' : 'gray'}>{sentNow.length ? `已对外发送 ${sentNow.length} 次` : '未对外发送'}</Badge>
-            <span className="grow" />
-            <Btn small kind="teal" showReason disabled={active ? '已有运行进行中' : !dv.doc.templateId ? '请先选择上传的 Word 模板' : !ov.route.confirmed ? '请先确认最终路线' : ''} onClick={() => run('marketpilot_v4_doc_draft_template', { docId: dv.doc.id }, { ok: '模板正文建议已生成，请逐节审阅采纳' }).then(() => {})}>按模板撰写</Btn>
-            <select className="option-select" aria-label="DOCX 模板" value={dv.doc.templateId ?? ''} onChange={e => { void setTpl(e.target.value) }}>
-              <option value="">默认模板</option>{ov.v4.templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}</select>
-            {dv.outdated.length ? <Btn small kind="teal" onClick={sync}><Icon name="refresh" />同步项目数据（{dv.outdated.length}）</Btn> : null}
-            <Btn small kind={dv.review === 'valid' ? 'ghost' : 'primary'} disabled={active ? '已有运行进行中' : dv.outdated.length ? '请先同步项目数据' : dv.doc.sections.some(s => s.proposal) ? '请先处理章节建议' : ''} onClick={() => setReview(true)}><Icon name="shield" />{dv.review === 'valid' ? '重新审核' : '人工审核'}</Btn>
-            <Btn small kind="ghost" disabled={busy ? '正在导出' : ''} onClick={download}><Icon name="file" />导出 DOCX</Btn>
-            <Btn small kind="text" disabled={dv.sendBlockers[0] ?? (active ? '已有运行进行中' : '')} onClick={() => setSent(true)}><Icon name="send" />记录对外发送</Btn>
+          <div className="card" style={{ padding: '12px 16px', marginBottom: 14 }}>
+            <div className="actions" style={{ justifyContent: 'space-between', marginBottom: 10 }}>
+              <div className="actions">
+                <Badge tone={rt as 'teal' | 'red' | 'gray'}>{rl}</Badge>
+                <Badge tone={dv.outdated.length && currentExports.length ? 'warn' : currentExports.length ? 'teal' : 'gray'}>
+                  {currentExports.length ? dv.outdated.length ? '已导出 · 依据已变化' : '当前版本已导出' : dv.doc.exports.length ? '导出已过期' : '未导出'}
+                </Badge>
+                <Badge tone={sentNow.length ? 'teal' : 'gray'}>{sentNow.length ? `已对外发送 ${sentNow.length} 次` : '未对外发送'}</Badge>
+                {pendingProps.length ? <Badge tone="warn">{pendingProps.length} 节有待审建议</Badge> : null}
+              </div>
+              <select className="option-select" style={{ width: 220 }} aria-label="DOCX 模板" value={dv.doc.templateId ?? ''} onChange={e => { void setTpl(e.target.value) }}>
+                <option value="">默认模板</option>{ov.v4.templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+              </select>
+            </div>
+            <div className="actions">
+              <Btn small kind="teal" showReason disabled={active ? '已有运行进行中' : !dv.doc.templateId ? '请先选择上传的 Word 模板' : !ov.route.confirmed ? '请先确认最终路线' : ''}
+                onClick={() => run('marketpilot_v4_doc_draft_template', { docId: dv.doc.id }, { ok: '模板正文建议已生成，请逐节审阅采纳' }).then(() => {})}>
+                <Icon name="spark" />按模板撰写
+              </Btn>
+              {pendingProps.length > 1 ? (
+                <Btn small kind="teal" onClick={() => void decideKeys(pendingProps.map(s => s.key), true)}>
+                  <Icon name="check" />全部接受待审建议（{pendingProps.length}）
+                </Btn>
+              ) : null}
+              {dv.outdated.length ? <Btn small kind="teal" onClick={sync}><Icon name="refresh" />同步项目数据（{dv.outdated.length}）</Btn> : null}
+              <Btn small kind={dv.review === 'valid' ? 'ghost' : 'primary'} showReason
+                disabled={active ? '已有运行进行中' : dv.outdated.length ? '请先同步项目数据' : dv.doc.sections.some(s => s.proposal) ? '请先处理章节建议' : ''}
+                onClick={() => setReview(true)}>
+                <Icon name="shield" />{dv.review === 'valid' ? '重新审核' : '人工审核'}
+              </Btn>
+              <Btn small kind="ghost" disabled={busy ? '正在导出' : ''} onClick={download}><Icon name="file" />导出 DOCX</Btn>
+              <Btn small kind="text" showReason disabled={dv.sendBlockers[0] ?? (active ? '已有运行进行中' : '')} onClick={() => setSent(true)}><Icon name="send" />记录对外发送</Btn>
+            </div>
           </div>
           {dv.outdated.length ? <div className="reconcile-note"><Icon name="refresh" /> 以下章节与当前项目数据不一致：{dv.outdated.map(k => dv.doc.sections.find(s => s.key === k)?.title ?? k).join('、')}。同步时人工编辑过的章节只会生成建议，不会被覆盖。</div> : null}
           <div className="paper">
@@ -371,9 +360,27 @@ export function DeliverPage() {
             <div className="paper-rule" />
             {dv.doc.sections.map(s => (
               <section key={s.key}>
-                <h3>{s.title} <button type="button" className="mini-action" onClick={() => setEditKey(s.key)}>编辑</button>
-                  {s.proposal ? <> <Badge tone="warn">有待处理建议</Badge></> : null}
-                  {s.editedByHuman ? <> <Badge tone="blue">已人工编辑</Badge></> : null}</h3>
+                <h3>
+                  <span>{s.title}</span>
+                  <button type="button" className="mini-action" onClick={() => setEditKey(s.key)}>编辑</button>
+                  {s.proposal ? <Badge tone="warn">有待处理建议</Badge> : null}
+                  {s.editedByHuman ? <Badge tone="blue">已人工编辑</Badge> : null}
+                </h3>
+                {s.proposal ? (
+                  <div className="proposal-banner">
+                    <div className="proposal-banner-hd">
+                      <strong>待审阅建议（{s.proposal.origin === 'ai' ? 'AI 生成' : '项目数据同步'}）：{s.proposal.reason}</strong>
+                      <div className="actions">
+                        <Btn small kind="teal" onClick={() => void decideKeys([s.key], true)}>接受本节建议</Btn>
+                        <Btn small kind="ghost" onClick={() => void decideKeys([s.key], false)}>拒绝</Btn>
+                      </div>
+                    </div>
+                    <details open>
+                      <summary className="tiny-caption" style={{ cursor: 'pointer', fontWeight: 650 }}>预览建议正文</summary>
+                      <div className="boxnote" style={{ background: '#fff' }}><Blocks content={s.proposal.content} /></div>
+                    </details>
+                  </div>
+                ) : null}
                 {s.content.trim() ? <Blocks content={s.content} /> : <p className="tiny-caption">（本节暂无内容）</p>}
               </section>))}
           </div>

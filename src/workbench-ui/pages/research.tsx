@@ -2,9 +2,11 @@
 import { useState } from 'react'
 import { get, patch, post, pp, put } from '../api.ts'
 import { Icon } from '../icons.tsx'
+import { href } from '../shell.tsx'
+import { currentResearchDirections } from '../research-progress.ts'
 import { useStore } from '../store.tsx'
 import type { Finding, Message, Question, WebSource } from '../types.ts'
-import { Badge, Btn, Drawer, Empty, Field, Modal, PageHead, ROUTE_SRC, WEB_STATUS, cx, fmtTime } from '../ui.tsx'
+import { Badge, Blocks, Btn, Drawer, Empty, Field, Modal, PageHead, ROUTE_SRC, WEB_STATUS, cx, fmtTime } from '../ui.tsx'
 
 const Q_STATUS: Record<Question['status'], [string, 'gray' | 'blue' | 'teal' | 'warn']> = {
   open: ['待研究', 'gray'], researching: ['研究中', 'blue'], answered: ['已有报告', 'teal'], needs_review: ['需复核', 'warn'], closed: ['已关闭', 'gray'],
@@ -168,13 +170,15 @@ function FindingCard({ f }: { f: Finding }) {
   return (
     <div className="finding">
       <div className="finding-head">
-        <Badge tone={ADOPT[f.adoption][1]}>{ADOPT[f.adoption][0]}</Badge><Badge tone={VERIFY[f.verification][1]}>{VERIFY[f.verification][0]}</Badge>
-        {f.needsReview ? <Badge tone="warn">需复核</Badge> : null}<span className="tiny-caption">{f.origin === 'ai' ? 'AI 提出' : '人工摘录'}</span>
+        <Badge tone={ADOPT[f.adoption][1]}>采纳：{ADOPT[f.adoption][0]}</Badge>
+        <Badge tone={VERIFY[f.verification][1]}>证据：{VERIFY[f.verification][0]}</Badge>
+        {f.needsReview ? <Badge tone="warn">需复核</Badge> : null}
+        <span className="tiny-caption" style={{ marginLeft: 'auto' }}>{f.origin === 'ai' ? 'AI 提出' : '人工摘录'}</span>
       </div>
-      {edit === undefined ? <p><b>{f.statement}</b>{f.conditions ? <span className="tiny-caption"> · 条件：{f.conditions}</span> : null}</p>
+      {edit === undefined ? <p><b>{f.statement}</b>{f.conditions ? <span className="tiny-caption"> · 适用条件：{f.conditions}</span> : null}</p>
         : <textarea className="text-field" rows={3} value={edit} onChange={e => setEdit(e.target.value)} />}
       {src.quote ? <div className="research-quote">“{src.quote}”<div className="tiny-caption">{srcName}{src.locator ? ` · ${src.locator}` : ''}</div></div> : <div className="tiny-caption">来源：{srcName}</div>}
-      {f.needsReview && f.reviewReason ? <div className="tiny-caption">复核原因：{f.reviewReason}</div> : null}
+      {f.needsReview && f.reviewReason ? <div className="tiny-caption" style={{ color: '#b45309', marginTop: 4 }}>⚠ 复核原因：{f.reviewReason}</div> : null}
       {f.adoptionReview ? <div className="tiny-caption">采纳审核：{f.adoptionReview.reviewer} {fmtTime(f.adoptionReview.reviewedAt)}</div> : null}
       {f.verificationReview ? <div className="tiny-caption">核实审核：{f.verificationReview.reviewer} {fmtTime(f.verificationReview.reviewedAt)}</div> : null}
       {hist && f.history.length ? f.history.map((h, i) => <div key={i} className="tiny-caption">· {fmtTime(h.at)} {h.by}：{h.statement}</div>) : null}
@@ -210,34 +214,64 @@ function ReportPanel({ q, onEdit, onSave }: { q: Question; onEdit: () => void; o
     : !ov!.documents.length && eff === 'local' ? '项目没有资料，请先上传' : active ? '已有运行进行中' : ''
   const go = () => run('marketpilot_v4_research_run', { questionId: q.id, ...mode ? { mode } : {} }, { ok: '研究完成：报告与候选发现已生成，均需人工审核' }).then(() => {})
   const findings = ov!.v4.findings.filter(f => f.questionId === q.id)
+  const linkedAlts = (q.alternativeIds ?? []).map(id => ov!.alternatives.find(a => a.id === id)?.name).filter(Boolean)
+
   return (
     <div className="report">
       <div className="report-top">
-        <div className="grow"><div className="report-overline">研究问题 · <Badge tone={Q_STATUS[q.status][1]}>{Q_STATUS[q.status][0]}</Badge></div>
-          <h2>{q.title}</h2>{q.description ? <p className="report-intro">{q.description}</p> : null}
-          {q.reviewReason ? <div className="boxnote">需复核：{q.reviewReason}</div> : null}</div>
-        <div className="actions"><Btn small kind="text" onClick={onEdit}>编辑</Btn>
-          <Btn small kind="ghost" disabled={q.status === 'closed' && '已关闭'} onClick={() => act(() => patch(pp(pid!, `questions/${encodeURIComponent(q.id)}`), { status: 'closed' }), '问题已关闭').then(() => {})}>关闭问题</Btn></div>
+        <div className="grow">
+          <div className="report-overline">
+            <span>研究问题</span>
+            <Badge tone={Q_STATUS[q.status][1]}>{Q_STATUS[q.status][0]}</Badge>
+            {q.direction ? <Badge tone="blue">方向：{q.direction}</Badge> : null}
+            {linkedAlts.map(n => <Badge key={n} tone="gray">关联：{n}</Badge>)}
+          </div>
+          <h2>{q.title}</h2>
+          {q.decisionUse ? <p className="report-intro"><b>决策用途：</b>{q.decisionUse}</p> : null}
+          {q.description ? <p className="report-intro">{q.description}</p> : null}
+          {q.reviewReason ? <div className="reconcile-note"><Icon name="alert" /> <div><b>需复核：</b>{q.reviewReason}</div></div> : null}
+        </div>
+        <div className="actions">
+          <Btn small kind="text" onClick={onEdit}>编辑</Btn>
+          <Btn small kind="ghost" disabled={q.status === 'closed' && '已关闭'} onClick={() => act(() => patch(pp(pid!, `questions/${encodeURIComponent(q.id)}`), { status: 'closed' }), '问题已关闭').then(() => {})}>关闭问题</Btn>
+        </div>
       </div>
       <div className="research-toolbar">
-        <span className="tiny-caption">计划：{q.plan ? `${q.plan.steps.length} 步 · ${MODE[q.plan.mode]} · ${q.plan.confirmedBy ?? ''} 确认` : ov!.v4.discovery ? '未制定，请先确认本方向计划' : '未制定（将直接按问题研究本地资料）'}</span>
+        <span className="tiny-caption" style={{ flex: 1 }}>
+          <b>研究计划：</b>{q.plan ? `${q.plan.steps.length} 步 · ${MODE[q.plan.mode]} · ${q.plan.confirmedBy ?? ''} 确认` : ov!.v4.discovery ? '未制定，请先确认本方向计划' : '未制定（将直接按问题研究本地资料）'}
+        </span>
         <Btn small kind="ghost" onClick={() => setPlan(true)}>{q.plan ? '修改计划' : '制定计划'}</Btn>
-        <select className="text-field" style={{ width: 150 }} value={mode} onChange={e => setMode(e.target.value as typeof mode)} aria-label="本次研究模式">
+        <select className="text-field" style={{ width: 155 }} value={mode} onChange={e => setMode(e.target.value as typeof mode)} aria-label="本次研究模式">
           <option value="">按计划（{MODE[q.plan?.mode ?? 'local']}）</option>{Object.entries(MODE).map(([m, v]) => <option key={m} value={m}>{v}</option>)}</select>
         <Btn small kind="primary" disabled={reason} showReason onClick={go}><Icon name="spark" />开始研究</Btn>
       </div>
       {eff !== 'local' && !cap.research.available ? <div className="boxnote">{cap.research.reason} {eff === 'web' ? '仅联网模式需要成功获取网页正文，否则报告生成会停止。' : '联网失败时会记录原因，并明确区分本地资料与网页来源。'}</div> : null}
-      {last ? <div className="tiny-caption">最近运行：{fmtTime(last.startedAt)} · {last.status} · 模型 {last.modelRoute.provider}/{last.modelRoute.model}（{ROUTE_SRC[last.modelRoute.source]}）· {WEB_STATUS[last.webStatus]}{last.note ? ` · ${last.note}` : ''}{last.error ? ` · 错误：${last.error}` : ''}</div> : null}
+      {last ? <div className="tiny-caption" style={{ marginBottom: 10 }}>最近运行：{fmtTime(last.startedAt)} · {last.status} · 模型 {last.modelRoute.provider}/{last.modelRoute.model}（{ROUTE_SRC[last.modelRoute.source]}）· {WEB_STATUS[last.webStatus]}{last.note ? ` · ${last.note}` : ''}{last.error ? ` · 错误：${last.error}` : ''}</div> : null}
       <div className="thin-rule" />
       {q.report ? <>
-        <div className="report-sub">研究报告（AI 草稿，需人工判断）<Btn small kind="text" onClick={() => onSave({ type: 'report', ...selected() ? { quote: selected() } : {} })}>选中文字保存为发现</Btn></div>
-        {q.report.split(/\n{2,}/).map((para, i) => <p key={i} style={{ whiteSpace: 'pre-wrap' }}>{para}</p>)}
-      </> : <Empty>尚无报告。{ov!.v4.discovery ? '请先制定并确认本方向研究计划，再开始研究。' : '制定计划（可选）后点击“开始研究”。'}</Empty>}
-      {sources.length ? <div className="sources"><div className="micro-title">网页来源（{sources.filter(s => s.status === 'fetched').length}/{sources.length} 已获取正文）</div>
-        {sources.map(s => <button key={s.id} className="source-line" onClick={() => setSrc(s.id)}>
-          <Badge tone={s.status === 'fetched' ? 'teal' : 'red'}>{s.status === 'fetched' ? '已获取' : '失败'}</Badge> {s.title || s.url}</button>)}</div> : null}
-      <div className="section-heading"><h3>研究发现（{findings.length}）</h3>
-        <Btn small kind="ghost" onClick={() => onSave({ type: 'document' })}><Icon name="plus" />从资料摘录</Btn></div>
+        <div className="report-sub">
+          <span>结构化研究报告（AI 草稿，需人工判断工程真实性）</span>
+          <Btn small kind="teal" onClick={() => onSave({ type: 'report', ...selected() ? { quote: selected() } : {} })}>选中文字保存为发现</Btn>
+        </div>
+        <Blocks content={q.report} />
+      </> : <Empty>尚无报告。{ov!.v4.discovery ? '请先制定并确认本方向研究计划，再点击“开始研究”。' : '制定计划（可选）后点击“开始研究”。'}</Empty>}
+      {sources.length ? (
+        <div style={{ marginTop: 20 }}>
+          <div className="micro-title">网页来源与正文快照（{sources.filter(s => s.status === 'fetched').length}/{sources.length} 已获取正文）</div>
+          <div className="sources-grid">
+            {sources.map(s => (
+              <button key={s.id} className="source-line" onClick={() => setSrc(s.id)}>
+                <Badge tone={s.status === 'fetched' ? 'teal' : 'red'}>{s.status === 'fetched' ? '已获取' : '失败'}</Badge>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.title || s.url}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+      <div className="section-heading">
+        <h3>研究发现与结论核实（{findings.length}）</h3>
+        <Btn small kind="ghost" onClick={() => onSave({ type: 'document' })}><Icon name="plus" />从资料摘录</Btn>
+      </div>
       {findings.length ? <div className="finding-list">{findings.map(f => <FindingCard key={f.id} f={f} />)}</div> : <Empty>暂无发现。研究运行会提出候选发现，也可以手工从资料中摘录。</Empty>}
       <PlanDrawer q={q} open={plan} onClose={() => setPlan(false)} />
       <SourceDrawer s={sources.find(s => s.id === src)} onClose={() => setSrc(undefined)} onSave={p => { setSrc(undefined); onSave(p) }} />
@@ -288,7 +322,7 @@ function AssistantPanel({ q, onClose }: { q: Question | undefined; onClose: () =
 }
 
 export function ResearchPage() {
-  const { ov } = useStore()
+  const { ov, pid } = useStore()
   const [sel, setSel] = useState<string>()
   const [chat, setChat] = useState(() => window.innerWidth > 1110)
   const [qModal, setQModal] = useState<Question | 'new'>()
@@ -297,20 +331,34 @@ export function ResearchPage() {
   const qs = [...ov.v4.questions].sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''))
   const q = qs.find(x => x.id === sel) ?? qs[0]
   const adopted = ov.v4.findings.filter(f => f.adoption === 'adopted').length
+  const directions = currentResearchDirections(ov)
   return (
     <>
-      <PageHead eyebrow="智能研究" title="智能研究空间"
-        actions={<Btn kind="primary" onClick={() => setQModal('new')}><Icon name="plus" />新增问题</Btn>} />
+      <PageHead eyebrow="STAGE 4 · DIRECTED TECHNICAL RESEARCH" title="智能研究空间"
+        lede="围绕候选路线的具体技术方向制定研究计划，结合已固化本地资料与 DSH 联网抓取正文生成研究报告；采纳与核实分步人工确认。"
+        actions={<>
+          {ov.v4.discovery && directions >= 2 ? <a className="btn teal" href={href('solution', pid)}><Icon name="layers" />去综合判断与路线重组 →</a> : null}
+          <Btn kind="primary" onClick={() => setQModal('new')}><Icon name="plus" />新增问题</Btn>
+        </>} />
       <div className="research-toolbar">
         <Badge tone="blue">联网：{ov.capabilities.research.mode === 'unverified' ? '待验证' : ov.capabilities.research.available ? '可用' : '不可用'}</Badge>
-        <span className="tiny-caption">{ov.capabilities.research.reason}</span>
+        <span className="tiny-caption" style={{ flex: 1 }}>{ov.capabilities.research.reason}</span>
+        {ov.v4.discovery ? <Badge tone={directions >= 2 ? 'teal' : 'warn'}>已完成 {directions}/2 个有效研究方向</Badge> : null}
         <button type="button" className="btn small ghost reopen-chat" onClick={() => setChat(!chat)}><Icon name="message" />{chat ? '收起' : '展开'} AI 助手</button>
       </div>
       <div className={cx('research-grid', !chat && 'chat-collapsed')}>
         <aside className="card research-left">
           <div className="micro-title">研究问题（{qs.length}）</div>
-          {qs.map(x => <button key={x.id} className={cx('topic', x.id === q?.id && 'active')} onClick={() => setSel(x.id)}><span className="topic-dot" />{x.title}
-            <Badge tone={Q_STATUS[x.status][1]}>{Q_STATUS[x.status][0]}</Badge></button>)}
+          {qs.map(x => (
+            <button key={x.id} className={cx('topic', x.id === q?.id && 'active')} onClick={() => setSel(x.id)}>
+              <span className="topic-dot" />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div>{x.title}</div>
+                {x.direction ? <div className="tiny-caption" style={{ fontSize: 10 }}>方向：{x.direction}</div> : null}
+              </div>
+              <Badge tone={Q_STATUS[x.status][1]}>{Q_STATUS[x.status][0]}</Badge>
+            </button>
+          ))}
           <button className="topic" onClick={() => setQModal('new')}><Icon name="plus" />新增问题</button>
           <div className="thin-rule" />
           <div className="micro-title">知识沉淀</div>
@@ -318,7 +366,7 @@ export function ResearchPage() {
         </aside>
         <article className="card">
           {q ? <ReportPanel q={q} onEdit={() => setQModal(q)} onSave={setPreset} />
-            : <div className="report"><Empty>还没有研究问题。点击“新增问题”，可关联需求并限定资料范围。</Empty></div>}
+            : <div className="report"><Empty>还没有研究问题。点击“新增问题”，或从“方案与决策”初筛路线卡片上一键建立定向研究。</Empty></div>}
         </article>
         <AssistantPanel q={q} onClose={() => setChat(false)} />
       </div>
