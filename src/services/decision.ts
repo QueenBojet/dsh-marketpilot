@@ -3,6 +3,7 @@ import { businessVersion } from './generation.ts'
 import { ensure } from '../domain/common.ts'
 import { requiredRecord } from './records.ts'
 import type { ServiceContext } from './project.ts'
+import { decisionBlocker } from './v4/discovery-context.ts'
 
 /** Decisions are append-only human records; generic CRUD cannot select an Alternative. */
 export class DecisionService {
@@ -11,6 +12,8 @@ export class DecisionService {
   async confirm(projectId: string, input: unknown, options: { allowSelected?: boolean } = {}) {
     const { expectedVersion, ...request } = decisionRequest.parse(input)
     const before = this.ctx.state(projectId)
+    const blocker = decisionBlocker(before, request.alternativeId)
+    ensure(!blocker, 'DECISION_NOT_READY', blocker ?? '')
     ensure(expectedVersion === undefined || expectedVersion === businessVersion(before), 'STALE_CONTEXT', '项目输入已变化，请重新复核决策摘要。')
     const candidate = requiredRecord(before, 'alternatives', request.alternativeId)
     ensure(candidate.status === 'candidate' || (options.allowSelected && candidate.status === 'selected'),

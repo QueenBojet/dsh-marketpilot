@@ -1,5 +1,6 @@
 /** 资料与变更: batch upload, light rule hints (1C), human-started deep analysis, change handling and requirements. */
 import { useState } from 'react'
+import { SupportPanel } from './support.tsx'
 import { fileToBase64, patch, post, pp } from '../api.ts'
 import { Icon } from '../icons.tsx'
 import { useStore } from '../store.tsx'
@@ -41,8 +42,8 @@ function UploadModal({ open, onClose }: { open: boolean; onClose: () => void }) 
   const reason = !label.trim() ? '请填写批次名称' : !files.length ? '请选择文件' : files.length > 20 ? '单批最多 20 个文件' : ''
   return (
     <Modal open={open} title="上传一批资料" onClose={onClose}
-      subtitle={`支持 ${ACCEPT.replaceAll(',', ' ')}。上传后只做轻量规则识别；是否深度分析由你决定。`}
-      actions={<><Btn kind="ghost" onClick={onClose}>取消</Btn><Btn kind="primary" disabled={reason} onClick={submit}>上传并识别</Btn></>}>
+      subtitle={`支持 ${ACCEPT.replaceAll(',', ' ')}。上传保留原文；请精选必要信息并人工固化为结构化支撑摘要。`}
+      actions={<><Btn kind="ghost" onClick={onClose}>取消</Btn><Btn kind="primary" disabled={reason} onClick={submit}>上传资料</Btn></>}>
       <Field label="批次名称 *"><input className="text-field" value={label} onChange={e => setLabel(e.target.value)} placeholder="例如：客户第二轮技术澄清" /></Field>
       <div className="form-two">
         <Field label="资料类型"><select className="text-field" value={kind} onChange={e => setKind(e.target.value)}>
@@ -67,16 +68,16 @@ function BatchCard({ b }: { b: Batch }) {
       <div className="grow">
         <h3>{b.label} <Badge tone={b.status === 'failed' ? 'red' : b.status === 'analyzed' ? 'teal' : 'blue'}>{BATCH_STATUS[b.status]}</Badge></h3>
         <p>{b.documentIds.length} 个文件 · {fmtTime(b.createdAt)}{b.receivedOn ? ` · 收到于 ${b.receivedOn}` : ''}{b.sourceNote ? ` · 来源：${b.sourceNote}` : ''}<br />
-          {h ? `轻量提示：可能新增 ${h.added} · 可能修改 ${h.modified} · 可能冲突 ${h.conflict} · 背景 ${h.background}。` : ''}
+          {h && b.status !== 'received' ? `历史提示：可能新增 ${h.added} · 可能修改 ${h.modified} · 可能冲突 ${h.conflict} · 背景 ${h.background}。` : ''}
           {pending ? ` 尚有 ${pending} 条待处理。` : ''}</p>
         {h?.duplicates.length ? <div className="tiny-caption">重复未导入：{h.duplicates.join('；')}</div> : null}
         {[...(h?.notes ?? []), ...b.warnings].map(n => <div key={n} className="tiny-caption">· {n}</div>)}
         {b.error ? <div className="tiny-caption">失败原因：{b.error}</div> : null}
-        <div className="actions" style={{ marginTop: 10 }}>
+        {b.status !== 'received' && !ov!.v4.discovery ? <div className="actions" style={{ marginTop: 10 }}>
           <Btn small kind="primary" onClick={() => run('marketpilot_v4_intake_deep_analyze', { batchId: b.id }, { ok: '深度分析完成，请逐条审阅候选变更' }).then(() => {})}
             disabled={!model.available ? `模型不可用：${model.reason}` : b.status === 'analyzing' ? '正在分析' : active ? '已有运行进行中' : !b.documentIds.length ? '本批次无新文档' : ''} showReason>
             <Icon name="spark" />{b.status === 'analyzed' ? '重新深度分析' : '启动深度分析'}</Btn>
-        </div>
+        </div> : null}
       </div>
     </div>
   )
@@ -250,7 +251,7 @@ export function IntakePage() {
   const batches = [...ov.v4.intakeBatches].sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''))
   return (
     <>
-      <PageHead eyebrow="资料与变更" title="资料增量与需求"
+      <PageHead eyebrow="资料与变更" title="资料与精选支撑"
         actions={<Btn kind="primary" onClick={() => setUp(true)}><Icon name="upload" />上传资料</Btn>} />
       <div className="dual-grid">
         <Panel title={`资料批次（${batches.length}）`}>
@@ -258,8 +259,9 @@ export function IntakePage() {
           {ov.documents.length ? <><div className="thin-rule" /><div className="micro-title">全部文档（{ov.documents.length}）</div>
             {ov.documents.map(d => <div key={d.id} className="source-mini"><b>{d.name}</b><span className="tiny-caption">{DOC_KINDS[d.kind] ?? d.kind} · {d.length} 字</span></div>)}</> : null}
         </Panel>
-        <ChangeList />
+        <SupportPanel />
       </div>
+      {ov.v4.changes.length ? <details className="section-spacer"><summary>历史候选变更</summary><ChangeList /></details> : null}
       <div className="section-spacer" />
       <ReqTable />
       <UploadModal open={up} onClose={() => setUp(false)} />

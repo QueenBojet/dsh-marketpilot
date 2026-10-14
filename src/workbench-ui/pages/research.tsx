@@ -20,20 +20,26 @@ function QuestionModal({ q, open, onClose }: { q: Question | undefined; open: bo
   const [desc, setDesc] = useState('')
   const [reqs, setReqs] = useState<string[]>([])
   const [docs, setDocs] = useState<string[]>([])
+  const [alts, setAlts] = useState<string[]>([])
+  const [direction, setDirection] = useState('')
+  const [decisionUse, setDecisionUse] = useState('')
   const [key, setKey] = useState<string>()
   const k = open ? q?.id ?? 'new' : undefined
-  if (k !== key) { setKey(k); setTitle(q?.title ?? ''); setDesc(q?.description ?? ''); setReqs(q?.requirementIds ?? []); setDocs(q?.documentIds ?? []) }
+  if (k !== key) { setKey(k); setTitle(q?.title ?? ''); setDesc(q?.description ?? ''); setReqs(q?.requirementIds ?? []); setDocs(q?.documentIds ?? []); setAlts(q?.alternativeIds ?? []); setDirection(q?.direction ?? ''); setDecisionUse(q?.decisionUse ?? '') }
   const toggle = (list: string[], set: (v: string[]) => void, id: string) => set(list.includes(id) ? list.filter(x => x !== id) : [...list, id])
   const save = async () => {
-    const body = { title: title.trim(), ...desc.trim() ? { description: desc.trim() } : {}, requirementIds: reqs, documentIds: docs }
+    const body = { title: title.trim(), description: desc.trim(), requirementIds: reqs, documentIds: docs, alternativeIds: alts, direction: direction.trim(), decisionUse: decisionUse.trim() }
     const out = await act(() => q ? patch(pp(pid!, `questions/${encodeURIComponent(q.id)}`), body) : post(pp(pid!, 'questions'), body), q ? '问题已更新' : '已新增研究问题')
     if (out !== undefined) onClose()
   }
   return (
-    <Modal open={open} wide title={q ? '编辑研究问题' : '新增研究问题'} onClose={onClose} subtitle="限定资料范围后，研究只使用所选文档（不选则使用项目全部资料）。"
+    <Modal open={open} wide title={q ? '编辑研究问题' : '新增研究问题'} onClose={onClose} subtitle="每项研究聚焦一个具体方向，并说明它将支持哪项路线选择。新流程只使用已固化的本地支撑摘要。"
       actions={<><Btn kind="ghost" onClick={onClose}>取消</Btn><Btn kind="primary" disabled={!title.trim() && '请填写问题'} onClick={save}>保存</Btn></>}>
       <Field label="问题 *"><input className="text-field" value={title} onChange={e => setTitle(e.target.value)} maxLength={200} /></Field>
       <Field label="说明"><textarea className="text-field" rows={3} value={desc} onChange={e => setDesc(e.target.value)} /></Field>
+      <Field label="具体研究方向"><input className="text-field" value={direction} onChange={e => setDirection(e.target.value)} placeholder="例如：高湿工况下的检测可靠性" /></Field>
+      <Field label="对路线决策的用途"><textarea className="text-field" rows={2} value={decisionUse} onChange={e => setDecisionUse(e.target.value)} /></Field>
+      <div className="fieldcap">关联候选路线</div>{ov!.alternatives.map(a => <label className="check-row" key={a.id}><input type="checkbox" checked={alts.includes(a.id)} onChange={() => toggle(alts, setAlts, a.id)} />{a.name}</label>)}
       <div className="form-two">
         <Field label="关联需求">{ov!.requirements.filter(r => r.status !== 'superseded').map(r => (
           <label key={r.id} className="check-row"><input type="checkbox" checked={reqs.includes(r.id)} onChange={() => toggle(reqs, setReqs, r.id)} />{r.normalizedText.slice(0, 60)}</label>))}</Field>
@@ -200,6 +206,7 @@ function ReportPanel({ q, onEdit, onSave }: { q: Question; onEdit: () => void; o
   const sources = ov!.v4.sources.filter(s => s.questionId === q.id)
   const eff = mode || q.plan?.mode || 'local'
   const reason = !cap.model.available ? `模型不可用：${cap.model.reason}` : q.status === 'researching' ? '研究进行中' : q.status === 'closed' ? '问题已关闭'
+    : ov!.v4.discovery && !q.plan?.confirmedAt ? '请先制定并确认本方向研究计划'
     : !ov!.documents.length && eff === 'local' ? '项目没有资料，请先上传' : active ? '已有运行进行中' : ''
   const go = () => run('marketpilot_v4_research_run', { questionId: q.id, ...mode ? { mode } : {} }, { ok: '研究完成：报告与候选发现已生成，均需人工审核' }).then(() => {})
   const findings = ov!.v4.findings.filter(f => f.questionId === q.id)
@@ -213,7 +220,7 @@ function ReportPanel({ q, onEdit, onSave }: { q: Question; onEdit: () => void; o
           <Btn small kind="ghost" disabled={q.status === 'closed' && '已关闭'} onClick={() => act(() => patch(pp(pid!, `questions/${encodeURIComponent(q.id)}`), { status: 'closed' }), '问题已关闭').then(() => {})}>关闭问题</Btn></div>
       </div>
       <div className="research-toolbar">
-        <span className="tiny-caption">计划：{q.plan ? `${q.plan.steps.length} 步 · ${MODE[q.plan.mode]} · ${q.plan.confirmedBy ?? ''} 确认` : '未制定（将直接按问题研究本地资料）'}</span>
+        <span className="tiny-caption">计划：{q.plan ? `${q.plan.steps.length} 步 · ${MODE[q.plan.mode]} · ${q.plan.confirmedBy ?? ''} 确认` : ov!.v4.discovery ? '未制定，请先确认本方向计划' : '未制定（将直接按问题研究本地资料）'}</span>
         <Btn small kind="ghost" onClick={() => setPlan(true)}>{q.plan ? '修改计划' : '制定计划'}</Btn>
         <select className="text-field" style={{ width: 150 }} value={mode} onChange={e => setMode(e.target.value as typeof mode)} aria-label="本次研究模式">
           <option value="">按计划（{MODE[q.plan?.mode ?? 'local']}）</option>{Object.entries(MODE).map(([m, v]) => <option key={m} value={m}>{v}</option>)}</select>
@@ -225,7 +232,7 @@ function ReportPanel({ q, onEdit, onSave }: { q: Question; onEdit: () => void; o
       {q.report ? <>
         <div className="report-sub">研究报告（AI 草稿，需人工判断）<Btn small kind="text" onClick={() => onSave({ type: 'report', ...selected() ? { quote: selected() } : {} })}>选中文字保存为发现</Btn></div>
         {q.report.split(/\n{2,}/).map((para, i) => <p key={i} style={{ whiteSpace: 'pre-wrap' }}>{para}</p>)}
-      </> : <Empty>尚无报告。制定计划（可选）后点击“开始研究”。</Empty>}
+      </> : <Empty>尚无报告。{ov!.v4.discovery ? '请先制定并确认本方向研究计划，再开始研究。' : '制定计划（可选）后点击“开始研究”。'}</Empty>}
       {sources.length ? <div className="sources"><div className="micro-title">网页来源（{sources.filter(s => s.status === 'fetched').length}/{sources.length} 已获取正文）</div>
         {sources.map(s => <button key={s.id} className="source-line" onClick={() => setSrc(s.id)}>
           <Badge tone={s.status === 'fetched' ? 'teal' : 'red'}>{s.status === 'fetched' ? '已获取' : '失败'}</Badge> {s.title || s.url}</button>)}</div> : null}

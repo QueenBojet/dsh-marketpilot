@@ -1,6 +1,7 @@
 /** Shared presentational pieces: buttons with disabled reasons, badges, modal, drawer, labels. */
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 
 export const cx = (...xs: (string | false | null | undefined)[]) => xs.filter(Boolean).join(' ')
 
@@ -40,7 +41,7 @@ export function Modal(props: { open: boolean; title: string; subtitle?: ReactNod
     return () => window.removeEventListener('keydown', onKey)
   }, [props.open, props.onClose])
   if (!props.open) return null
-  return (
+  return createPortal(
     <div className="overlay open" onMouseDown={e => { if (e.target === e.currentTarget) props.onClose() }}>
       <div className={cx('modal', props.wide && 'wide')} role="dialog" aria-modal="true" aria-label={props.title}>
         <h2>{props.title}</h2>
@@ -48,7 +49,7 @@ export function Modal(props: { open: boolean; title: string; subtitle?: ReactNod
         <div className="modal-body">{props.children}</div>
         <div className="modal-actions">{props.actions ?? <Btn kind="ghost" onClick={props.onClose}>关闭</Btn>}</div>
       </div>
-    </div>
+    </div>, document.body
   )
 }
 

@@ -10,6 +10,7 @@ import { V4Base, costHash, reviewStatus, routeState, sentOnly } from './base.ts'
 import type { ReviewStatus } from './base.ts'
 import type { DecisionService } from '../decision.ts'
 import type { ServiceContext } from '../project.ts'
+import { decisionBlocker } from './discovery-context.ts'
 
 const omitRecord = { id: true, projectId: true, createdAt: true, updatedAt: true } as const
 export const configInput = configItemSchema.omit({ ...omitRecord, status: true }).extend({
@@ -176,6 +177,8 @@ export class SolutionService extends V4Base {
 export class RouteService extends V4Base {
   constructor(ctx: ServiceContext, private readonly decisions: DecisionService) { super(ctx) }
   async confirmRoute(projectId: string, input: unknown) {
+    const blocker = decisionBlocker(this.ctx.state(projectId), (input as { alternativeId?: string })?.alternativeId)
+    ensure(!blocker, 'DECISION_NOT_READY', blocker ?? '')
     const decision = await this.decisions.confirm(projectId, input, { allowSelected: true })
     await this.mutate(projectId, s => {
       s.v4.draftRoute = { alternativeId: decision.alternativeId, selectedAt: this.ctx.now(), by: decision.confirmedBy }

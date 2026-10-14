@@ -11,8 +11,10 @@ import { IntakePage } from './pages/intake.tsx'
 import { OverviewPage } from './pages/overview.tsx'
 import { ResearchPage } from './pages/research.tsx'
 import { SolutionPage } from './pages/solution.tsx'
+import { DiscoveryPage } from './pages/discovery.tsx'
 
 const WORKSPACE_PAGES: Record<string, () => ReactNode> = {
+  discovery: () => <DiscoveryPage />,
   overview: () => <OverviewPage />, change: () => <IntakePage />, research: () => <ResearchPage />,
   solution: () => <SolutionPage />, cost: () => <CostPage />, deliver: () => <DeliverPage />,
 }

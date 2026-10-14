@@ -12,7 +12,7 @@ interface Ev { at: string; title: string; note: string }
 function timeline(ov: Overview): Ev[] {
   const ev: Ev[] = []
   for (const b of ov.v4.intakeBatches) ev.push({ at: b.createdAt ?? '', title: `收到资料：${b.label}`, note: `${b.documentIds.length} 个文件 · ${b.status}` })
-  for (const r of ov.v4.runs) ev.push({ at: r.startedAt, title: `${({ chat: 'AI 对话', research: '研究运行', deep_change: '深度变更分析', section_revision: '章节修订' })[r.kind]}`, note: `${r.status} · ${r.modelRoute.provider}/${r.modelRoute.model}` })
+  for (const r of ov.v4.runs) ev.push({ at: r.startedAt, title: `${({ chat: 'AI 对话', research: '研究运行', deep_change: '深度变更分析', section_revision: '章节修订', discovery: '需求访谈', brainstorm: '路线头脑风暴', document_draft: '按模板撰写' })[r.kind]}`, note: `${r.status} · ${r.modelRoute.provider}/${r.modelRoute.model}` })
   for (const d of ov.decisions) ev.push({ at: d.confirmedAt, title: '人工确认技术路线', note: `${ov.alternatives.find(a => a.id === d.alternativeId)?.name ?? d.alternativeId} · ${d.confirmedBy}` })
   for (const b of ov.baselines) ev.push({ at: b.createdAt ?? '', title: `发布正式版本 ${b.label}`, note: `${b.type === 'full' ? '完整基线' : '技术基线'} · ${b.review.reviewer}` })
   return ev.filter(e => e.at).sort((a, b) => b.at.localeCompare(a.at)).slice(0, 8)
@@ -30,6 +30,7 @@ export function OverviewPage() {
   const reviews = Object.values(ov.cost.reviews).filter(r => r === 'valid').length
   const events = timeline(ov)
   const todo: { text: string; to: string; page: Parameters<typeof href>[0] }[] = []
+  if (ov.v4.discovery && !ov.discoveryStatus?.confirmed) todo.push({ text: '先通过对话完善需求简报并人工确认', to: '继续访谈', page: 'discovery' })
   if (pending.length) todo.push({ text: `${pending.length} 条候选变更待人工处理`, to: '去处理', page: 'change' })
   if (reqs.length - confirmed) todo.push({ text: `${reqs.length - confirmed} 条需求尚未确认`, to: '去确认', page: 'change' })
   if (!ov.route.confirmed) todo.push({ text: route ? '草稿路线与已确认决策不一致，需重新确认' : '尚未选择技术路线', to: '去决策', page: 'solution' })

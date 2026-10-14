@@ -1,0 +1,250 @@
+- complementary "主导航":
+  - generic: M
+  - generic: MarketPilot 智策
+  - generic: WORKSPACE
+  - link "工作台":
+    - /url: "#/home?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 工作台
+  - link "我的项目":
+    - /url: "#/projects?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 我的项目
+  - link "研究资料库":
+    - /url: "#/library?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 研究资料库
+  - link "运行记录":
+    - /url: "#/runs?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 运行记录
+  - generic: CURRENT PROJECT
+  - link "合成验收 冷链仓储温度监测 未填写客户 · 修订 60":
+    - /url: "#/overview?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - text: 合成验收 冷链仓储温度监测
+    - generic: 未填写客户 · 修订 60
+  - link "项目总览":
+    - /url: "#/overview?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 项目总览
+  - link "需求访谈":
+    - /url: "#/discovery?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 需求访谈
+  - link "资料与变更":
+    - /url: "#/change?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 资料与变更
+  - link "方案与决策":
+    - /url: "#/solution?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 方案与决策
+  - link "智能研究":
+    - /url: "#/research?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 智能研究
+  - link "成本与报价":
+    - /url: "#/cost?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 成本与报价
+  - link "文档与交付":
+    - /url: "#/deliver?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 文档与交付
+  - link "设置":
+    - /url: "#/settings?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 设置
+- banner:
+  - text: 合成验收 冷链仓储温度监测
+  - generic: /
+  - strong: 智能研究
+  - button "选择模型与思考强度":
+    - generic: okai2 / qwen3.8-flash
+    - generic: ⌄
+  - link "设置":
+    - /url: "#/settings?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+- main:
+  - heading "智能研究空间" [level=1]
+  - button "新增问题":
+    - text: 新增问题
+  - generic: 联网：待验证
+  - generic: DSH Web 已加载；搜索与抓取是否可用，以本次研究的实际结果为准。
+  - button "展开 AI 助手":
+    - text: 展开 AI 助手
+  - complementary:
+    - generic: 研究问题（2）
+    - button "现场无线覆盖测试（含冷库门关闭状态下的链路预算） 已有报告":
+      - text: 现场无线覆盖测试（含冷库门关闭状态下的链路预算）
+      - generic: 已有报告
+    - button "筛选具备断网缓存+HTTP webhook的记录主机并核对协议文档 已有报告" [active]:
+      - text: 筛选具备断网缓存+HTTP webhook的记录主机并核对协议文档
+      - generic: 已有报告
+    - button "新增问题":
+      - text: 新增问题
+    - generic: 知识沉淀
+    - generic: 已采纳 0 条 · 候选 24 条
+  - article:
+    - text: 研究问题 ·
+    - generic: 已有报告
+    - heading "筛选具备断网缓存+HTTP webhook的记录主机并核对协议文档" [level=2]
+    - button "编辑"
+    - button "关闭问题"
+    - generic: 计划：3 步 · 本地 + 联网 · 用户 确认
+    - button "修改计划"
+    - combobox "本次研究模式":
+      - option "按计划（本地 + 联网）" [selected]
+      - option "仅本地资料"
+      - option "仅联网"
+      - option "本地 + 联网"
+    - button "开始研究":
+      - text: 开始研究
+    - generic: DSH Web 已加载；搜索与抓取是否可用，以本次研究的实际结果为准。 联网失败时会记录原因，并明确区分本地资料与网页来源。
+    - generic: 最近运行：2026-10-14 04:32 · completed · 模型 okai2/qwen3.8-flash（本次指定）· 已获取正文 · skill:marketpilot-deep-research@5960e4d525ed 联网检索：获取正文 3 个，失败 0 个。 生成候选发现 8 条。
+    - text: 研究报告（AI 草稿，需人工判断）
+    - button "选中文字保存为发现"
+    - paragraph: "## 结论（R1-有线PT1000/PT100直连多通道记录主机）"
+    - paragraph: "**结论：架构层面自洽、无需求冲突，但本轮资料不足以判定\"可行\"。** R1 要求的一台库外主机同时承担 1 分钟采样、5 分钟连续超限判据、本地声光报警、HTTP webhook、≥24 小时断网缓存补传、30 天存储，客户侧接口与部署条件均已具备（[0]）；但 7 条资料中 6 条为研华官网首页/栏目导航页，没有任何具体记录主机型号的协议文档或规格参数，**未完成\"筛选具备断网缓存+HTTP webhook 的记录主机并核对协议文档\"这一核心任务**。"
+    - paragraph: "## 一、需求匹配性（推断，无厂商参数支撑）"
+    - paragraph: "| 需求 | R1 可承担方式 | 状态 | |---|---|---| | 4 库各 1 测点 | 4 通道 PT 输入 | 推断 | | ±0.5℃ 误差 | 传感器+通道精度分配 | 未核实 | | 1 分钟采样 | 主机定时采集 | 推断 | | 连续超限 5 分钟 | 主机内判据逻辑 | 未核实是否可配 | | 本地声光报警 | 主机继电器/蜂鸣输出 | 未核实输出类型 | | HTTP webhook | 主机 HTTP 上报 | **客户侧已确认支持**（[0]） | | 断网缓存≥24h + 补传 | 主机本地存储队列 | 未核实容量/补传语义 | | 库外主机存 30 天 | 30 天 × 4 通道 × 1 min ≈ 1.7 万点/通道 | 推断，存储量小 |"
+    - paragraph: "## 二、支持证据"
+    - paragraph: 1. **上联接口成立**：[0] 明确"值班系统支持HTTP webhook接收报警"，R1 的报警出口不需额外协议转换。 2. **部署与供电条件成立**：[0] "网关位于库外，有市电，验收使用临时局域网"——缓存、补传、本地存储全部可集中在库外单一设备，与 R1 的"库外主机"设计一致。 3. **工业品类存在性**：研华产品线列出"数据采集（DAQ）与控制""网关/远程智能终端 (RTUs)""环境感测 & 冷链管理解决方案"（[3][6]），说明厂商侧确有覆盖 PT 直连采集与冷链监测的硬件类别——但仅为**品类存在性证据**，非性能证据。
+    - paragraph: "## 三、反对证据 / 证据缺口"
+    - paragraph: "- **无协议文档**：本轮无任何主机型号的接线定义、采样周期设定范围、超限延时参数、webhook 请求体/重试/鉴权字段、缓存深度与补传顺序说明。 - **\"5 分钟连续判据\"存在配置风险**：成品记录仪的延时报警常为固定或有限档位，是否可精确设为 5 分钟未知。 - **穿墙线缆与冷凝**：PT100/PT1000 需引出至库外主机，导线阻引起误差、穿墙处结露属本方向固有风险，资料完全未涉及（与\"冷凝影响\"专项方向交叉）。 - **网页证据的适用性弱**：[1][2][4][5] 为新闻/首页，与本决策无关，仅 [3][6] 的品类列表具备弱相关性。"
+    - paragraph: "## 四、适用条件"
+    - paragraph: "- 主机需 ≥4 路 PT 输入（4 线制/3 线制均可，须确认激励方式对误差的影响）； - 主机需常电运行（[0] 满足），故缓存补传只针对\"网络断\"而非\"断电\"； - 验收在临时局域网内完成（[0]），webhook 与补传测试不依赖生产网络。"
+    - paragraph: "## 五、工业可行性判断"
+    - paragraph: "- **架构可行性：高**。单主机集中处理 4 点，逻辑与数据量都很小，无性能瓶颈；真正的风险不在算力/存储，而在**厂商固件是否开放所需判据与接口配置**。 - **产品可行性：未判定**。必须先拿到候选型号的官方规格书/协议手册，再逐条打勾。"
+    - paragraph: "## 六、试验验证建议"
+    - paragraph: 1. **恒温对比**：主机+探头整体链路接入经校准参考温度计，在 0/2/4℃ 三点静置，直接读"整体测点误差"，不设余量（对齐验收方法）。 2. **判据测试**：将阈值设 4℃ 偏下限，人为造超限，记录首次声光/webhook 的实际延迟，确认≥5 分钟且可复现。 3. **断网缓存补传**：拔网线 ≥24 小时，记录本机存储增长与恢复后回补完整率、时序是否连续（这是本路线的决定性试验）。 4. **webhook 抓包**：抓 HTTP 请求体，确认值班系统可解析、重复报警是否幂等。 5. **30 天留存**：按 1 min 采样跑满或加速验证回卷策略。
+    - paragraph: "## 七、信息缺口（需下一轮定向检索）"
+    - paragraph: "- 候选主机型号清单及其官方规格书（PT 输入通道数、精度、采样间隔范围、延时报警参数、缓存深度、存储上限）。 - webhook 协议字段文档：URL、Method、Body schema、鉴权、超时与重试次数。 - 补传语义：是否保证顺序、是否去重、缓存写满后的丢弃策略。 - 线缆长度对误差的影响预算，以及穿墙防水/冷凝处理。 - 价格与供货（未获取，不得估算）。"
+    - paragraph: "**边界声明**：本报告不构成选型决策、报价或验收结论，需经 DSH Human Gate。"
+    - generic: 网页来源（6/6 已获取正文）
+    - button "已获取 研华共创物联世界 洞见智能未来 - Advantech":
+      - generic: 已获取
+      - text: 研华共创物联世界 洞见智能未来 - Advantech
+    - button "已获取 Advantech Co-Creating the Future of the IoT World":
+      - generic: 已获取
+      - text: Advantech Co-Creating the Future of the IoT World
+    - button "已获取 研华共创物联世界 洞见智能未来 - Advantech":
+      - generic: 已获取
+      - text: 研华共创物联世界 洞见智能未来 - Advantech
+    - button "已获取 研华共创物联世界 洞见智能未来 - Advantech":
+      - generic: 已获取
+      - text: 研华共创物联世界 洞见智能未来 - Advantech
+    - button "已获取 Advantech Co-Creating the Future of the IoT World":
+      - generic: 已获取
+      - text: Advantech Co-Creating the Future of the IoT World
+    - button "已获取 研华共创物联世界 洞见智能未来 - Advantech":
+      - generic: 已获取
+      - text: 研华共创物联世界 洞见智能未来 - Advantech
+    - heading "研究发现（8）" [level=3]
+    - button "从资料摘录":
+      - text: 从资料摘录
+    - generic: 候选
+    - generic: 未核实
+    - generic: AI 提出
+    - paragraph:
+      - text: R1 路线的报警上联接口在客户侧已具备可行性前提：值班系统原生支持 HTTP webhook 接收报警
+      - generic: · 条件：仅适用于 HTTP 明文/内网 webhook 直发场景；若值班系统要求 HTTPS、鉴权头或重试确认，需主机侧额外确认（资料未给出）
+    - text: “值班系统支持HTTP webhook接收报警。”
+    - generic: synthetic-site.txt
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误"
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: AI 提出
+    - paragraph:
+      - text: 主机部署位置与供电条件（库外、有市电）符合 R1 路线设计，断网缓存与补传逻辑可集中在库外单一设备
+      - generic: · 条件：前提是四路探头线缆能引至该主机，且穿墙施工合规；主机需具备 4 路 PT100/PT1000 输入与相应激励
+    - text: “网关位于库外，有市电，验收使用临时局域网。”
+    - generic: synthetic-site.txt
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误"
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: AI 提出
+    - paragraph:
+      - text: 验收环境为临时局域网，因此 R1 的 webhook 补传验证只需在临时局域网内完成，不依赖生产网络
+      - generic: · 条件：验收期间按临时局域网前提判定，不外推到生产网络安全策略
+    - text: “验收使用临时局域网。”
+    - generic: synthetic-site.txt
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误"
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: AI 提出
+    - paragraph:
+      - text: 研华公开产品线包含 DAQ 与控制、网关/RTU、无线 I/O 与传感器等类别，说明工业厂商侧存在可覆盖 R1 直连采集的通用硬件方向（仅为品类存在性证据）
+      - generic: · 条件：前提是候选主机带 PT 输入版本与本地存储；需索取具体型号规格书确认
+    - text: “数据采集（DAQ）与控制 网关/远程智能终端 (RTUs) 无线 I/O & 传感器”
+    - generic: 研华共创物联世界 洞见智能未来 - Advantech
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误"
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: AI 提出
+    - paragraph:
+      - text: 研华官网设“环境感测 & 冷链管理解决方案”行业条目，与冷链监测场景存在厂商侧定位对应关系
+      - generic: · 条件：官网内容为营销性质的品类导航，不能作为具体型号规格、缓存时长或 webhook 能力的依据
+    - text: “环境感测 & 冷链管理解决方案”
+    - generic: 研华共创物联世界 洞见智能未来 - Advantech
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误"
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: 需复核
+    - generic: AI 提出
+    - paragraph:
+      - text: 未获取到任何具体数据记录主机型号的官方协议文档：缺少 PT100/PT1000 接线方式、采样周期设置、5 分钟连续超限判据、本地声光报警输出类型、webhook 请求格式与重试策略、24 小时缓存容量与 30 天存储上限等参数
+      - generic: · 条件：须厂商提供协议手册并实测
+    - generic: 来源：无来源
+    - generic: 复核原因：无资料依据，需人工核实
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误" [disabled]
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: 需复核
+    - generic: AI 提出
+    - paragraph:
+      - text: 本次提供的 7 条资料中 6 条为研华官网首页/栏目导航，无任何缓存补传、HTTP 接口或冷链记录主机规格的技术参数，网页抓取成功不等同产品达标
+      - generic: · 条件：需后续专项调研补齐
+    - generic: 来源：无来源
+    - generic: 复核原因：无资料依据，需人工核实
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误" [disabled]
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: 需复核
+    - generic: AI 提出
+    - paragraph:
+      - text: R1 路线在需求侧不存在硬性冲突（四路 1 分钟采样、5 分钟判据、声光报警、webhook、24 小时缓存、30 天存储均可在一台库外主机内实现），但可行性结论必须由厂商协议文档核对与实物试验确认后才能给出
+      - generic: · 条件：需人工审核后进入选型对比
+    - generic: 来源：无来源
+    - generic: 复核原因：无资料依据，需人工核实
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误" [disabled]
+    - button "标记争议"
+    - button "编辑"
+    - complementary:
+      - generic: 筛选具备断网缓存+HTTP webhook的记录主机并核对协议文档
+      - heading [level=2]: 研究计划
+      - button: ×
+      - button:
+        - text: AI 拟定草稿
+      - button [disabled]: 确认计划
+    - complementary:
+      - button: ×
+      - button [disabled]: 选中文字保存为发现
+- alert

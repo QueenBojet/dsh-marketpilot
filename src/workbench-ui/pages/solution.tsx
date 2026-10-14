@@ -1,5 +1,6 @@
 /** 方案与决策: candidate routes, draft route, human route confirmation and the structured configuration list. */
 import { useState } from 'react'
+import { ExplorationPanel } from './exploration.tsx'
 import { del, patch, post, pp, put } from '../api.ts'
 import { Icon } from '../icons.tsx'
 import { href } from '../shell.tsx'
@@ -86,8 +87,8 @@ function RouteCards({ onDecide }: { onDecide: (a: Alternative) => void }) {
       <div className="panel-heading"><div><h2>候选技术路线（{ov!.alternatives.length}）</h2><p>选择只写入工作草稿；确认需要人工记录理由。</p></div>
         <div className="actions">
           <Btn small kind="ghost" onClick={() => setAdd(true)}><Icon name="plus" />手工新增</Btn>
-          <Btn small kind="teal" onClick={() => run('marketpilot_alternative_generate', {}, { ok: '已生成候选路线，请人工比选' }).then(() => {})} showReason
-            disabled={!model.available ? `模型不可用：${model.reason}` : !confirmedReqs ? '需要至少一条已确认需求' : active ? '已有运行进行中' : ''}><Icon name="spark" />AI 生成候选</Btn>
+          {!ov!.v4.discovery ? <Btn small kind="teal" onClick={() => run('marketpilot_alternative_generate', {}, { ok: '已生成候选路线，请人工比选' }).then(() => {})} showReason
+            disabled={!model.available ? `模型不可用：${model.reason}` : !confirmedReqs ? '需要至少一条已确认需求' : active ? '已有运行进行中' : ''}><Icon name="spark" />AI 生成候选</Btn> : null}
         </div></div>
       {ov!.alternatives.length ? <div className="route-grid">{ov!.alternatives.map(a => (
         <div key={a.id} className={cx('route-card', draft === a.id && 'chosen')}>
@@ -101,7 +102,7 @@ function RouteCards({ onDecide }: { onDecide: (a: Alternative) => void }) {
           <div className="actions" style={{ marginTop: 14 }}>
             <Btn small kind={draft === a.id ? 'teal' : 'ghost'} disabled={a.status === 'rejected' ? '已否决的路线不能作为草稿' : draft === a.id ? '当前草稿已采用' : active ? '已有运行进行中' : ''} onClick={() => { void choose(a) }}>
               {draft === a.id ? '当前草稿采用' : '选为草稿路线'}</Btn>
-            {draft === a.id ? <Btn small kind="primary" disabled={active ? '已有运行进行中' : ''} onClick={() => onDecide(a)}><Icon name="shield" />{ov!.route.confirmed ? '重新确认' : '人工确认'}</Btn> : null}
+            {draft === a.id ? <Btn small kind="primary" disabled={active ? '已有运行进行中' : ov!.discoveryStatus?.decisionBlocker ?? ''} onClick={() => onDecide(a)}><Icon name="shield" />{ov!.route.confirmed ? '重新确认' : '人工确认'}</Btn> : null}
           </div>
         </div>))}</div> : <Empty>暂无候选路线。可手工新增，或在模型可用时由 AI 生成候选（仅作为比选建议）。</Empty>}
       <div className="reconcile-note" style={{ marginTop: 18 }}><Icon name="shield" /> AI 生成的路线只是建议，不能代替工程师确认；更换草稿路线会使路线确认失效，并提示重新核查成本与文档。</div>
@@ -210,6 +211,8 @@ export function SolutionPage() {
       <PageHead eyebrow="方案与决策" title="技术路线与配置"
         actions={<><a className="btn ghost" href={href('research', pid)}><Icon name="microscope" />查看研究依据</a>
           <a className="btn primary" href={href('deliver', pid)}><Icon name="check" />去发布版本</a></>} />
+      <ExplorationPanel />
+      <div className="section-spacer" />
       {mismatch ? <div className="reconcile-note"><Icon name="shield" /> 草稿路线「{draft!.name}」与已确认决策「{conf!.name}」不一致：路线确认已失效，请重新人工确认。</div> : null}
       <div className="summary-grid">
         <div className="summary-box"><div className="cap"><Icon name="layers" />当前正式版本</div><div className="val">{latest?.label ?? '未发布'}</div><div className="detail">正式版本不可修改，草稿编辑不会覆盖</div></div>
@@ -229,7 +232,7 @@ export function SolutionPage() {
               <div key={d.id} className="dtl-row"><div><strong>{ov.alternatives.find(a => a.id === d.alternativeId)?.name ?? d.alternativeId}</strong>
                 <small>{d.confirmedBy} · {fmtTime(d.confirmedAt)}</small></div>
                 {d.id === ov.route.decision?.id ? <Badge tone="teal">当前</Badge> : <Badge tone="gray">历史</Badge>}</div>))}</> : null}
-          <Btn kind="primary" disabled={!draft ? '请先选择草稿路线' : ''} onClick={() => draft && setDecide(draft)}><Icon name="shield" />{ov.route.confirmed ? '重新确认路线' : '确认本轮技术路线'}</Btn>
+          <Btn kind="primary" showReason disabled={!draft ? '请先选择草稿路线' : ov.discoveryStatus?.decisionBlocker ?? ''} onClick={() => draft && setDecide(draft)}><Icon name="shield" />{ov.route.confirmed ? '重新确认路线' : '确认本轮技术路线'}</Btn>
         </Panel>
       </div>
       <DecisionModal alt={decide} onClose={() => setDecide(undefined)} />

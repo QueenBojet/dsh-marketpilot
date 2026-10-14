@@ -88,7 +88,7 @@ export function HomePage({ mode }: { mode: 'home' | 'projects' }) {
         {!list ? <Empty>正在加载…</Empty> : shown.length ? <ProjectRows list={mode === 'home' ? shown.slice(0, 6) : shown} />
           : <Empty>{list.length ? '没有匹配的项目。' : '还没有项目。点击“新建项目”开始。'}</Empty>}
       </Panel>
-      <CreateModal open={open} onClose={() => setOpen(false)} onDone={p => { setOpen(false); void load(); go('overview', p.id) }} />
+      <CreateModal open={open} onClose={() => setOpen(false)} onDone={p => { setOpen(false); void load(); go('discovery', p.id) }} />
     </>
   )
 }

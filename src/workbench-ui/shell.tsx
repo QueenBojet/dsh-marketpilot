@@ -7,16 +7,18 @@ import { cx } from './ui.tsx'
 import { ModelPicker } from './model-picker.tsx'
 
 export const GLOBAL_PAGES = ['home', 'projects', 'library', 'runs'] as const
-export const WORKSPACES = ['overview', 'change', 'research', 'solution', 'cost', 'deliver'] as const
+export const WORKSPACES = ['overview', 'discovery', 'change', 'solution', 'research', 'cost', 'deliver'] as const
 export type PageId = typeof GLOBAL_PAGES[number] | typeof WORKSPACES[number] | 'settings'
 
 export const NAMES: Record<PageId, string> = {
   home: '工作台', projects: '我的项目', library: '研究资料库', runs: '运行记录', settings: '设置',
   overview: '项目总览', change: '资料与变更', research: '智能研究', solution: '方案与决策', cost: '成本与报价', deliver: '文档与交付',
+  discovery: '需求访谈',
 }
 const ICONS: Record<PageId, string> = {
   home: 'home', projects: 'folder', library: 'library', runs: 'clock', settings: 'settings',
   overview: 'activity', change: 'diff', research: 'microscope', solution: 'layers', cost: 'coins', deliver: 'book',
+  discovery: 'chat',
 }
 const isWorkspace = (p: string): p is typeof WORKSPACES[number] => (WORKSPACES as readonly string[]).includes(p)
 const LAST = 'marketpilot.v4.project'
@@ -24,7 +26,7 @@ const LAST = 'marketpilot.v4.project'
 export interface Route { page: PageId; pid: string | undefined }
 
 /** Bottom tab bar labels (≤760px); full names do not fit six tabs. */
-const SHORT: Record<string, string> = { overview: '总览', change: '资料', research: '研究', solution: '方案', cost: '成本', deliver: '交付' }
+const SHORT: Record<string, string> = { overview: '总览', discovery: '需求', change: '资料', research: '研究', solution: '方案', cost: '成本', deliver: '交付' }
 
 /** `#/overview?p=<projectId>` — the project id travels in the hash so every view is bookmarkable. */
 export function parseHash(hash: string): Route {
@@ -88,11 +90,11 @@ function Frame({ route, children }: { route: Route; children: ReactNode }) {
             <a className="icon-btn" href={href('settings', route.pid)} title="设置" aria-label="设置"><Icon name="settings" /></a>
           </div>
         </header>
-        <main className="workspace" id="page">{children}</main>
+        <main className="workspace" id="page">{ov?.v4.discovery && !ov.discoveryStatus?.confirmed && route.page !== 'discovery' ? <p className="boxnote">请先完成需求访谈并人工确认简报。<a href={href('discovery', pid)}>进入需求访谈 →</a></p> : null}{children}</main>
       </div>
       {pid ? (
         <nav className="mobile-tabbar" aria-label="项目工作区">
-          {(['overview', 'change', 'research', 'solution', 'cost', 'deliver'] as const).map(id => (
+          {(['discovery', 'change', 'solution', 'research', 'cost', 'deliver'] as const).map(id => (
             <a key={id} className={cx(route.page === id && 'active')} href={href(id, pid)}><Icon name={ICONS[id]} />{SHORT[id] ?? NAMES[id]}</a>
           ))}
         </nav>

@@ -62,7 +62,7 @@ export function LibraryPage() {
     </>
   )
 }
-const RUN_KIND: Record<Run['kind'], string> = { chat: 'AI 对话', research: '智能研究', deep_change: '深度变更分析', section_revision: '章节修订建议' }
+const RUN_KIND: Record<Run['kind'], string> = { chat: 'AI 对话', research: '智能研究', deep_change: '深度变更分析', section_revision: '章节修订建议', discovery: '需求访谈', brainstorm: '路线头脑风暴', document_draft: '按模板撰写' }
 const RUN_STATUS: Record<string, [string, 'blue' | 'teal' | 'red' | 'gray' | 'warn']> = {
   running: ['运行中', 'blue'], waiting_human: ['等待人工确认', 'warn'], completed: ['已完成', 'teal'], failed: ['失败', 'red'], cancelled: ['已取消', 'gray'],
 }

@@ -371,6 +371,15 @@ describe('docx.ts: defaultTemplate + inspectTemplate', () => {
 })
 
 describe('docx.ts: renderDocx', () => {
+  it('renders AI emphasis as native Word bold while preserving surrounding text and line breaks', () => {
+    const out = renderDocx(defaultTemplate(), { values: {}, sections: [{ key: 'route', title: '路线',
+      blocks: [{ kind: 'paragraph', text: '建议 **待核实 & 复测** 后采用\n下一步' }] }] })
+    const xml = dec(readZip(out).get('word/document.xml')!)
+    expect(xml).toContain('<w:rPr><w:b/></w:rPr><w:t xml:space="preserve">待核实 &amp; 复测</w:t>')
+    expect(xml).toContain(' 后采用')
+    expect(xml).toContain('<w:br/><w:t xml:space="preserve">下一步</w:t>')
+    expect(xml).not.toContain('**')
+  })
   it('exports a readable contents list without requiring Word to update fields', () => {
     const out = renderDocx(defaultTemplate(), { values: { 'doc.title': 'T', 'project.name': 'P' },
       sections: [{ key: 'requirements', title: '需求概述', blocks: [] }, { key: 'cost', title: '成本估算', blocks: [] }] })

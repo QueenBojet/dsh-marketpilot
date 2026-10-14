@@ -4,7 +4,7 @@ import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, expect, it, vi } from 'vitest'
 import { IntakePage } from '../src/workbench-ui/pages/intake.tsx'
 import { StoreProvider, useStore } from '../src/workbench-ui/store.tsx'
-import { b64, harness } from './v4-harness.ts'
+import { harness } from './v4-harness.ts'
 
 let root: Root | undefined
 let container: HTMLDivElement
@@ -16,7 +16,7 @@ function LoadedIntake() {
 }
 
 async function click(label: string) {
-  const button = [...container.querySelectorAll('button')].find(b => b.textContent?.trim() === label)
+  const button = [...document.querySelectorAll('button')].find(b => b.textContent?.trim() === label)
   expect(button, label).toBeDefined()
   await act(async () => { button!.click() })
 }
@@ -24,8 +24,9 @@ async function click(label: string) {
 async function setupPage() {
   const host = await harness()
   const pid = host.project.id
-  await host.call('POST', `projects/${pid}/v4/intake`, {
-    label: '合成需求', files: [{ name: 'test.txt', kind: 'customer_requirement', dataBase64: b64('系统应记录报警。') }],
+  // Legacy candidates remain actionable; current HTTP uploads do not create them.
+  await host.services.v4.intake.intake(pid, {
+    label: '历史合成需求', files: [{ name: 'test.txt', kind: 'customer_requirement', textContent: '系统应记录报警。' }],
   })
   vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true)
   vi.stubGlobal('fetch', vi.fn(async (url: string, init?: RequestInit) => {
@@ -42,7 +43,7 @@ async function setupPage() {
 
 async function waitForGate() {
   await act(async () => {
-    await vi.waitFor(() => expect(container.querySelector('[role="dialog"]')?.textContent).toContain('Human Gate'), { timeout: 2500 })
+    await vi.waitFor(() => expect(document.querySelector('[role="dialog"]')?.textContent).toContain('Human Gate'), { timeout: 2500 })
   })
 }
 

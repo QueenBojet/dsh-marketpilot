@@ -79,10 +79,13 @@ export async function intakeAndAdopt(call: Call, pid: string, label: string, tex
   expect(up.status, JSON.stringify(up.body)).toBe(201)
   const ov = (await call('GET', `projects/${pid}/v4/overview`)).body as Json
   const pending = (ov.v4.changes as Json[]).filter(c => c.status === 'pending' && c.batchId === up.body.batchId)
-  expect(pending.length).toBeGreaterThan(0)
-  // light hints only: every pending change was detected by rules, not by a model
-  expect(pending.every(c => c.detectedBy === 'rule')).toBe(true)
-  await run(call, pid, 'marketpilot_v4_intake_act', { input: { changeIds: pending.map(c => c.id), action: 'adopt' } })
+  expect(pending).toEqual([])
+  // HTTP upload now retains source only. Explicit human-authored requirements preserve the legacy story.
+  const existing = new Set((ov.requirements as Json[]).map(r => r.normalizedText))
+  for (const line of text.split('\n').filter(line => line.trim() && !existing.has(line))) {
+    const out = await call('POST', `projects/${pid}/v4/requirements`, { originalText: line, normalizedText: line, type: 'functional', priority: 'must', sourceDocumentId: (up.body.documentIds as string[])[0] })
+    expect(out.status).toBe(201)
+  }
   const after = (await call('GET', `projects/${pid}/v4/overview`)).body as Json
   // adopting only proposes requirements; a separate human confirmation is needed
   const reqIds = (after.requirements as Json[]).filter(r => r.status === 'proposed').map(r => r.id as string)

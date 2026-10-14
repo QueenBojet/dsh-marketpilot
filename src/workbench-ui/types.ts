@@ -1,5 +1,10 @@
 /** Loose client-side views of the V4 read model returned by `GET projects/:pid/v4/overview`. */
 import type { Execution, Selection } from './api.ts'
+import type { z } from 'zod'
+import type { discoverySchema, supportNoteSchema, explorationSchema } from '../domain/v4.ts'
+export type Discovery = z.infer<typeof discoverySchema>
+export type SupportNote = z.infer<typeof supportNoteSchema>
+export type Exploration = z.infer<typeof explorationSchema>
 
 export interface HumanReview { reviewer: string; reviewedAt: string; reason: string }
 export type Rec = { id: string; createdAt?: string; updatedAt?: string }
@@ -28,13 +33,14 @@ export interface Change extends Rec {
 }
 export interface Plan { steps: string[]; mode: 'local' | 'web' | 'both'; queries: string[]; confirmedBy?: string; confirmedAt?: string }
 export interface Question extends Rec {
+  alternativeIds?: string[]; direction?: string; decisionUse?: string
   title: string; description?: string; requirementIds: string[]; documentIds: string[]
   status: 'open' | 'researching' | 'answered' | 'needs_review' | 'closed'; plan?: Plan; report?: string; reviewReason?: string
 }
 export interface WebSource extends Rec { url: string; title: string; status: 'fetched' | 'failed'; fetchedAt?: string; error?: string; snapshot?: string; questionId?: string; contentHash?: string }
 export interface ModelRoute { provider: string; model: string; reasoningEffort?: string; source: 'override' | 'project' | 'default' | 'none' }
 export interface Run extends Rec {
-  kind: 'chat' | 'research' | 'deep_change' | 'section_revision'; mode?: string; status: 'running' | 'completed' | 'failed' | 'cancelled'
+  kind: 'chat' | 'research' | 'deep_change' | 'section_revision' | 'discovery' | 'brainstorm' | 'document_draft'; mode?: string; status: 'running' | 'completed' | 'failed' | 'cancelled'
   modelRoute: ModelRoute; webStatus: 'not_requested' | 'unavailable' | 'fetched' | 'partial' | 'failed'
   sourceIds: string[]; note?: string; error?: string; startedAt: string; completedAt?: string; questionId?: string
 }
@@ -76,16 +82,18 @@ export interface Doc extends Rec {
   sent: { review: HumanReview; recipient: string; channel: string; exportSha256: string }[]
 }
 export interface DocView { doc: Doc; hash: string; review: ReviewStatus; outdated: string[]; exported: boolean; sendBlockers: string[] }
-export interface Template extends Rec { name: string; fileName: string; placeholders: string[]; sectionSlots: string[]; warnings: string[] }
+export interface Template extends Rec { name: string; fileName: string; placeholders: string[]; sectionSlots: string[]; warnings: string[]; outline?: { key: string; title: string; guidance: string }[] }
 export interface Baseline extends Rec { number: number; label: string; type: 'technical' | 'full'; review: HumanReview; snapshotHash: string }
 export interface Capabilities {
   model: { available: boolean; mode: 'live' | 'offline' | 'unavailable'; reason: string; provider?: string; model?: string }
   research: { available: boolean; mode: 'unavailable' | 'unverified' | 'live'; reason: string }
 }
 export interface Overview {
+  discoveryStatus?: { confirmed: boolean; initialCurrent: boolean; synthesisCurrent: boolean; decisionBlocker: string | null }
   project: Project; revision: number; documents: DocumentMeta[]; requirements: Requirement[]; alternatives: Alternative[]
   decisions: Decision[]; evidence: Evidence[]
   v4: {
+    discovery?: Discovery; supportNotes?: SupportNote[]; explorations?: Exploration[]
     intakeBatches: Batch[]; changes: Change[]; questions: Question[]; runs: Run[]; sources: WebSource[]; messages: Message[]
     findings: Finding[]; configItems: ConfigItem[]; costLines: CostLine[]; costSettings?: CostSettings; templates: Template[]
     modelPreference?: Selection; costReviews: Partial<Record<CostKind, { review: HumanReview; hash: string }>>

@@ -9,6 +9,7 @@ import type { MarketPilotService } from './service.ts'
 import type { WorkbenchManager } from './workbench.ts'
 import { readJsonBody, readRawBody, sendJson } from './routes.ts'
 import { modelCatalog } from './model-catalog.ts'
+import { briefConfirmed, decisionBlocker, latestExploration } from '../services/v4/discovery-context.ts'
 
 const MAX_UPLOAD_BYTES = 16 * 1024 * 1024
 const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
@@ -86,6 +87,8 @@ function overview(input: V4RouteInput, projectId: string) {
     executions: workbench.list(projectId),
     model: { preference: v4.modelPreference ?? null, default: defaultSelection(ctx) ?? null },
     capabilities: marketpilot.capabilities(),
+    discoveryStatus: { confirmed: briefConfirmed(state), initialCurrent: !!latestExploration(state, 'initial'),
+      synthesisCurrent: !!latestExploration(state, 'synthesis'), decisionBlocker: decisionBlocker(state) ?? null },
   }
 }
 
@@ -101,7 +104,15 @@ const body = (i: V4RouteInput) => readJsonBody(i.request)
 
 on('GET', 'v4/projects', i => ({ projects: svc(i).projects.list() }))
 on('GET', 'v4/model-catalog', i => modelCatalog(i.ctx, i.parsedUrl.searchParams.get('provider') || undefined, i.parsedUrl.searchParams.get('model') || undefined))
-on('POST', 'v4/projects', async i => svc(i).projects.create(await body(i)), 201)
+on('POST', 'v4/projects', async i => {
+  const project = await svc(i).projects.create(await body(i))
+  await svc(i).v4.discovery.enable(project.id)
+  return project
+}, 201)
+on('POST', 'projects/:pid/v4/discovery', (i, [p]) => svc(i).v4.discovery.enable(p!))
+on('PUT', 'projects/:pid/v4/discovery/brief', async (i, [p]) => svc(i).v4.discovery.saveBrief(p!, await body(i)))
+on('POST', 'projects/:pid/v4/support-notes', async (i, [p]) => svc(i).v4.discovery.saveNote(p!, await body(i)), 201)
+on('PUT', 'projects/:pid/v4/support-notes/:nid', async (i, [p, n]) => svc(i).v4.discovery.saveNote(p!, await body(i), n!))
 on('GET', 'projects/:pid/v4/overview', (i, [p]) => overview(i, p!))
 on('GET', 'projects/:pid/v4/cost', (i, [p]) => svc(i).v4.solution.cost(p!))
 on('GET', 'projects/:pid/v4/route', (i, [p]) => svc(i).v4.solution.route(p!))
@@ -115,7 +126,7 @@ on('POST', 'projects/:pid/v4/intake', async (i, [p]) => {
   const raw = await readLargeJson(i.request)
   ensure(Array.isArray(raw.files) && raw.files.length > 0 && raw.files.length <= 20, 'INVALID_INPUT', '请选择 1-20 个文件。')
   const { files, ...rest } = raw
-  return svc(i).v4.intake.intake(p!, { ...rest, files: (files as unknown[]).map(decodeFile) })
+  return svc(i).v4.intake.intake(p!, { ...rest, structuredOnly: true, files: (files as unknown[]).map(decodeFile) })
 }, 201)
 on('POST', 'projects/:pid/v4/changes/act', async (i, [p]) => svc(i).v4.intake.act(p!, await body(i)))
 on('POST', 'projects/:pid/v4/requirements', async (i, [p]) => svc(i).requirements.addMany(p!, [await body(i)]), 201)

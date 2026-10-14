@@ -22,6 +22,30 @@ export type ModelRoute = z.infer<typeof modelRouteSchema>
 export const boundReviewSchema = z.strictObject({ review: reviewSchema, hash: z.string().regex(/^[a-f0-9]{64}$/) })
 export type BoundReview = z.infer<typeof boundReviewSchema>
 
+export const briefSchema = z.strictObject({
+  objective: shortText, scenario: shortText, scope: shortText, constraints: shortText,
+  acceptance: z.array(text.max(1000)).max(20), openQuestions: z.array(text.max(1000)).max(12),
+})
+export const discoverySchema = z.strictObject({
+  brief: briefSchema, review: boundReviewSchema.optional(), requirementIds: ids,
+  proposal: briefSchema.optional(),
+})
+export const supportNoteSchema = z.strictObject({
+  ...recordFields, category: z.enum(['fact', 'constraint', 'acceptance', 'interface', 'risk']),
+  title: text.max(200), content: text.max(3000), relevance: text.max(1000),
+  documentId: id.optional(), quote: shortText.optional(), locator: shortText.optional(),
+  status: z.enum(['draft', 'fixed']), review: reviewSchema.optional(),
+})
+export const explorationSchema = z.strictObject({
+  ...recordFields, phase: z.enum(['initial', 'synthesis']), inputHash: text, runId: id, routesHash: text.optional(),
+  summary: text.max(20000), questionIds: ids,
+  routes: z.array(z.strictObject({
+    alternativeId: id, industrialSupport: text.max(3000), feasibility: text.max(3000),
+    evidenceGaps: z.array(text.max(1000)).max(12), researchDirections: z.array(text.max(500)).max(8),
+    sourceAlternativeIds: ids,
+  })).min(1).max(5),
+})
+
 export const intakeBatchSchema = z.strictObject({
   ...recordFields, label: text, sourceNote: shortText.optional(), receivedOn: z.iso.date().optional(),
   documentIds: ids, manualSummary: shortText.optional(),
@@ -45,6 +69,7 @@ export const researchQuestionSchema = z.strictObject({
   ...recordFields, title: text, description: shortText.optional(),
   status: z.enum(['open', 'researching', 'answered', 'needs_review', 'closed']),
   requirementIds: ids, documentIds: ids,
+  alternativeIds: ids.optional(), direction: shortText.optional(), decisionUse: shortText.optional(),
   plan: z.strictObject({ steps: z.array(text).min(1).max(12), mode: z.enum(['local', 'web', 'both']),
     queries: z.array(text).max(6), confirmedBy: text.optional(), confirmedAt: timestamp.optional() }).optional(),
   report: z.string().max(200_000).optional(), reportRunId: id.optional(), reviewReason: shortText.optional(),
@@ -55,7 +80,7 @@ export const webSourceSchema = z.strictObject({
   snapshot: z.string().max(100_000).optional(), error: shortText.optional(),
 })
 export const researchRunSchema = z.strictObject({
-  ...recordFields, questionId: id.optional(), kind: z.enum(['chat', 'research', 'deep_change', 'section_revision']),
+  ...recordFields, questionId: id.optional(), kind: z.enum(['chat', 'research', 'deep_change', 'section_revision', 'discovery', 'brainstorm', 'document_draft']),
   mode: z.enum(['local', 'web', 'both']),
   status: z.enum(['running', 'completed', 'failed', 'cancelled']), modelRoute: modelRouteSchema,
   startedAt: timestamp, completedAt: timestamp.optional(), error: shortText.optional(),
@@ -121,6 +146,7 @@ export const docTemplateSchema = z.strictObject({
   ...recordFields, name: text, fileName: text, sha256: z.string(), byteLength: z.number().int().positive(),
   dataBase64: z.string().max(4_000_000), placeholders: z.array(z.string()), sectionSlots: z.array(z.string()),
   warnings: z.array(z.string()),
+  outline: z.array(z.strictObject({ key: text, title: text, guidance: shortText })).optional(),
 })
 export const docDraftSchema = z.strictObject({
   ...recordFields, kind: z.enum(['technical', 'cost', 'change_summary']), title: text,
@@ -136,6 +162,7 @@ export const baselineSchema = z.strictObject({
   snapshot: z.record(z.string(), z.json()),
 })
 export const v4StateSchema = z.strictObject({
+  discovery: discoverySchema.optional(), supportNotes: z.array(supportNoteSchema).optional(), explorations: z.array(explorationSchema).optional(),
   intakeBatches: z.array(intakeBatchSchema), changes: z.array(changeProposalSchema),
   questions: z.array(researchQuestionSchema), runs: z.array(researchRunSchema), sources: z.array(webSourceSchema),
   messages: z.array(chatMessageSchema), findings: z.array(findingSchema), impacts: z.array(impactLinkSchema),
@@ -167,7 +194,7 @@ export function emptyV4(): V4State {
 
 /** V4 collections that hold project records (as opposed to settings objects). */
 export const V4_COLLECTIONS = ['intakeBatches', 'changes', 'questions', 'runs', 'sources', 'messages', 'findings',
-  'impacts', 'configItems', 'costLines', 'templates', 'docs', 'baselines'] as const
+  'impacts', 'configItems', 'costLines', 'templates', 'docs', 'baselines', 'supportNotes', 'explorations'] as const
 
 /**
  * Referential integrity for V4 records. `has(kind, id)` answers V3 lookups;
@@ -175,13 +202,13 @@ export const V4_COLLECTIONS = ['intakeBatches', 'changes', 'questions', 'runs', 
  */
 export function validateV4(v4: V4State, projectId: string, has: (kind: 'documents' | 'requirements' | 'evidence' | 'alternatives' | 'decisions', id: string) => boolean,
   allIds: Set<string>, fail: (message: string) => void): void {
-  for (const name of V4_COLLECTIONS) for (const r of v4[name]) {
+  for (const name of V4_COLLECTIONS) for (const r of v4[name] ?? []) {
     if (r.projectId !== projectId) fail(`Cross-project record: ${r.id}`)
     if (allIds.has(r.id)) fail(`Duplicate record: ${r.id}`)
     allIds.add(r.id)
   }
   const own = <K extends typeof V4_COLLECTIONS[number]>(name: K, list: readonly (string | undefined)[]) => {
-    for (const x of list) if (x !== undefined && !v4[name].some(r => r.id === x)) fail(`Missing ${name} reference: ${x}`)
+    for (const x of list) if (x !== undefined && !v4[name]?.some(r => r.id === x)) fail(`Missing ${name} reference: ${x}`)
   }
   const v3 = (kind: Parameters<typeof has>[0], list: readonly (string | undefined)[]) => {
     for (const x of list) if (x !== undefined && !has(kind, x)) fail(`Missing ${kind} reference: ${x}`)
@@ -192,7 +219,16 @@ export function validateV4(v4: V4State, projectId: string, has: (kind: 'document
     own('questions', [c.resultQuestionId])
     if (c.status !== 'pending' && !c.review) fail('Handled change needs a human review')
   }
-  for (const q of v4.questions) { v3('requirements', q.requirementIds); v3('documents', q.documentIds); own('runs', [q.reportRunId]) }
+  if (v4.discovery) v3('requirements', v4.discovery.requirementIds)
+  for (const n of v4.supportNotes ?? []) {
+    v3('documents', [n.documentId])
+    if (n.status === 'fixed' && !n.review) fail('Fixed support note needs human review')
+  }
+  for (const e of v4.explorations ?? []) {
+    own('runs', [e.runId]); own('questions', e.questionIds)
+    for (const r of e.routes) v3('alternatives', [r.alternativeId, ...r.sourceAlternativeIds])
+  }
+  for (const q of v4.questions) { v3('requirements', q.requirementIds); v3('documents', q.documentIds); v3('alternatives', q.alternativeIds ?? []); own('runs', [q.reportRunId]) }
   for (const r of v4.runs) { own('questions', [r.questionId]); own('sources', r.sourceIds) }
   for (const s of v4.sources) {
     own('questions', [s.questionId])

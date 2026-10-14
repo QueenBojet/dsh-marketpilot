@@ -6,6 +6,7 @@ import { hashOf } from '../../domain/v4-text.ts'
 import { ensure } from '../../domain/common.ts'
 import type { ModelStructuredOutputAdapter } from '../../adapters/contracts.ts'
 import type { ServiceContext } from '../project.ts'
+import { decisionBlocker } from './discovery-context.ts'
 
 /** Live dependencies of one model-backed run, resolved by the harness per execution. */
 export interface RunDeps {
@@ -60,7 +61,7 @@ export class V4Base {
 export function routeState(state: ProjectState) {
   const decision = state.decisions.find(d => d.id === state.project.activeDecisionId)
   const draft = state.v4?.draftRoute?.alternativeId ?? decision?.alternativeId
-  const confirmed = decision !== undefined && draft === decision.alternativeId
+  const confirmed = decision !== undefined && draft === decision.alternativeId && !decisionBlocker(state, draft)
   return { draftAlternativeId: draft, confirmedAlternativeId: decision?.alternativeId, decision, confirmed }
 }
 
@@ -84,7 +85,7 @@ export function reviewStatus(review: BoundReview | undefined, hash: string): Rev
 
 export function truncate(value: string, max: number): string { return value.length <= max ? value : `${value.slice(0, max - 1)}…` }
 
-export type RunKind = 'chat' | 'research' | 'deep_change' | 'section_revision'
+export type RunKind = 'chat' | 'research' | 'deep_change' | 'section_revision' | 'discovery' | 'brainstorm' | 'document_draft'
 export type RunMode = 'local' | 'web' | 'both'
 
 /** Run bookkeeping shared by every model-backed V4 action; the actual route is recorded on the run. */

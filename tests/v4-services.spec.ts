@@ -1,7 +1,8 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { setup } from './helpers.ts'
 import type { ModelStructuredOutputAdapter } from '../src/adapters/contracts.ts'
 import type { RunDeps, WebLike } from '../src/services/v4/base.ts'
+import { defaultTemplate } from '../src/render/docx.ts'
 
 const route = { provider: 'test', model: 'fake-model', source: 'override' as const }
 /** Deterministic fake model: each call takes the next canned answer and validates it with the real schema. */
@@ -172,6 +173,49 @@ describe('V4 services', () => {
     expect(out.reviewed).toBe(true)
     const view = await v4.docs.markSent(id, tech, { recipient: '客户', channel: '邮件' })
     expect(view.doc.sent).toHaveLength(1)
+  })
+
+  it('blocks sending and publishing when reviewed text has outdated project inputs', async () => {
+    const { v4, id, tech, item } = await toPublishable()
+    await v4.docs.exportDocx(id, tech)
+    await v4.solution.updateConfig(id, item.id, { quantity: 7 })
+    expect(v4.docs.view(id, tech).outdated).toContain('config')
+    expect(v4.docs.view(id, tech).review).toBe('stale')
+    expect((await v4.docs.exportDocx(id, tech)).reviewed).toBe(false)
+    await expect(v4.docs.markSent(id, tech, { recipient: '合成客户', channel: '测试' })).rejects.toMatchObject({ code: 'REVIEW_BLOCKED' })
+    await expect(v4.baselines.publish(id, { type: 'technical' })).rejects.toMatchObject({ code: 'PUBLISH_BLOCKED' })
+  })
+
+  it('writes template sections only as reviewable proposals and rejects incomplete model coverage', async () => {
+    const { v4, id } = await toPublishable()
+    const tpl = await v4.docs.uploadTemplate(id, { name: '合成模板', fileName: 'template.docx', dataBase64: Buffer.from(defaultTemplate()).toString('base64') })
+    const { doc } = await v4.docs.create(id, { kind: 'technical', templateId: tpl.id })
+    const sections = doc.sections.map(s => ({ key: s.key, content: `按模板撰写的${s.title}` }))
+    await expect(v4.docs.draftFromTemplate(id, doc.id, deps([{ sections: sections.slice(1) }]))).rejects.toMatchObject({ code: 'TEMPLATE_COVERAGE' })
+    await v4.docs.draftFromTemplate(id, doc.id, deps([{ sections }]))
+    const pending = v4.docs.view(id, doc.id)
+    expect(pending.doc.sections.every((s, i) => s.content === doc.sections[i]!.content && s.proposal?.content === sections[i]!.content)).toBe(true)
+    await expect(v4.docs.review(id, doc.id)).rejects.toMatchObject({ code: 'REVIEW_BLOCKED' })
+    await v4.docs.decideProposals(id, doc.id, { keys: sections.map(s => s.key), accept: true })
+    expect((await v4.docs.review(id, doc.id)).review).toBe('valid')
+    const q = await v4.research.addQuestion(id, { title: '新增研究依据' })
+    await v4.research.updateQuestion(id, q.id, { report: '新的报告结论', status: 'answered' })
+    expect(v4.docs.view(id, doc.id).outdated).toHaveLength(doc.sections.length)
+  })
+
+  it('rejects template output if upstream facts change during generation, including generic slots', async () => {
+    const { v4, id, item } = await toPublishable()
+    const tpl = await v4.docs.uploadTemplate(id, { name: '通用模板', fileName: 'template.docx', dataBase64: Buffer.from(defaultTemplate()).toString('base64') })
+    const { doc } = await v4.docs.create(id, { kind: 'technical', templateId: tpl.id })
+    let release!: (value: unknown) => void
+    const pending = vi.fn(() => new Promise<unknown>(resolve => { release = resolve }))
+    const run = v4.docs.draftFromTemplate(id, doc.id, { ...deps([]), model: { async generate({ schema }) { return schema.parse(await pending()) } } })
+    const rejected = expect(run).rejects.toMatchObject({ code: 'STALE_CONTEXT' })
+    await vi.waitFor(() => expect(pending).toHaveBeenCalledOnce())
+    await v4.solution.updateConfig(id, item.id, { quantity: 8 })
+    release({ sections: doc.sections.map(s => ({ key: s.key, content: '过时正文' })) })
+    await rejected
+    expect(v4.docs.view(id, doc.id).doc.sections.every(s => !s.proposal)).toBe(true)
   })
 
   it('blocks publishing until gates pass and keeps the technical baseline free of cost', async () => {

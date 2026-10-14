@@ -1,0 +1,175 @@
+- complementary "主导航":
+  - generic: M
+  - generic: MarketPilot 智策
+  - generic: WORKSPACE
+  - link "工作台":
+    - /url: "#/home?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 工作台
+  - link "我的项目":
+    - /url: "#/projects?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 我的项目
+  - link "研究资料库":
+    - /url: "#/library?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 研究资料库
+  - link "运行记录":
+    - /url: "#/runs?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 运行记录
+  - generic: CURRENT PROJECT
+  - link "合成验收 冷链仓储温度监测 未填写客户 · 修订 60":
+    - /url: "#/overview?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - text: 合成验收 冷链仓储温度监测
+    - generic: 未填写客户 · 修订 60
+  - link "项目总览":
+    - /url: "#/overview?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 项目总览
+  - link "需求访谈":
+    - /url: "#/discovery?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 需求访谈
+  - link "资料与变更" [active]:
+    - /url: "#/change?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 资料与变更
+  - link "方案与决策":
+    - /url: "#/solution?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 方案与决策
+  - link "智能研究":
+    - /url: "#/research?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 智能研究
+  - link "成本与报价":
+    - /url: "#/cost?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 成本与报价
+  - link "文档与交付":
+    - /url: "#/deliver?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 文档与交付
+  - link "设置":
+    - /url: "#/settings?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 设置
+- banner:
+  - text: 合成验收 冷链仓储温度监测
+  - generic: /
+  - strong: 资料与变更
+  - button "选择模型与思考强度":
+    - generic: okai2 / qwen3.8-flash
+    - generic: ⌄
+  - link "设置":
+    - /url: "#/settings?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+- main:
+  - heading "资料与精选支撑" [level=1]
+  - button "上传资料":
+    - text: 上传资料
+  - heading "资料批次（1）" [level=2]
+  - heading "合成现场资料 已接收" [level=3]:
+    - text: 合成现场资料
+    - generic: 已接收
+  - paragraph: 1 个文件 · 2026-10-14 03:59 · 来源：test_data 产品验收材料
+  - generic: · 原文已接收。请精选与目标、约束、验收、接口或风险相关的摘要，经人工固化后作为后续支撑。
+  - generic: 全部文档（1）
+  - generic: synthetic-site.txt
+  - generic: 客户需求 · 104 字
+  - heading "精选支撑摘要" [level=2]
+  - button "新增结构化摘要"
+  - paragraph: 只保留会影响需求、路线或交付的必要信息：内容、适用范围/用途和原文依据。草稿经人工固化后才用于后续 AI 工作。
+  - generic: 已固化
+  - text: 必要事实
+  - heading "值班系统报警接口" [level=3]
+  - paragraph: 值班系统支持 HTTP webhook 接收报警；网关在库外，有市电。
+  - paragraph: 用途：用于比较网关集成方案和断网恢复策略。
+  - generic: synthetic-site.txt 合成资料第3–4行
+  - button "编辑摘要"
+  - button "人工固化" [disabled]
+  - heading "需求（7/7 已确认）" [level=2]
+  - checkbox "显示已替代"
+  - text: 显示已替代
+  - button "新增":
+    - text: 新增
+  - button "人工确认所选（0）" [disabled]:
+    - text: 人工确认所选（0）
+  - table:
+    - rowgroup:
+      - row "全选待确认 需求 类型 优先级 来源 状态":
+        - columnheader "全选待确认":
+          - checkbox "全选待确认"
+        - columnheader "需求"
+        - columnheader "类型"
+        - columnheader "优先级"
+        - columnheader "来源"
+        - columnheader "状态"
+        - columnheader
+    - rowgroup:
+      - row "选择 四个0~4℃冷藏库各1个测点，整体测点误差满足±0.5℃ 功能 必须 手工录入 · 人工确认需求简报 已确认 编辑":
+        - cell "选择":
+          - checkbox "选择"
+        - cell "四个0~4℃冷藏库各1个测点，整体测点误差满足±0.5℃"
+        - cell "功能"
+        - cell "必须"
+        - cell "手工录入 · 人工确认需求简报"
+        - cell "已确认":
+          - generic: 已确认
+        - cell "编辑":
+          - button "编辑"
+      - row "选择 每分钟采样一次 功能 必须 手工录入 · 人工确认需求简报 已确认 编辑":
+        - cell "选择":
+          - checkbox "选择"
+        - cell "每分钟采样一次"
+        - cell "功能"
+        - cell "必须"
+        - cell "手工录入 · 人工确认需求简报"
+        - cell "已确认":
+          - generic: 已确认
+        - cell "编辑":
+          - button "编辑"
+      - row "选择 连续超限5分钟后触发本地声光报警并经HTTP webhook通知值班系统 功能 必须 手工录入 · 人工确认需求简报 已确认 编辑":
+        - cell "选择":
+          - checkbox "选择"
+        - cell "连续超限5分钟后触发本地声光报警并经HTTP webhook通知值班系统"
+        - cell "功能"
+        - cell "必须"
+        - cell "手工录入 · 人工确认需求简报"
+        - cell "已确认":
+          - generic: 已确认
+        - cell "编辑":
+          - button "编辑"
+      - row "选择 断网时本地缓存不少于24小时，网络恢复后补传数据 功能 必须 手工录入 · 人工确认需求简报 已确认 编辑":
+        - cell "选择":
+          - checkbox "选择"
+        - cell "断网时本地缓存不少于24小时，网络恢复后补传数据"
+        - cell "功能"
+        - cell "必须"
+        - cell "手工录入 · 人工确认需求简报"
+        - cell "已确认":
+          - generic: 已确认
+        - cell "编辑":
+          - button "编辑"
+      - row "选择 温度数据保存于库外本地主机，记录保留30天 功能 必须 手工录入 · 人工确认需求简报 已确认 编辑":
+        - cell "选择":
+          - checkbox "选择"
+        - cell "温度数据保存于库外本地主机，记录保留30天"
+        - cell "功能"
+        - cell "必须"
+        - cell "手工录入 · 人工确认需求简报"
+        - cell "已确认":
+          - generic: 已确认
+        - cell "编辑":
+          - button "编辑"
+      - row "选择 不需要手机端查看 功能 必须 手工录入 · 人工确认需求简报 已确认 编辑":
+        - cell "选择":
+          - checkbox "选择"
+        - cell "不需要手机端查看"
+        - cell "功能"
+        - cell "必须"
+        - cell "手工录入 · 人工确认需求简报"
+        - cell "已确认":
+          - generic: 已确认
+        - cell "编辑":
+          - button "编辑"
+      - row "选择 验收方法：以经校准参考温度计做恒温对比测试（允差即±0.5℃，不另设余量）+ 断网缓存补传测试 功能 必须 手工录入 · 人工确认需求简报 已确认 编辑":
+        - cell "选择":
+          - checkbox "选择"
+        - cell "验收方法：以经校准参考温度计做恒温对比测试（允差即±0.5℃，不另设余量）+ 断网缓存补传测试"
+        - cell "功能"
+        - cell "必须"
+        - cell "手工录入 · 人工确认需求简报"
+        - cell "已确认":
+          - generic: 已确认
+        - cell "编辑":
+          - button "编辑"
+- alert

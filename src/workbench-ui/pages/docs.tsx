@@ -12,17 +12,22 @@ const BASE_TYPE: Record<Baseline['type'], [string, string]> = {
   full: ['完整方案包（含成本）', '在技术基线基础上冻结成本明细与三项成本审核、成本文档。'],
 }
 
+function inlineText(text: string) {
+  return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
+    part.startsWith('**') && part.endsWith('**') && part.length > 4 ? <strong key={i}>{part.slice(2, -2)}</strong> : part)
+}
+
 /** Render section content into paper blocks as React elements (headings, bullets, notes, tables, paragraphs). */
 function Blocks({ content }: { content: string }) {
   const out: ReactNode[] = []
   let list: string[] = []
   let table: string[][] = []
   const flush = () => {
-    if (list.length) { out.push(<ul key={`l${out.length}`}>{list.map((x, i) => <li key={i}>{x}</li>)}</ul>); list = [] }
+    if (list.length) { out.push(<ul key={`l${out.length}`}>{list.map((x, i) => <li key={i}>{inlineText(x)}</li>)}</ul>); list = [] }
     if (table.length) {
       const [head, ...rows] = table
-      out.push(<table key={`t${out.length}`} className="paper-table"><thead><tr>{head!.map((c, i) => <th key={i}>{c}</th>)}</tr></thead>
-        <tbody>{rows.map((r, i) => <tr key={i}>{r.map((c, j) => <td key={j}>{c}</td>)}</tr>)}</tbody></table>)
+      out.push(<table key={`t${out.length}`} className="paper-table"><thead><tr>{head!.map((c, i) => <th key={i}>{inlineText(c)}</th>)}</tr></thead>
+        <tbody>{rows.map((r, i) => <tr key={i}>{r.map((c, j) => <td key={j}>{inlineText(c)}</td>)}</tr>)}</tbody></table>)
       table = []
     }
   }
@@ -37,10 +42,10 @@ function Blocks({ content }: { content: string }) {
     if (/^[-*] /.test(line)) { if (table.length) { const l = list; list = []; flush(); list = l } list.push(line.slice(2)); continue }
     flush()
     if (!line) continue
-    if (line.startsWith('### ')) out.push(<h4 key={out.length}>{line.slice(4)}</h4>)
-    else if (line.startsWith('## ')) out.push(<h4 key={out.length}>{line.slice(3)}</h4>)
-    else if (line.startsWith('> ')) out.push(<div key={out.length} className="boxnote">{line.slice(2)}</div>)
-    else out.push(<p key={out.length}>{line}</p>)
+    if (line.startsWith('### ')) out.push(<h4 key={out.length}>{inlineText(line.slice(4))}</h4>)
+    else if (line.startsWith('## ')) out.push(<h4 key={out.length}>{inlineText(line.slice(3))}</h4>)
+    else if (line.startsWith('> ')) out.push(<div key={out.length} className="boxnote">{inlineText(line.slice(2))}</div>)
+    else out.push(<p key={out.length}>{inlineText(line)}</p>)
   }
   flush()
   return <>{out}</>
@@ -57,7 +62,7 @@ function CreateModal({ open, onClose, onCreated }: { open: boolean; onClose: () 
     if (out !== undefined) { onCreated(out.doc.id); setTitle(''); onClose() }
   }
   return (
-    <Modal open={open} title="新建文档" subtitle="章节由当前需求、路线、配置、研究结论与成本确定性生成；之后可逐节编辑或请 AI 提出修改建议。" onClose={onClose}
+    <Modal open={open} title="新建文档" subtitle="先选择上传的 Word 模板建立章节，再点击“按模板撰写”生成待审正文。默认模板可直接使用项目数据。" onClose={onClose}
       actions={<><Btn kind="ghost" onClick={onClose}>取消</Btn><Btn kind="primary" onClick={submit}>创建</Btn></>}>
       <Field label="文档类型"><select className="option-select" value={kind} onChange={e => setKind(e.target.value as typeof kind)}>
         {Object.entries(DOC_KIND).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></Field>
@@ -85,8 +90,11 @@ function SectionDrawer({ dv, sec, onClose }: { dv: DocView; sec: Section | undef
     await run('marketpilot_v4_doc_revise_section', { docId: dv.doc.id, input: { key: sec!.key, instruction: ask.trim() } },
       { ok: 'AI 已提出修改建议；请在正文中逐节接受或拒绝' })
   }
-  const decide = (accept: boolean) => act(() => post(pp(pid!, `${base}/proposals`), { keys: [sec!.key], accept }),
-    accept ? '已接受建议并写入章节' : '已拒绝建议').then(() => {})
+  const decide = async (accept: boolean) => {
+    const out = await act(() => post(pp(pid!, `${base}/proposals`), { keys: [sec!.key], accept }),
+      accept ? '已接受建议并写入章节' : '已拒绝建议')
+    if (out !== undefined) onClose()
+  }
   return (
     <Drawer open={Boolean(sec)} title={sec?.title ?? ''} cap={sec?.editedByHuman ? '已人工编辑' : '系统生成内容'} onClose={onClose}
       footer={<><Btn kind="ghost" onClick={onClose}>取消</Btn><Btn kind="primary" disabled={text === sec?.content ? '内容未变化' : ''} onClick={save}>保存章节</Btn></>}>
@@ -174,14 +182,15 @@ function TemplatePanel() {
       <div className="dtl-row"><div><strong>默认模板</strong><small>系统内置 A4 版式；未选择模板的文档使用此模板。</small></div><Badge tone="teal">内置</Badge></div>
       {tpls.map(t => (
         <div key={t.id} className="dtl-row"><div><strong>{t.name}</strong>
-          <small>{t.fileName} · 占位符 {t.placeholders.length} · 章节槽位 {t.sectionSlots.length}</small>
+          <small>{t.fileName} · 已识别章节 {t.outline?.length ?? t.sectionSlots.length}</small>
+          {t.outline?.length ? <small>{t.outline.map(s => s.title).join(' → ')}</small> : null}
           {t.warnings.map(w => <div key={w} className="tiny-caption">⚠ {w}</div>)}</div>
           {drop === t.id ? <><button type="button" className="mini-action" onClick={() => { void remove(t.id) }}>确认删除</button>
             <button type="button" className="mini-action" onClick={() => setDrop(undefined)}>取消</button></>
             : <button type="button" className="mini-action" onClick={() => setDrop(t.id)}>删除</button>}
         </div>))}
       <div className="thin-rule" />
-      <div className="tiny-caption">上传公司 .docx 模板：可使用 {'{{project.name}}'}、{'{{doc.title}}'} 等占位符，及 {'{{sections}}'} 或 {'{{section:KEY}}'} 章节槽位；未提供槽位时章节追加在正文末尾。</div>
+      <div className="tiny-caption">上传公司 .docx 模板：用 Word“标题 1–3”定义章节，标题下可填写写作要求。系统按这些章节撰写并保留模板页眉页脚。也支持 {'{{sections}}'} 或 {'{{section:KEY}}'} 插槽。</div>
       <div className="form-two">
         <Field label="模板名称"><input className="text-field" value={name} onChange={e => setName(e.target.value)} placeholder="留空使用文件名" /></Field>
         <Field label="文件"><input type="file" accept=".docx" onChange={e => setFile(e.target.files?.[0])} /></Field>
@@ -296,7 +305,7 @@ function BaselinePanel({ onPublish }: { onPublish: () => void }) {
   )
 }
 export function DeliverPage() {
-  const { ov, pid, act, toast, refresh, active } = useStore()
+  const { ov, pid, act, run, toast, refresh, active } = useStore()
   const [sel, setSel] = useState<string>()
   const [create, setCreate] = useState(false)
   const [editKey, setEditKey] = useState<string>()
@@ -343,9 +352,10 @@ export function DeliverPage() {
         {dv ? <div>
           <div className="actions" style={{ marginBottom: 12, flexWrap: 'wrap' }}>
             <Badge tone={rt as 'teal' | 'red' | 'gray'}>{rl}</Badge>
-            <Badge tone={currentExports.length ? 'teal' : 'gray'}>{currentExports.length ? '当前版本已导出' : dv.exported ? '导出已过期' : '未导出'}</Badge>
+            <Badge tone={dv.outdated.length && currentExports.length ? 'warn' : currentExports.length ? 'teal' : 'gray'}>{currentExports.length ? dv.outdated.length ? '已导出 · 依据已变化' : '当前版本已导出' : dv.doc.exports.length ? '导出已过期' : '未导出'}</Badge>
             <Badge tone={sentNow.length ? 'teal' : 'gray'}>{sentNow.length ? `已对外发送 ${sentNow.length} 次` : '未对外发送'}</Badge>
             <span className="grow" />
+            <Btn small kind="teal" showReason disabled={active ? '已有运行进行中' : !dv.doc.templateId ? '请先选择上传的 Word 模板' : !ov.route.confirmed ? '请先确认最终路线' : ''} onClick={() => run('marketpilot_v4_doc_draft_template', { docId: dv.doc.id }, { ok: '模板正文建议已生成，请逐节审阅采纳' }).then(() => {})}>按模板撰写</Btn>
             <select className="option-select" aria-label="DOCX 模板" value={dv.doc.templateId ?? ''} onChange={e => { void setTpl(e.target.value) }}>
               <option value="">默认模板</option>{ov.v4.templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}</select>
             {dv.outdated.length ? <Btn small kind="teal" onClick={sync}><Icon name="refresh" />同步项目数据（{dv.outdated.length}）</Btn> : null}

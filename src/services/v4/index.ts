@@ -6,10 +6,12 @@ import { ResearchV4Service } from './research.ts'
 import { RouteService, SolutionService } from './solution.ts'
 import { DocsService } from './docs.ts'
 import { BaselineService } from './baseline.ts'
+import { DiscoveryService } from './discovery.ts'
 
 export function createV4Services(ctx: ServiceContext, decisions: DecisionService) {
   const intake = new IntakeService(ctx)
   return {
+    discovery: new DiscoveryService(ctx),
     intake, research: new ResearchV4Service(ctx), solution: new SolutionService(ctx), route: new RouteService(ctx, decisions),
     docs: new DocsService(ctx), baselines: new BaselineService(ctx),
     /** Settle runs interrupted by a restart, across every project. Returns the number of settled runs. */

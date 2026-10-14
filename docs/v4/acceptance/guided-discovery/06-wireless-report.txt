@@ -1,0 +1,360 @@
+- complementary "主导航":
+  - generic: M
+  - generic: MarketPilot 智策
+  - generic: WORKSPACE
+  - link "工作台":
+    - /url: "#/home?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 工作台
+  - link "我的项目":
+    - /url: "#/projects?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 我的项目
+  - link "研究资料库":
+    - /url: "#/library?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 研究资料库
+  - link "运行记录":
+    - /url: "#/runs?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 运行记录
+  - generic: CURRENT PROJECT
+  - link "合成验收 冷链仓储温度监测 未填写客户 · 修订 60":
+    - /url: "#/overview?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - text: 合成验收 冷链仓储温度监测
+    - generic: 未填写客户 · 修订 60
+  - link "项目总览":
+    - /url: "#/overview?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 项目总览
+  - link "需求访谈":
+    - /url: "#/discovery?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 需求访谈
+  - link "资料与变更":
+    - /url: "#/change?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 资料与变更
+  - link "方案与决策":
+    - /url: "#/solution?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 方案与决策
+  - link "智能研究" [active]:
+    - /url: "#/research?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 智能研究
+  - link "成本与报价":
+    - /url: "#/cost?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 成本与报价
+  - link "文档与交付":
+    - /url: "#/deliver?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 文档与交付
+  - link "设置":
+    - /url: "#/settings?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 设置
+- banner:
+  - text: 合成验收 冷链仓储温度监测
+  - generic: /
+  - strong: 智能研究
+  - button "选择模型与思考强度":
+    - generic: okai2 / qwen3.8-flash
+    - generic: ⌄
+  - link "设置":
+    - /url: "#/settings?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+- main:
+  - heading "智能研究空间" [level=1]
+  - button "新增问题":
+    - text: 新增问题
+  - generic: 联网：待验证
+  - generic: DSH Web 已加载；搜索与抓取是否可用，以本次研究的实际结果为准。
+  - button "展开 AI 助手":
+    - text: 展开 AI 助手
+  - complementary:
+    - generic: 研究问题（2）
+    - button "现场无线覆盖测试（含冷库门关闭状态下的链路预算） 已有报告":
+      - text: 现场无线覆盖测试（含冷库门关闭状态下的链路预算）
+      - generic: 已有报告
+    - button "筛选具备断网缓存+HTTP webhook的记录主机并核对协议文档 已有报告":
+      - text: 筛选具备断网缓存+HTTP webhook的记录主机并核对协议文档
+      - generic: 已有报告
+    - button "新增问题":
+      - text: 新增问题
+    - generic: 知识沉淀
+    - generic: 已采纳 0 条 · 候选 24 条
+  - article:
+    - text: 研究问题 ·
+    - generic: 已有报告
+    - heading "现场无线覆盖测试（含冷库门关闭状态下的链路预算）" [level=2]
+    - generic: 需复核：研究计划已更新，请重新执行。
+    - button "编辑"
+    - button "关闭问题"
+    - generic: 计划：3 步 · 本地 + 联网 · 用户 确认
+    - button "修改计划"
+    - combobox "本次研究模式":
+      - option "按计划（本地 + 联网）" [selected]
+      - option "仅本地资料"
+      - option "仅联网"
+      - option "本地 + 联网"
+    - button "开始研究":
+      - text: 开始研究
+    - generic: DSH Web 已加载；搜索与抓取是否可用，以本次研究的实际结果为准。 联网失败时会记录原因，并明确区分本地资料与网页来源。
+    - generic: 最近运行：2026-10-14 04:25 · completed · 模型 okai2/qwen3.8-flash（本次指定）· 部分获取 · skill:marketpilot-deep-research@5960e4d525ed 联网检索：获取正文 3 个，失败 3 个。 生成候选发现 8 条，其中 2 条引用无法定位。
+    - text: 研究报告（AI 草稿，需人工判断）
+    - button "选中文字保存为发现"
+    - paragraph: "# 现场无线覆盖测试（含冷库门关闭状态下的链路预算）——R2 路线专项研究"
+    - paragraph: "## 0. 结论摘要（必须先读）"
+    - paragraph: "**本次联网检索实质失败。** 提供的 5 条编号资料中，仅资料[0]（内部合成文档）与本议题相关；资料[1][2]为英语词典\"industrial\"词条，资料[5]讲的是大模型微调用的 LoRA（Low-Rank Adaptation）而非 LoRa 无线技术，资料[3][4]为维萨拉企业官网首页（仅泛泛提到\"温湿度、露点\"产品线与\"严苛环境\"）。**没有任何一条资料给出冷库关门状态下的无线链路预算、穿透损耗实测值、丢包率或电池低温性能数据。**"
+    - paragraph: 因此：
+    - paragraph: "- **无法基于现有证据判定 R2 路线可行或不可行。** 任何倾向性结论都缺乏依据。 - 可以确认的只有 R2 的**接口侧前提成立**：库外网关有市电、可向值班系统发 HTTP webhook，这与需求一致（资料[0]）。 - 决策问题「R2 是否可行」在当前证据下状态为 **待现场实测 + 待补充一手资料**，须走 DSH Human Gate。"
+    - paragraph: "## 1. 已知事实（有编号资料支撑）"
+    - paragraph: "| 事实 | 来源 | 适用条件 | |---|---|---| | 值班系统支持 HTTP webhook 接收报警 | [0] | 合成验收项目现场网络条件 | | 网关位于库外、有市电，验收使用临时局域网 | [0] | 验收环境为临时局域网，非生产网 |"
+    - paragraph: 这两条支持 R2 的"库外网关集中接收 + 外发告警"架构在**供电与上行接口**上是自洽的：网关无需电池续航，断网缓存与30天存储可由网关承担（需求中"断电续航"已明确不在范围内，故电池仅用于库内传感器）。
+    - paragraph: "## 2. 反对/风险证据"
+    - paragraph: "**在现有资料中找不到一条针对 R2 的反对证据。** 这不是因为 R2 没有风险，而是因为检索未命中相关资料。已知的风险点只能作为**待验证问题**列出，不构成证据："
+    - paragraph: "- 金属库体/保温层在门关闭状态下的衰减量未知 - 每分钟一次采样 + 连续5分钟超限判据，对丢包/延迟的容忍窗口有多宽，未做量化 - 电池供电传感器在 0~4℃ 环境下的容量衰减与上报占空比，未见资料"
+    - paragraph: "## 3. 工业可行性"
+    - paragraph: 无法评估。缺少厂商规格书（频段、发射功率、灵敏度、天线增益、电池低温曲线）与现场几何参数（库门位置、网关距离、墙体结构）。
+    - paragraph: "## 4. 建议的试验验证方案（仅为方案，未实测）"
+    - paragraph: 1. **链路预算基线**：向拟选厂商索取 LoRa（频段/功率/灵敏度）与 NB-IoT（发射功率/典型上行灵敏度/覆盖增强需求）的官方规格书，计算最差情况余量。 2. **关门态 RSSI/SNR 实测**：四库各选 1 个测点位置，在**库门全关**状态下，连续 ≥24 小时以每分钟一条记录实测 RSSI/SNR 与丢包率；库门开启态做对照。这是本议题的核心试验。 3. **报警链路端到端测试**：人为制造超限5分钟，测量从库内传感器采样到 webhook 到达值班系统的全链路时延与是否漏报（丢包是否导致误判为"未连续超限"）。 4. **缓存补传测试**：断开临时局域网 ≥24 小时，恢复后校验数据完整性与顺序；电池侧需同步记录在此期间的发送次数，估算续航。 5. **冷凝/密封检查**：观察库内挂壁安装点是否结露，评估外壳密封与天线罩影响。
+    - paragraph: "## 5. 信息缺口（必须补齐）"
+    - paragraph: "- 拟选 LoRa/NB-IoT 模块的厂商规格书（频段、发射功率、接收灵敏度、天线形式） - 四库的实际几何：库体材料（PU保温夹芯板？）、库门数量与位置、网关到各库测点的直线距离与穿墙次数 - 现场电磁背景：附近是否有高频设备或工业干扰源 - 传感器电池在 0~4℃ 下的可用容量与预期更换周期（需求未承诺断电/续航，但影响维护成本） - 是否允许合规小孔穿墙安装天线引出点（约束中\"允许合规小孔穿墙\"，需确认是否可作为链路改善手段）"
+    - paragraph: "## 6. 下一步检索建议（重跑，需命中一手来源）"
+    - paragraph: "- 检索词应包含具体技术标识：LoRaWAN CN470/EU868 灵敏度、冷冻库 penetration loss、冷库 无线温度计 现场测试报告、NB-IoT 室内覆盖增强 - 优先来源：LoRa Alliance/Semtech 技术文档、运营商 NB-IoT 覆盖说明、厂商工业冷库监测产品数据手册（而非企业官网首页） - 排除噪音：将\"LoRa\"与\"Low-Rank Adaptation\"消歧"
+    - paragraph: "## 7. 声明"
+    - paragraph: 本报告仅基于编号资料[0]–[5]撰写。资料[1][2][5]与议题无关，资料[3][4]不含可验证技术参数。**本报告不构成现场实测结论，不替代技术路线决策与正式发布**，后者仍须经 DSH Human Gate。
+    - generic: 网页来源（5/9 已获取正文）
+    - button "失败 industrial（英语单词）_百度百科":
+      - generic: 失败
+      - text: industrial（英语单词）_百度百科
+    - button "已获取 industrial是什么意思_industrial的翻译_音标_读音_用法_例句 ...":
+      - generic: 已获取
+      - text: industrial是什么意思_industrial的翻译_音标_读音_用法_例句 ...
+    - button "已获取 INDUSTRIAL中文 (简体)翻译：剑桥词典 - Cambridge Dictionary":
+      - generic: 已获取
+      - text: INDUSTRIAL中文 (简体)翻译：剑桥词典 - Cambridge Dictionary
+    - button "已获取 维萨拉是环境和工业测量领域设备生产厂商 | 维萨拉 (Vaisala)":
+      - generic: 已获取
+      - text: 维萨拉是环境和工业测量领域设备生产厂商 | 维萨拉 (Vaisala)
+    - button "已获取 Vaisala - a global leader in measurement instruments & intelligence":
+      - generic: 已获取
+      - text: Vaisala - a global leader in measurement instruments & intelligence
+    - button "失败 维萨拉_百度百科":
+      - generic: 失败
+      - text: 维萨拉_百度百科
+    - button "失败 LORA微调系列 (一)：LORA和它的基本原理 - 知乎":
+      - generic: 失败
+      - text: LORA微调系列 (一)：LORA和它的基本原理 - 知乎
+    - button "失败 什么是LoRA模型，如何使用和训练LoRA模型？你想要的都 ...":
+      - generic: 失败
+      - text: 什么是LoRA模型，如何使用和训练LoRA模型？你想要的都 ...
+    - button "已获取 一文吃透 LORA：从原理到应用，大模型轻量微调技术全 ...":
+      - generic: 已获取
+      - text: 一文吃透 LORA：从原理到应用，大模型轻量微调技术全 ...
+    - heading "研究发现（16）" [level=3]
+    - button "从资料摘录":
+      - text: 从资料摘录
+    - generic: 候选
+    - generic: 未核实
+    - generic: AI 提出
+    - paragraph: 网关位于库外、有市电，且值班系统支持 HTTP webhook，可作为无线覆盖测试与告警链路的落点。
+    - text: “值班系统支持HTTP webhook接收报警。 网关位于库外，有市电，验收使用临时局域网。”
+    - generic: synthetic-site.txt
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误"
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: 需复核
+    - generic: AI 提出
+    - paragraph: 本次联网检索返回的两条资料均为英语单词 industrial 的词典释义页面，与冷库无线覆盖/链路预算无关，不能作为任何技术依据。
+    - generic: 来源：无来源
+    - generic: 复核原因：无资料依据，需人工核实
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误" [disabled]
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: 需复核
+    - generic: AI 提出
+    - paragraph: 无任何资料给出金属冷库库体（保温夹芯板+发泡层）造成的衰减/穿透损耗数值，冷库门关闭状态下的链路预算无依据可引。
+    - generic: 来源：无来源
+    - generic: 复核原因：无资料依据，需人工核实
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误" [disabled]
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: 需复核
+    - generic: AI 提出
+    - paragraph: 无资料给出 0~4℃ 环境下锂亚/锂离子电池的可用容量衰减曲线，电池供电传感器能否满足每分钟采样与免维护运行的续航无依据。
+    - generic: 来源：无来源
+    - generic: 复核原因：无资料依据，需人工核实
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误" [disabled]
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: 需复核
+    - generic: AI 提出
+    - paragraph: 无资料提供 LoRaWAN / NB-IoT 在中国境内可用频段、发射功率与法规合规要求，选型与合规性无依据。
+    - generic: 来源：无来源
+    - generic: 复核原因：无资料依据，需人工核实
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误" [disabled]
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: 需复核
+    - generic: AI 提出
+    - paragraph: 无资料量化“连续超限5分钟触发报警”在丢包/重传条件下的时延上限，报警时效能否达标需现场验证。
+    - generic: 来源：无来源
+    - generic: 复核原因：无资料依据，需人工核实
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误" [disabled]
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: 需复核
+    - generic: AI 提出
+    - paragraph: 无资料支持“允许合规小孔穿墙”的具体规范与冷库气密/保温影响，穿墙安装可行性属未确认信息缺口。
+    - generic: 来源：无来源
+    - generic: 复核原因：无资料依据，需人工核实
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误" [disabled]
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: 需复核
+    - generic: AI 提出
+    - paragraph: 本次未形成任何来自资料的 R2 路线支持或反对证据，可行性结论必须以现场链路预算测试结果为准，当前不可判定。
+    - generic: 来源：无来源
+    - generic: 复核原因：无资料依据，需人工核实
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误" [disabled]
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: AI 提出
+    - paragraph:
+      - text: 值班系统支持HTTP webhook接收报警，网关位于库外且有市电，验收使用临时局域网——这是R2路线中「库外网关集中接收并外发告警」的唯一有据前提。
+      - generic: · 条件：合成验收项目现场接口条件；不含无线覆盖与电池续航验证。
+    - text: “值班系统支持HTTP webhook接收报警。 网关位于库外，有市电，验收使用临时局域网。”
+    - generic: synthetic-site.txt
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误"
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: AI 提出
+    - paragraph:
+      - text: 资料未说明webhook发送主体与网关同处库外局域网的可达性，需在验收网络中确认外发路径。
+      - generic: · 条件：需人工核实网关是否同处库外同一局域网。
+    - text: “值班系统支持HTTP webhook接收报警。”
+    - generic: synthetic-site.txt
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误"
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: AI 提出
+    - paragraph:
+      - text: 厂商公开页面仅覆盖温湿度/露点等测量品类与GxP监测等能力介绍，未给出冷库场景的无线链路或穿透性能数据。
+      - generic: · 条件：0~4℃冷藏库、每分钟采样。
+    - text: “包括半导体、汽车制造、食品与饮料、电力、生命科学、暖通空调等诸多领域”
+    - generic: 维萨拉是环境和工业测量领域设备生产厂商 | 维萨拉 (Vaisala)
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误"
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: 需复核
+    - generic: AI 提出
+    - paragraph:
+      - text: 厂商英文主页同样只做企业级叙述，未见任何冷库关门状态下的覆盖实测或链路预算声明，属不可验证的宣传性表述。
+      - generic: · 条件：工业测量领域通用陈述。
+    - generic: 来源：无来源
+    - generic: 复核原因：模型引用无法在原文中定位，已移除来源
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误" [disabled]
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: 需复核
+    - generic: AI 提出
+    - paragraph:
+      - text: 检索命中的“LORA”实为大模型低秩适配微调，与LoRa无线技术无关，该资料不能作为任何LoRa链路预算依据。
+      - generic: · 条件：与本项目0~4℃冷库温度监测无关。
+    - generic: 来源：无来源
+    - generic: 复核原因：模型引用无法在原文中定位，已移除来源
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误" [disabled]
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: 需复核
+    - generic: AI 提出
+    - paragraph:
+      - text: 本轮未获取到关于金属库体衰减、关门状态穿透损耗、LoRa/NB-IoT在冷库链路预算、网关布置距离与丢包率影响的任何可引用证据，相关结论均需现场实测后确认。
+      - generic: · 条件：本次资料集内无任何实测或厂商声明。
+    - generic: 来源：无来源
+    - generic: 复核原因：无资料依据，需人工核实
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误" [disabled]
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: 需复核
+    - generic: AI 提出
+    - paragraph:
+      - text: 未获取关于冷凝对天线/外壳密封、传感器漂移影响的公开资料，该风险项在本轮无证据支撑。
+      - generic: · 条件：需结合现场库体尺寸与库门数量确定阈值。
+    - generic: 来源：无来源
+    - generic: 复核原因：无资料依据，需人工核实
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误" [disabled]
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: AI 提出
+    - paragraph:
+      - text: 两条网页资料（词典释义）与工业无线覆盖议题无关，说明本次检索关键词过宽、未命中一手技术来源，应作为检索质量问题记录。
+      - generic: · 条件：不作为证据使用。
+    - text: “工业的; 产业的; 工业用的; 工业发达的”
+    - generic: industrial是什么意思_industrial的翻译_音标_读音_用法_例句 ...
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误"
+    - button "标记争议"
+    - button "编辑"
+    - complementary:
+      - generic: 现场无线覆盖测试（含冷库门关闭状态下的链路预算）
+      - heading [level=2]: 研究计划
+      - button: ×
+      - button:
+        - text: AI 拟定草稿
+      - button [disabled]: 确认计划
+    - complementary:
+      - button: ×
+      - button [disabled]: 选中文字保存为发现
+- alert

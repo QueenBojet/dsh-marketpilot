@@ -1,0 +1,95 @@
+- complementary "主导航":
+  - generic: M
+  - generic: MarketPilot 智策
+  - generic: WORKSPACE
+  - link "工作台":
+    - /url: "#/home"
+    - generic: 工作台
+  - link "我的项目":
+    - /url: "#/projects"
+    - generic: 我的项目
+  - link "研究资料库":
+    - /url: "#/library"
+    - generic: 研究资料库
+  - link "运行记录":
+    - /url: "#/runs"
+    - generic: 运行记录
+  - generic: CURRENT PROJECT
+  - link "未选择项目 在“我的项目”中创建或选择":
+    - /url: "#/projects"
+    - text: 未选择项目
+    - generic: 在“我的项目”中创建或选择
+  - link "设置":
+    - /url: "#/settings"
+    - generic: 设置
+- banner:
+  - strong: 设置
+  - button "选择模型与思考强度" [active]:
+    - generic: okai1 / glm-5.3-flash
+    - generic: low
+    - generic: ⌄
+  - link "设置":
+    - /url: "#/settings"
+- main:
+  - heading "设置" [level=1]
+  - heading "模型供应商" [level=2]
+  - button "刷新"
+  - paragraph: 与 DSH 配置同步。模型与思考强度在右上角切换。
+  - generic: O
+  - strong: okai-deepseek
+  - generic: okai
+  - generic: 已配置
+  - generic: O
+  - strong: okai-qwen
+  - generic: okai2
+  - generic: 已配置
+  - generic: O
+  - strong: okai-kimi
+  - generic: okai3
+  - generic: 已配置
+  - generic: O
+  - strong: okai-glm
+  - generic: okai1
+  - generic: 使用中
+  - generic: Z
+  - strong: zai
+  - generic: 已配置
+  - generic: D
+  - strong: DeepSeek
+  - generic: deepseek-official
+  - generic: 已配置
+  - generic: D
+  - strong: DeepSeek Account
+  - generic: deepseek-account
+  - generic: 已配置
+  - heading "连接状态" [level=2]
+  - strong: 当前模型
+  - generic: okai1 / glm-5.3-flash
+  - strong: 思考强度
+  - generic: low
+- alert
+- dialog "模型":
+  - heading "模型" [level=2]
+  - text: 供应商
+  - combobox "供应商":
+    - option "选择供应商"
+    - option "okai-deepseek"
+    - option "okai-qwen" [selected]
+    - option "okai-kimi"
+    - option "okai-glm"
+    - option "zai"
+    - option "DeepSeek"
+    - option "DeepSeek Account"
+  - text: 模型
+  - combobox "模型":
+    - option "选择模型"
+    - option "qwen3.8-flash" [selected]
+    - option "qwen3.8-max"
+  - text: 思考强度
+  - combobox "思考强度":
+    - option "自动" [selected]
+    - option "Low"
+    - option "High"
+    - option "Max"
+  - button "取消"
+  - button "使用此模型"
