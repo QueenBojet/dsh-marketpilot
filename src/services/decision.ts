@@ -8,12 +8,13 @@ import type { ServiceContext } from './project.ts'
 export class DecisionService {
   constructor(private readonly ctx: ServiceContext) {}
   list(projectId: string) { return this.ctx.state(projectId).decisions }
-  async confirm(projectId: string, input: unknown) {
+  async confirm(projectId: string, input: unknown, options: { allowSelected?: boolean } = {}) {
     const { expectedVersion, ...request } = decisionRequest.parse(input)
     const before = this.ctx.state(projectId)
     ensure(expectedVersion === undefined || expectedVersion === businessVersion(before), 'STALE_CONTEXT', '项目输入已变化，请重新复核决策摘要。')
     const candidate = requiredRecord(before, 'alternatives', request.alternativeId)
-    ensure(candidate.status === 'candidate', 'NOT_CANDIDATE', '请先提交候选技术路线。')
+    ensure(candidate.status === 'candidate' || (options.allowSelected && candidate.status === 'selected'),
+      'NOT_CANDIDATE', '请先提交候选技术路线。')
     const { revision, review } = await this.ctx.review(projectId, 'confirm_decision', { request, candidate })
     const decision = { ...request, ...this.ctx.fields(projectId), confirmedBy: review.reviewer, confirmedAt: review.reviewedAt, review }
     await this.ctx.repository.update(projectId, s => {

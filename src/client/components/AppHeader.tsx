@@ -22,6 +22,14 @@ export function AppHeader({ t, view, actions }: {
         <span className="mp-brandName">{t('productName')}</span>
         <span className="mp-brandDesc">{t('productDescription')}</span>
       </div>
+      <a
+        href="/marketpilot/workbench"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="打开 MarketPilot V4 独立网页工作台"
+        style={{ color: '#255fca', fontWeight: 700, border: '1px solid #d5e3fa',
+          borderRadius: 9, padding: '7px 12px', textDecoration: 'none', whiteSpace: 'nowrap' }}
+      >打开 V4 独立工作台 ↗</a>
       <nav className="mp-headerNav" aria-label={t('panelTitle')}>
         <button
           type="button" className="mp-headerNavItem"

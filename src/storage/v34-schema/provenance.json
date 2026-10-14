@@ -1,0 +1,45 @@
+{
+  "commit": "9aae1d851346d41d191f447e4f7282ddf285771d",
+  "files": {
+    "state.ts": {
+      "source": "src/domain/state.ts",
+      "sha256": "b7e91058ac3c2423cea74aeb183375df02f8191d96ba245d846e15c036a70237"
+    },
+    "common.ts": {
+      "source": "src/domain/common.ts",
+      "sha256": "b846c2a63b2c7002c42be02b29a5aab33c66753bf0f40f55e4e5c23674ee6395"
+    },
+    "project.ts": {
+      "source": "src/domain/project.ts",
+      "sha256": "e2f0a3b5f4fb0a3f86e4395a37fa0a81df2e283673db3e66d98d262514dd53d9"
+    },
+    "requirement.ts": {
+      "source": "src/domain/requirement.ts",
+      "sha256": "ff3186df4247e069d50c4053e5a49c1264a5a846a233b1a18c4696801b08fcd0"
+    },
+    "evidence.ts": {
+      "source": "src/domain/evidence.ts",
+      "sha256": "a21b43c2ec55fbfc62df9ccbf925ce9f01f035d23506dcb4ddcfbf60cc9af8db"
+    },
+    "research.ts": {
+      "source": "src/domain/research.ts",
+      "sha256": "656cbfd363f0e07e2c234d1cf6fcf9bd68ab83d7c37943864ba43de4f5e39d8c"
+    },
+    "decision.ts": {
+      "source": "src/domain/decision.ts",
+      "sha256": "c325c3dd74945dc71aff18984dcffccbeab2d929ce5e0a56acaf2e45f99386be"
+    },
+    "tender.ts": {
+      "source": "src/domain/tender.ts",
+      "sha256": "b59863dd5ebe24e29550d2d49732433cd5b0101542eefcb63d83e6b7b1e8102a"
+    },
+    "artifact.ts": {
+      "source": "src/domain/artifact.ts",
+      "sha256": "9368b2094c863f0fa659c55f090f7af079e6a7b64fd559d1284b1031cf145a36"
+    },
+    "workflow.ts": {
+      "source": "src/domain/workflow.ts",
+      "sha256": "b4bddfade718186bfb4b86557104ad3b38344ce4851fb65deb071b8e60e9bfed"
+    }
+  }
+}

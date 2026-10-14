@@ -1,0 +1,228 @@
+- complementary "主导航":
+  - generic: M
+  - generic: MarketPilot 智策
+  - generic: WORKSPACE
+  - link "工作台":
+    - /url: "#/home?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 工作台
+  - link "我的项目":
+    - /url: "#/projects?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 我的项目
+  - link "研究资料库":
+    - /url: "#/library?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 研究资料库
+  - link "运行记录":
+    - /url: "#/runs?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 运行记录
+  - generic: CURRENT PROJECT
+  - link "V4 GUI 验收 - CALM 合成案例 - 2026-10-13 虚构客户 test_data · 修订 88":
+    - /url: "#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - text: V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+    - generic: 虚构客户 test_data · 修订 88
+  - link "项目总览":
+    - /url: "#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 项目总览
+  - link "资料与变更":
+    - /url: "#/change?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 资料与变更
+  - link "智能研究":
+    - /url: "#/research?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 智能研究
+  - link "方案与决策":
+    - /url: "#/solution?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 方案与决策
+  - link "成本与报价":
+    - /url: "#/cost?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 成本与报价
+  - link "文档与交付":
+    - /url: "#/deliver?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 文档与交付
+  - link "设置":
+    - /url: "#/settings?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 设置
+- banner:
+  - text: V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+  - generic: /
+  - strong: 智能研究
+  - button "选择模型与思考强度":
+    - generic: qwen3.8-flash
+    - generic: low
+    - generic: ⌄
+  - link "设置":
+    - /url: "#/settings?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+- main:
+  - heading "智能研究空间" [level=1]
+  - button "新增问题":
+    - text: 新增问题
+  - generic: 联网：待验证
+  - generic: DSH Web 已加载；搜索与抓取是否可用，以本次研究的实际结果为准。
+  - button "展开 AI 助手":
+    - text: 展开 AI 助手
+  - complementary:
+    - generic: 研究问题（2）
+    - button "IMO MARPOL Annex I oil pollution prevention 已有报告":
+      - text: IMO MARPOL Annex I oil pollution prevention
+      - generic: 已有报告
+    - button "单点系泊区域油污事件的监测链路如何组织？ 已有报告":
+      - text: 单点系泊区域油污事件的监测链路如何组织？
+      - generic: 已有报告
+    - button "新增问题":
+      - text: 新增问题
+    - generic: 知识沉淀
+    - generic: 已采纳 1 条 · 候选 22 条
+  - article:
+    - text: 研究问题 ·
+    - generic: 已有报告
+    - heading "IMO MARPOL Annex I oil pollution prevention" [level=2]
+    - paragraph: 软件验收：仅检索公开 IMO 官方资料，回答一句概述并提供一条真实网页依据；不使用项目客户资料，不推断技术符合性。
+    - button "编辑"
+    - button "关闭问题"
+    - generic: 计划：未制定（将直接按问题研究本地资料）
+    - button "制定计划"
+    - combobox "本次研究模式":
+      - option "按计划（仅本地资料）"
+      - option "仅本地资料"
+      - option "仅联网" [selected]
+      - option "本地 + 联网"
+    - button "开始研究":
+      - text: 开始研究
+    - generic: DSH Web 已加载；搜索与抓取是否可用，以本次研究的实际结果为准。 仅联网模式需要成功获取网页正文，否则报告生成会停止。
+    - generic: 最近运行：2026-10-13 07:23 · completed · 模型 okai2/qwen3.8-flash（本次指定）· 部分获取 · skill:marketpilot-deep-research@5960e4d525ed 联网检索：获取正文 2 个，失败 1 个。 生成候选发现 8 条，其中 1 条引用无法定位。
+    - text: 研究报告（AI 草稿，需人工判断）
+    - button "选中文字保存为发现"
+    - paragraph: "# IMO MARPOL Annex I 油类污染预防 —— 资料受限情况下的研究报告"
+    - paragraph: "## 一句话概述"
+    - paragraph: 在本次给定的资料范围内，**没有任何一条直接规定 MARPOL 附则 I 油类污染预防义务的条文内容**；唯一可用的官方网页资料仅能证明 IMO 是联合国负责船舶安全与防止海洋及大气污染的专门机构。
+    - paragraph: "## 资料核查结论"
+    - paragraph: 1. **资料[0]** 为 IMO 官网首页（<https://www.imo.org/en/>）正文，内容为机构介绍、新闻与栏目导航。其中与本题相关者仅有两处：机构使命表述（防止船舶造成的海洋与大气污染），以及 Marine Environment Protection Committee (MEPC) 的存在（MARPOL 体系的主管机构）。 2. **资料[1]** 为 https://www.imo-official.org/ ，是 *International Mathematical Olympiad*（国际数学奥林匹克），与海事监管完全无关，属检索同名噪声，必须在后续检索中排除。 3. 本次**未获得** MARPOL 附则 I 正文、Oil Record Book Part I 条款、16 项要求清单、或公约修订状态的任何一手页面。
+    - paragraph: "## 对相关需求的对照"
+    - paragraph: "| 需求 | 本资料能否支撑 | 说明 | |---|---|---| | 记录单点系泊区域疑似漏油报警事件 | 否 | 资料[0]无报警、系泊或监控义务条文 | | 保留可追溯报警历史 | 否 | 同上；MARPOL 记录簿要求即使存在，本资料亦未载 | | 报警 2 分钟内展示到监控端 | 否 | 资料中无任何时限规定，无法据此判断其与公约的关系 | | 人工添加处置备注 | 否 | 资料中无相关条款 |"
+    - paragraph: "## 依据与不确定性"
+    - paragraph: "- 唯一逐字依据（资料[0]）：\"IMO – the International Maritime Organization – is the United Nations specialized agency with responsibility for the safety and security of shipping and the prevention of marine and atmospheric pollution by ships.\" - **关键不确定性**：以上四项需求均属项目内部功能要求；MARPOL 附则 I 的适用对象为船舶及其设备（如油类记录簿、机器处所布置等），陆上或平台侧的单点系泊区域监控系统通常不是其直接规制对象。此判断属工程推断，**未由本次资料证实**，不得作为技术符合性结论。 - 本报告不构成合规意见；是否需要由 MEPC 认可的记录形式满足公约，仍须通过人工审核（Human Gate）确认。"
+    - paragraph: "## 待确认事项"
+    - paragraph: 1. 抓取 MARPOL 附则 I 官方页面（如 <https://www.imo.org/en/OurWork/Environment/Pages/Oil-Pollution-Default.aspx>）正文，确认当前有效版本与最近修订年份。 2. 抓取 Oil Record Book Part I 相关条款，核对记录项目与保存要求。 3. 明确本项目监控对象（船舶 / 海上设施 / 陆上终端）是否落入附则 I 适用范围——此为需求方决策，不可由本报告推断。 4. 后续检索务必使用 "MARPOL" 全称或 "IMO oil pollution"，并排除 imo-official.org 域名噪声。
+    - generic: 网页来源（2/3 已获取正文）
+    - button "已获取 International Maritime Organization":
+      - generic: 已获取
+      - text: International Maritime Organization
+    - button "已获取 IMO - International Mathematical Olympiad":
+      - generic: 已获取
+      - text: IMO - International Mathematical Olympiad
+    - button "失败 国际数学奥林匹克竞赛 - 百度百科":
+      - generic: 失败
+      - text: 国际数学奥林匹克竞赛 - 百度百科
+    - heading "研究发现（8）" [level=3]
+    - button "从资料摘录":
+      - text: 从资料摘录
+    - generic: 候选
+    - generic: 未核实
+    - generic: AI 提出
+    - paragraph:
+      - text: IMO 是联合国负责船舶安全与防止海洋/大气污染的专门机构，MARPOL 属其主管领域。
+      - generic: · 条件：依据为 IMO 官网首页全文；若需具体条款须另行抓取公约页面或公约文本（docs.imo.org）
+    - text: “the International Maritime Organization – is the United Nations specialized agency with responsibility for the safety and security of shipping and the prevention of marine and atmospheric pollution by ships.”
+    - generic: International Maritime Organization
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误"
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: AI 提出
+    - paragraph: IMO 官网设有 Marine Environment Protection Committee (MEPC) 条目，MARPOL 附则类防污规则通常由 MEPC 审议维护；本资料未含附则 I 正文。
+    - text: “Marine Environment Protection Committee (MEPC)”
+    - generic: International Maritime Organization
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误"
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: 需复核
+    - generic: AI 提出
+    - paragraph: IMO 体系内存在区域溢油应急响应中心（以地中海 REMPEC 为例），说明油类污染应急响应是 IMO 体系的既有组成部分。
+    - generic: 来源：无来源
+    - generic: 复核原因：模型引用无法在原文中定位，已移除来源
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误" [disabled]
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: AI 提出
+    - paragraph: IMO 官方文件库入口为 docs.imo.org，是后续核实 MARPOL 附则 I 条文的官方渠道（本次未抓取其内容）。
+    - text: “[ACCESS IMO DOCUMENTS](http://docs.imo.org/)”
+    - generic: International Maritime Organization
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误"
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: 需复核
+    - generic: AI 提出
+    - paragraph:
+      - text: 本资料未包含 MARPOL 附则 I 关于油类记录簿（Oil Record Book Part I）、16 项要求或船舶类型范围的条文，相关内容无法核实。
+      - generic: · 条件：待抓取 MARPOL 附则 I 原文后确认条款编号与适用设备范围
+    - generic: 来源：无来源
+    - generic: 复核原因：无资料依据，需人工核实
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误" [disabled]
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: 需复核
+    - generic: AI 提出
+    - paragraph:
+      - text: 本资料未给出任何时限要求，因此“报警信息 2 分钟内展示到监控端”属于项目内部需求，不能由本资料判断其与 MARPOL 附则 I 的关系。
+      - generic: · 条件：需确认报警事件是否为 IMO 公约定义的“报告义务”对象（通常为油类污染报告，不含陆上/系泊监控平台）
+    - generic: 来源：无来源
+    - generic: 复核原因：无资料依据，需人工核实
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误" [disabled]
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: 需复核
+    - generic: AI 提出
+    - paragraph:
+      - text: “报警记录支持人工添加处置备注”在本资料中无对应依据，其合规必要性待确认。
+      - generic: · 条件：须由需求方与合规负责人确认（Human Gate）
+    - generic: 来源：无来源
+    - generic: 复核原因：无资料依据，需人工核实
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误" [disabled]
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: 需复核
+    - generic: AI 提出
+    - paragraph: 资料[1]为同名无关来源（International Mathematical Olympiad），检索中出现同名干扰，应在后续查询中排除。
+    - generic: 来源：无来源
+    - generic: 复核原因：无资料依据，需人工核实
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误" [disabled]
+    - button "标记争议"
+    - button "编辑"
+    - complementary:
+      - generic: IMO MARPOL Annex I oil pollution prevention
+      - heading [level=2]: 研究计划
+      - button: ×
+      - button:
+        - text: AI 拟定草稿
+      - button [disabled]: 确认计划
+    - complementary:
+      - button: ×
+      - button [disabled]: 选中文字保存为发现
+- alert

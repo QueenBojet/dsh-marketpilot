@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-13",
+  "timezone": "Asia/Shanghai",
+  "branch": "feat/v4-workbench-foundation",
+  "guiAcceptance": "BLOCKED",
+  "screenshots": [],
+  "events": [
+    {"action": "import @oai/sky", "result": "success", "scope": "local Windows capability initialization"},
+    {"action": "sky.list_apps", "result": "local Windows applications and windows returned", "sensitiveWindowTitlesOmitted": true},
+    {"action": "cua.getState", "result": "Edge and Chrome discovery reported nodeRepl.fetch request failed", "fallbackToCloud": false},
+    {"action": "npm run build", "result": "exit 0", "evidence": "build.log"},
+    {"action": "prepare-v4-isolated.mjs", "result": "isolated build/profile/storage prepared", "evidence": "preflight.json"},
+    {"action": "empty isolated projects table before boot", "result": "0 projects", "productionWritten": false},
+    {"action": "retain existing model configuration privately in isolated profile", "result": "configured zai/glm-5.3-flash/max; no model call attempted", "credentialsIncludedInEvidence": false},
+    {"action": "start installed Harness CLI with isolated DSH_HOME", "result": "PID 49472 listening on 127.0.0.1:3180", "desktopNativeWindow": false},
+    {"action": "sky.press_key Control_L+n in existing Edge window", "result": "new Edge window id 7013886 returned by subsequent list_windows", "scope": "browser preparation only"},
+    {"action": "sky.press_key Control_L+l then request address-bar state", "result": "Computer Use has been stopped for this turn because it could not determine the current browser URL on Windows with enough confidence to enforce policy. Stop your work and send a final message noting why Computer Use ended.", "outcome": "unknown", "status": "BLOCKED"},
+    {"action": "stop further GUI input", "result": "no further GUI actions issued"},
+    {"action": "stop acceptance-owned Harness", "result": "PID identity/path/arguments/listener checked before stopping", "evidence": "final-safety-check.json"},
+    {"action": "recheck original data SHA and empty isolated store", "result": "unchanged production/backup; isolated project count 0; port closed", "evidence": "final-safety-check.json"},
+    {"action": "remove temporarily copied provider configuration from isolated patch", "result": "isolated configuration sanitized after shutdown; original provider configuration untouched"}
+  ],
+  "notAttempted": ["workbench navigation", "upload", "project creation", "real model calls", "web search/fetch", "Human Gate", "BOM and quotation", "DOCX export", "Microsoft Word open", "V1/V2 release", "persistence restart", "V3/V4 runtime rollback"],
+  "consoleNetwork": "NOT_TESTED",
+  "backendExecutionIds": [],
+  "publicExposure": false,
+  "mergedMain": false
+}

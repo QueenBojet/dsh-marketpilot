@@ -15,6 +15,7 @@ import { workflowCapabilities } from './capabilities.ts'
 import { projectReviewOverview } from '../domain/project-review.ts'
 import { researchOverview } from '../domain/research-review.ts'
 import { designOverview } from '../services/design-overview.ts'
+import { registerResearchSkill, type ResearchSkillRegistry } from '../services/v4/research-skill.ts'
 
 export interface Config { maxDocumentBytes: number; structuredProvider: string; modelTimeoutMs: number }
 export const Config: Schema<Config> = Schema.object({
@@ -48,6 +49,16 @@ export class MarketPilotService extends Service {
     return projectWorkflowOverview(state, workflowCapabilities(this.ctx, this.config.structuredProvider), executions)
   }
 
+  /** Raw project snapshot for the V4 workbench read model (routes strip template bytes). */
+  projectState(projectId: string) {
+    const state = this.repository.get(projectId)
+    ensure(state, 'PROJECT_NOT_FOUND', '项目不存在。')
+    return state
+  }
+
+  /** Model / web availability as the workbench should disclose it. */
+  capabilities() { return workflowCapabilities(this.ctx, this.config.structuredProvider) }
+
   reviewOverview(projectId: string) {
     const state = this.repository.get(projectId)
     ensure(state, 'PROJECT_NOT_FOUND', '项目不存在。')
@@ -69,7 +80,13 @@ export class MarketPilotService extends Service {
   protected async [Service.init]() {
     this.repository = await HarnessProjectRepository.open(this.ctx.storageDomain)
     this.services = createServices(this.repository)
+    // Runs left `running` by a previous process are recorded as interrupted, never resumed silently.
+    await this.services.v4.recoverInterrupted()
     this.parser = new HarnessDocumentParser(this.ctx.fs, this.config.maxDocumentBytes)
+    this.ctx.inject(['skills'], async ctx => {
+      const dispose = await registerResearchSkill(ctx.get('skills') as ResearchSkillRegistry)
+      ctx.effect(() => dispose)
+    })
     this.ctx.inject(['subagents'], ctx => {
       ctx.provide('marketpilotLiveModel', (exec: ToolRunContext) => {
         ensure(exec.agent, 'MODEL_AGENT_REQUIRED', '实时模型 Workflow 需要当前 Harness Agent 会话。')

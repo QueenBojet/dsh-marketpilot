@@ -1,0 +1,13 @@
+{
+  "result": "PASS",
+  "method": "Actual GUI navigation: project overview, solution/history, deliver; no mutation actions",
+  "revision": 176,
+  "documents": 4,
+  "requirements": 19,
+  "decisions": 1,
+  "recordDeepEqual": true,
+  "canonicalRecordSha256": "59f867cfffb919a483b2f24d3047bffe04f8fdbffcd6b8b33216cd1e06b3c24e",
+  "sourceAndFormalSha256": "669636b62c40dd2c87b78d05e578c2529bb85f064cc76d780f4eeee48fec6f20",
+  "formalUnchanged": true,
+  "legacyArtifactsAreNotAutomaticallyConvertedToV4Documents": true
+}

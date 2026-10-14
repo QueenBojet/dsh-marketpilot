@@ -1,0 +1,150 @@
+- complementary "主导航":
+  - generic: M
+  - generic: MarketPilot 智策
+  - generic: WORKSPACE
+  - link "工作台":
+    - /url: "#/home?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 工作台
+  - link "我的项目":
+    - /url: "#/projects?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 我的项目
+  - link "研究资料库":
+    - /url: "#/library?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 研究资料库
+  - link "运行记录":
+    - /url: "#/runs?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 运行记录
+  - generic: CURRENT PROJECT
+  - link "V4 GUI 验收 - CALM 合成案例 - 2026-10-13 虚构客户 test_data · 修订 60":
+    - /url: "#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - text: V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+    - generic: 虚构客户 test_data · 修订 60
+  - link "项目总览":
+    - /url: "#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 项目总览
+  - link "资料与变更":
+    - /url: "#/change?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 资料与变更
+  - link "智能研究":
+    - /url: "#/research?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 智能研究
+  - link "方案与决策":
+    - /url: "#/solution?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 方案与决策
+  - link "成本与报价" [active]:
+    - /url: "#/cost?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 成本与报价
+  - link "文档与交付":
+    - /url: "#/deliver?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 文档与交付
+  - link "设置":
+    - /url: "#/settings?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 设置
+- banner:
+  - text: V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+  - generic: /
+  - strong: 成本与报价
+  - button "选择模型与思考强度":
+    - generic: qwen3.8-flash
+    - generic: low
+    - generic: ⌄
+  - link "设置":
+    - /url: "#/settings?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+- main:
+  - heading "BOM 成本与报价" [level=1]
+  - button "口径与汇率":
+    - text: 口径与汇率
+  - button "新增成本行":
+    - text: 新增成本行
+  - text: 当前包含 2 行测试价格（非真实报价），仅用于演示计算，不能用于对外报价。
+  - heading "成本明细（2）" [level=2]
+  - table:
+    - rowgroup:
+      - row "成本项 类别 数量 单价 金额 价格状态":
+        - columnheader "成本项"
+        - columnheader "类别"
+        - columnheader "数量"
+        - columnheader "单价"
+        - columnheader "金额"
+        - columnheader "价格状态"
+        - columnheader
+    - rowgroup:
+      - row "检测器成本 test_data 测试价格（非真实） · 跟随配置 ⚠ 测试数据，不可对外 设备 5 套 1200.00 CNY 6,000.00 测试价格 编辑 删除":
+        - cell "检测器成本 test_data 测试价格（非真实） · 跟随配置 ⚠ 测试数据，不可对外":
+          - strong: 检测器成本 test_data
+          - generic: 测试价格（非真实） · 跟随配置
+          - generic: ⚠ 测试数据，不可对外
+        - cell "设备"
+        - cell "5 套"
+        - cell "1200.00 CNY"
+        - cell "6,000.00"
+        - cell "测试价格":
+          - generic: 测试价格
+        - cell "编辑 删除":
+          - button "编辑"
+          - button "删除"
+      - row "集成服务 test_data 测试价格（非真实） ⚠ 测试数据，不可对外 服务 2 套 500.00 CNY 1,000.00 测试价格 编辑 删除":
+        - cell "集成服务 test_data 测试价格（非真实） ⚠ 测试数据，不可对外":
+          - strong: 集成服务 test_data
+          - generic: 测试价格（非真实）
+          - generic: ⚠ 测试数据，不可对外
+        - cell "服务"
+        - cell "2 套"
+        - cell "500.00 CNY"
+        - cell "1,000.00"
+        - cell "测试价格":
+          - generic: 测试价格
+        - cell "编辑 删除":
+          - button "编辑"
+          - button "删除"
+  - generic "设备 6,000.00"
+  - generic "服务 1,000.00"
+  - generic: 设备 85.7%
+  - generic: 服务 14.3%
+  - generic: 类别占比按本位币折算后计算。
+  - generic: 合计（CNY）
+  - generic: 7,910.00
+  - generic: CNY 小计 7,000.00
+  - generic: 不可预见费 0.0000
+  - generic: 税金 910.0000
+  - heading "价格可信度" [level=2]
+  - strong: 缺价格
+  - generic: "0"
+  - strong: 估算价格
+  - generic: "0"
+  - strong: 测试价格（非真实）
+  - generic: "2"
+  - strong: 过期报价
+  - generic: "0"
+  - heading "三项独立成本审核" [level=2]
+  - generic: 任一成本输入、配置或路线变化都会使已有审核失效
+  - heading "成本草稿审核" [level=3]
+  - paragraph: 确认 BOM 与数量、计算口径正确；路线需已确认。
+  - generic: 已失效
+  - generic: Harness human (c9bb750d-87c1-47c9-8656-cb99f7b3d918) · 2026-10-13 02:54 · 用户通过 Harness 人工审核入口明确确认。（输入已变化，需重新审核）
+  - generic: 前置检查已通过。
+  - button "人工审核":
+    - text: 人工审核
+  - heading "供应商报价已核验" [level=3]
+  - paragraph: 所有价格均来自有效的供应商报价或目录价，无估算、测试价或过期报价。
+  - generic: 未审核
+  - generic: · 需先完成成本草稿审核（且审核后未再修改）。
+  - generic: · 2 行为测试数据，不能作为已核验报价。
+  - button "人工审核" [disabled]:
+    - text: 人工审核
+  - generic: 前置检查未通过
+  - heading "对外报价已批准" [level=3]
+  - paragraph: 允许对外报价；需要可计算的合计（币种与汇率完整）。
+  - generic: 未审核
+  - generic: · 需先完成供应商报价核验。
+  - button "人工审核" [disabled]:
+    - text: 人工审核
+  - generic: 前置检查未通过
+  - complementary:
+    - generic: 金额由系统按 数量 × 系数 × 单价 确定性计算
+    - heading [level=2]: 新增成本行
+    - button: ×
+    - button: 取消
+    - button [disabled]: 保存
+    - generic: 请填写名称
+- alert

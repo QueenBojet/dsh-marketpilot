@@ -2,5 +2,5 @@
   "extends": "./tsconfig.json",
   "compilerOptions": { "rootDir": "src", "outDir": "lib", "declaration": true },
   "include": ["src"],
-  "exclude": ["src/client"]
+  "exclude": ["src/client", "src/workbench-ui"]
 }

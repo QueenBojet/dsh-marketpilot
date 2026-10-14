@@ -21,6 +21,6 @@ export function workflowCapabilities(ctx: Context, structuredProvider: string): 
   // The presence of ctx.web or a tool is insufficient proof of usable providers.
   const research: WorkflowCapability = ctx.get('web') === undefined
     ? { available: false, mode: 'unavailable', reason: 'WEB_PROVIDER_UNAVAILABLE：当前 Profile 未启用 Harness Web 服务与 search/fetch Provider；可使用本地资料研究。' }
-    : { available: false, mode: 'unverified', reason: 'Harness Web 已加载，但此宿主无只读 Provider 检测接口；联网能力未验证，可使用本地资料研究。' }
+    : { available: false, mode: 'unverified', reason: 'DSH Web 已加载；搜索与抓取是否可用，以本次研究的实际结果为准。' }
   return { model, research }
 }

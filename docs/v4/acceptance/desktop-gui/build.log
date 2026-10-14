@@ -1,0 +1,14 @@
+> dsh-marketpilot@0.1.0 build
+> node scripts/build-workbench.mjs && tsc -p tsconfig.build.json && node scripts/copy-prompts.mjs && tsdown
+
+workbench page: 288.7 KiB
+tsdown v0.22.14 powered by rolldown v1.2.12
+config file: E:\PythonProjects\Work_Platform\marketpilot\tsdown.config.ts
+dsh-marketpilot/client entry: src/client/index.ts
+dsh-marketpilot/client target: es2024
+dsh-marketpilot/client tsconfig: tsconfig.json
+dsh-marketpilot/client client\client.js 462.19 kB | gzip: 92.61 kB
+Build complete in 39ms
+Command exit_code: 0
+
+Recorded from this turn's exec_command output; this is a build check, not GUI evidence.

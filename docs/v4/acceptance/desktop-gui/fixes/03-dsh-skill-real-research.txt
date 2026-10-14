@@ -1,0 +1,307 @@
+- complementary "主导航":
+  - generic: M
+  - generic: MarketPilot 智策
+  - generic: WORKSPACE
+  - link "工作台":
+    - /url: "#/home?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 工作台
+  - link "我的项目":
+    - /url: "#/projects?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 我的项目
+  - link "研究资料库":
+    - /url: "#/library?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 研究资料库
+  - link "运行记录":
+    - /url: "#/runs?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 运行记录
+  - generic: CURRENT PROJECT
+  - link "V4 GUI 验收 - CALM 合成案例 - 2026-10-13 虚构客户 test_data · 修订 81":
+    - /url: "#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - text: V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+    - generic: 虚构客户 test_data · 修订 81
+  - link "项目总览":
+    - /url: "#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 项目总览
+  - link "资料与变更":
+    - /url: "#/change?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 资料与变更
+  - link "智能研究":
+    - /url: "#/research?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 智能研究
+  - link "方案与决策":
+    - /url: "#/solution?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 方案与决策
+  - link "成本与报价":
+    - /url: "#/cost?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 成本与报价
+  - link "文档与交付":
+    - /url: "#/deliver?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 文档与交付
+  - link "设置":
+    - /url: "#/settings?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 设置
+- banner:
+  - text: V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+  - generic: /
+  - strong: 智能研究
+  - button "选择模型与思考强度":
+    - generic: qwen3.8-flash
+    - generic: low
+    - generic: ⌄
+  - link "设置":
+    - /url: "#/settings?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+- main:
+  - heading "智能研究空间" [level=1]
+  - button "新增问题":
+    - text: 新增问题
+  - generic: 联网：待验证
+  - generic: DSH Web 已加载；搜索与抓取是否可用，以本次研究的实际结果为准。
+  - complementary:
+    - generic: 研究问题（2）
+    - button "IMO MARPOL Annex I oil pollution prevention 待研究":
+      - text: IMO MARPOL Annex I oil pollution prevention
+      - generic: 待研究
+    - button "单点系泊区域油污事件的监测链路如何组织？ 已有报告":
+      - text: 单点系泊区域油污事件的监测链路如何组织？
+      - generic: 已有报告
+    - button "新增问题":
+      - text: 新增问题
+    - generic: 知识沉淀
+    - generic: 已采纳 1 条 · 候选 14 条
+  - article:
+    - text: 研究问题 ·
+    - generic: 已有报告
+    - heading "单点系泊区域油污事件的监测链路如何组织？" [level=2]
+    - paragraph: 仅使用合成 test_data 和现有资料，说明证据不足，限三点简答，不做独立技术核实。
+    - button "编辑"
+    - button "关闭问题"
+    - generic: 计划：未制定（将直接按问题研究本地资料）
+    - button "制定计划"
+    - combobox "本次研究模式":
+      - option "按计划（仅本地资料）"
+      - option "仅本地资料" [selected]
+      - option "仅联网"
+      - option "本地 + 联网"
+    - button "开始研究":
+      - text: 开始研究
+    - generic: 最近运行：2026-10-13 06:46 · completed · 模型 okai2/qwen3.8-flash（本次指定）· 未请求联网 · skill:marketpilot-deep-research@5960e4d525ed 生成候选发现 8 条。
+    - text: 研究报告（AI 草稿，需人工判断）
+    - button "选中文字保存为发现"
+    - paragraph: "## 单点系泊区域油污事件监测链路 —— 三点简答（基于合成 test_data 与资料[0]，未做独立技术核实）"
+    - paragraph: "**说明**：资料[0] 为 batch1.txt 中的合成验收需求（自述「非真实船东资料」），仅 3 条需求条目，不含架构、接口或实现信息。本报告不做独立技术核实，凡超出资料原文者一律标注为无来源/待确认。"
+    - paragraph: "### 1. 报警事件的记录入口 资料[0] 要求「系统应记录单点系泊区域的疑似漏油报警事件」。据此，链路起点是**疑似漏油报警事件登记并落库**，而非已确认溢油的定性结论。 - 依据：资料[0] 原文。 - 不确定性：「疑似」的判定来源（浮标/卫星/AIS/人工上报）在资料中完全未定义；单点系泊区域的地理范围也未定义。待确认。"
+    - paragraph: "### 2. 报警历史的可追溯留存 资料[0] 要求「至少保留一份可追溯的报警历史记录」。 - 依据：资料[0] 原文。 - 不确定性：「可追溯」未说明审计字段、保留周期、是否允许删除/编辑。合成资料未覆盖。待确认。"
+    - paragraph: "### 3. 报警向监控端的展示时延 - 已知事实：资料[0] 记载「报警信息在 5 分钟内展示到监控端」。 - 变更项：需求侧提出的 2 分钟目标（由 5 分钟收紧）在资料中**无任何记载**，属无来源变更；本资料无法支撑该指标的实现评估。 - 不确定性：端到端时延的起止点（采集时刻／入库时刻／推送时刻）未定义；资料未涉及推送机制、离线补传或失败重试。待确认。"
+    - paragraph: "### 关于「人工添加处置备注」 该新增要求在资料中无对应文本，本报告不据此推断字段结构、权限模型或与报警时延的关系。是否纳入本次链路范围需需求方确认。"
+    - paragraph: "### 证据充分性结论 证据不足：现有资料仅为合成需求条目，不足以描述监测链路的采集—传输—处理—展示—留存各环节实现。任何链路架构结论均为需求层面推断，须经 DSH Human Gate 的需求确认后再开展技术路线决策。"
+    - heading "研究发现（15）" [level=3]
+    - button "从资料摘录":
+      - text: 从资料摘录
+    - generic: 候选
+    - generic: 未核实
+    - generic: AI 提出
+    - paragraph: 资料[0]要求系统记录单点系泊区域的疑似漏油报警事件，但未定义检测方式与数据来源。
+    - text: “系统应记录单点系泊区域的疑似漏油报警事件。”
+    - generic: batch1.txt
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误"
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: AI 提出
+    - paragraph: 报警信息须在 5 分钟内展示到监控端，构成端到端链路时延约束。
+    - text: “报警信息在 5 分钟内展示到监控端。”
+    - generic: batch1.txt
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误"
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: AI 提出
+    - paragraph: 至少保留一份可追溯的报警历史记录，构成链路留存要求。
+    - text: “至少保留一份可追溯的报警历史记录。”
+    - generic: batch1.txt
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误"
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: 需复核
+    - generic: AI 提出
+    - paragraph:
+      - text: 监测链路的具体环节组成（传感→边缘→通信→平台→监控端）无法从现有资料确定。
+      - generic: · 条件：需补充 test_data 与设计文档后确认
+    - generic: 来源：无来源
+    - generic: 复核原因：无资料依据，需人工核实
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误" [disabled]
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: 需复核
+    - generic: AI 提出
+    - paragraph:
+      - text: 5 分钟时延如何分解到各环节（采样、上传、解析、展示）无依据。
+      - generic: · 条件：需接口设计或部署文档后确认
+    - generic: 来源：无来源
+    - generic: 复核原因：无资料依据，需人工核实
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误" [disabled]
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: 需复核
+    - generic: AI 提出
+    - paragraph:
+      - text: 报警历史的存储介质、保存周期与可追溯字段未定义。
+      - generic: · 条件：需存储与合规要求确认
+    - generic: 来源：无来源
+    - generic: 复核原因：无资料依据，需人工核实
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误" [disabled]
+    - button "标记争议"
+    - button "编辑"
+    - generic: 已采纳
+    - generic: 未核实
+    - generic: 人工摘录
+    - paragraph:
+      - text: test_data：合成资料明确要求保留可追溯报警历史，保存周期尚未定义。
+      - generic: · 条件：软件流程验收，未独立技术核实
+    - text: “至少保留一份可追溯的报警历史记录。”
+    - generic: batch1.txt
+    - generic: 采纳审核：Harness human (34d0acd5-b5f6-4f4d-ad15-6bc281b2eb2e) 2026-10-13 02:51
+    - button "采纳" [disabled]
+    - button "拒绝"
+    - button "核实无误"
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: AI 提出
+    - paragraph: 单点系泊区域的疑似漏油报警事件需被系统记录，即报警事件生成与落库是监测链路的起点。
+    - text: “【CALM 场景软件验收用合成需求，非真实船东资料】 系统应记录单点系泊区域的疑似漏油报警事件。”
+    - generic: batch1.txt
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误"
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: AI 提出
+    - paragraph: 报警信息展示到监控端的时限为 5 分钟。
+    - text: “报警信息在 5 分钟内展示到监控端。”
+    - generic: batch1.txt
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误"
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: AI 提出
+    - paragraph: 至少保留一份可追溯的报警历史记录，构成链路的历史留痕环节。
+    - text: “至少保留一份可追溯的报警历史记录。”
+    - generic: batch1.txt
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误"
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: 需复核
+    - generic: AI 提出
+    - paragraph: 报警信息须在 2 分钟内展示到监控端（由 5 分钟收紧而来），当前资料未记载该指标，属待确认变更。
+    - generic: 来源：无来源
+    - generic: 复核原因：无资料依据，需人工核实
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误" [disabled]
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: 需复核
+    - generic: AI 提出
+    - paragraph: 报警记录支持人工添加处置备注，新增需求无资料依据，待确认备注的字段结构、责任人与审计要求。
+    - generic: 来源：无来源
+    - generic: 复核原因：无资料依据，需人工核实
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误" [disabled]
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: AI 提出
+    - paragraph: 资料为合成验收需求，不可作为真实船东业务口径或验收依据。
+    - text: “【CALM 场景软件验收用合成需求，非真实船东资料】”
+    - generic: batch1.txt
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误"
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: 需复核
+    - generic: AI 提出
+    - paragraph:
+      - text: 疑似漏油的检测来源（如浮标/卫星/AIS/人工上报）在资料中未定义，监测链路首环待确认。
+      - generic: · 条件：合成资料未覆盖检测方式；结论为链路推断，非核实结果
+    - generic: 来源：无来源
+    - generic: 复核原因：无资料依据，需人工核实
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误" [disabled]
+    - button "标记争议"
+    - button "编辑"
+    - generic: 候选
+    - generic: 未核实
+    - generic: 需复核
+    - generic: AI 提出
+    - paragraph: 资料仅含需求条目，未涉及软件架构、接口与实现，故监测链路的组件划分仅为需求层面的推断。
+    - generic: 来源：无来源
+    - generic: 复核原因：无资料依据，需人工核实
+    - button "采纳"
+    - button "拒绝"
+    - button "核实无误" [disabled]
+    - button "标记争议"
+    - button "编辑"
+    - complementary:
+      - generic: 单点系泊区域油污事件的监测链路如何组织？
+      - heading [level=2]: 研究计划
+      - button: ×
+      - button:
+        - text: AI 拟定草稿
+      - button [disabled]: 确认计划
+    - complementary:
+      - button: ×
+      - button [disabled]: 选中文字保存为发现
+  - complementary:
+    - text: 项目 AI 助手
+    - button "收起 AI 面板":
+    - generic: 当前问题：单点系泊区域油污事件的监测链路如何组织？
+    - generic: 这是合成验收项目。请用一句话列出当前资料最需要澄清的一项；不要代替人工确认或修改项目。
+    - generic: 最需澄清的一项：「报警信息在 5 分钟内展示到监控端」这条端到端时延指标的**起止点定义**——即计时从现场检测到疑似漏油的时刻开始，还是从平台/服务器接收并入库的时刻开始，终点也需明确为监控端界面可见还是接口返回；同时需给出各环节（判定、传输、展示刷新）允许的时延分配，才能将其转化为可验收的链路设计约束。 补充说明：资料[0]为合成验收需求，仅提出记录事件、5 分钟内展示、至少保留一份可追溯报警历史三条要求，未定义采集方式、通信制式、边缘节点、判定主体、记录字段与保存周期；上述内容资料未提及，不作推断或代为确认。
+    - generic: okai2/qwen3.8-flash · 项目偏好
+    - generic: 仅回复“人民币 CNY”，用于验证当前模型选择。不要修改任何项目数据。
+    - generic: "人民币 CNY --- # 单点系泊区域油污事件监测链路组织 > 说明：资料 [0] 为「CALM 场景软件验收用合成需求，非真实船东资料」。以下结论仅基于该文本与已确认需求条目，未做任何独立技术核实；资料未提及的内容一律标注为「资料未提及」，不作推断。 ## 一、可由资料确认的链路约束（仅这些） | 环节 | 资料给出的约束 | 状态 | |---|---|---| | 事件产生 | 系统应记录单点系泊区域的疑似漏油报警事件 | 确认存在该环节，但判定主体资料未提及 | | 报警信息传输 + 监控端展示 | 报警信息在 5 分钟内展示到监控端（**已确认变更为 2 分钟内**） | 指标确认，起止点仍资料未提及 | | 历史留存 | 至少保留一份可追溯的报警历史记录 | 仅数量下限，字段/周期资料未提及 | | 处置记录 | 新增要求：报警记录支持人工添加处置备注 | 已确认新增，备注字段结构与权限资料未提及 | ## 二、组织方式的三点判断 1. **骨架只能反推，证据不足。** 上述条目只允许推断链路至少贯通「疑似漏油判定 → 报警信息传输 → 监控端展示 → 历史留存（含人工处置备注）」四个职能段。采集方式（雷达/光学/人工上报）、边缘节点、通信制式、平台组件与部署拓扑，资料均未提及，因此无法确认链路的具体组织形态与责任划分。 2. **时延预算因指标收紧而更需分解。** 展示时延由 5 分钟收紧至 2 分钟，端到端窗口缩小 60%；但计时起点（现场检测时刻 / 平台入库时刻）、终点（监控端界面可见 / 接口返回）以及判定、传输、界面刷新各环节的时延分配，资料未提及，仍无法判断该指标是设计裕度目标还是验收阈值。这是当前链路组织中最紧迫的澄清项。 3. **可追溯性要求被新增备注需求抬高，但标准仍未定义。** 「至少保留一份」只是数量下限。新增的人工处置备注意味着历史记录需同时承载设备侧报警要素与人工处置要素，然而必备字段、保存周期、存储位置、冗余份数、备注与原报警的绑定规则（按事件 ID 还是按时间戳匹配）、备注是否需留痕修改人，资料均未提及。 ## 三、建议澄清事项（供人工确认，未代为决策） 1. 2 分钟时延的起止点定义及各环节允许时延分配。 2. 报警事件检测来源与判定责任方（船端 / 平台端 / 人工）。 3. 报警历史记录必备字段、保存周期、存储位置与冗余要求。 4. 人工处置备注的字段结构、录入权限、与报警记录的绑定规则、是否纳入可追溯审计。 5. 单点系泊区域的空间标识方式（围栏 / 桩位编号）与事件绑定规则。 6. 监控断连期间的报警缓存与补传策略——在 2 分钟窗口下该策略直接决定指标是否成立。 ## 四、不确定性 - 未获得架构图、接口文档、协议清单或部署拓扑，无法核实环节数量与责任划分。 - 未获得 test_data 字段说明与样例，无法核实事件记录结构是否满足可追溯性与备注要求。 - 「疑似漏油」判定的主体（算法 / 规则 / 人工）在资料中完全缺失。 - 本次未修改任何项目数据，亦未代为确认或变更任何需求版本。"
+    - generic: okai2/qwen3.8-flash · 本次指定
+    - textbox "对话输入":
+      - /placeholder: 针对当前研究问题继续提问…
+    - generic: AI 只提供建议，不能确认、采纳或发布
+    - button "发送" [disabled]:
+- alert

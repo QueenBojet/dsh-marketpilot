@@ -9,6 +9,7 @@ import { registerArtifactTools } from '../tools/artifact.ts'
 import { registerGenerationTools } from '../tools/generation.ts'
 import { registerTenderTools } from '../tools/tender.ts'
 import { registerResearchTools, researchSearchPlugin } from '../tools/research.ts'
+import { registerV4Tools } from '../tools/v4.ts'
 
 export { Config } from './service.ts'
 export { WorkbenchManager } from './workbench.ts'
@@ -25,6 +26,7 @@ export async function apply(ctx: Context, config: Config) {
     registerGenerationTools(toolCtx)
     registerTenderTools(toolCtx)
     registerResearchTools(toolCtx)
+    registerV4Tools(toolCtx)
   } })
   ctx.plugin(researchSearchPlugin)
   // Click-driven workbench: mounts HTTP routes only where a webServer exists.

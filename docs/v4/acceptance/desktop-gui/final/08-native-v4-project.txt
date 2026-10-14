@@ -1,0 +1,202 @@
+Window: "MarketPilot V4 工作台", App: DSH Desktop.exe.
+	0 窗口 MarketPilot V4 工作台 Secondary Actions: Raise
+		1 窗格 (disabled)
+		2 区域 MarketPilot V4 工作台
+			3 区域
+				4 区域
+					5 区域
+						6 区域
+							7 菜单栏
+								8 按钮 Harness
+								9 按钮 Edit ID: view_1
+								10 按钮 View ID: view_2
+								11 按钮 Window ID: view_3
+							12 区域
+								13 区域
+									14 文档 MarketPilot V4 工作台 Value: http://127.0.0.1:3181/marketpilot/workbench#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2 ID: RootWebArea
+										15 组 ID: root
+											16 补充 主导航
+												17 文本 M
+												18 文本 MarketPilot
+												19 文本 智策
+												20 文本 WORKSPACE
+												21 链接 工作台 Value: http://127.0.0.1:3181/marketpilot/workbench#/home?p=9145a82a-3c13-470c-99f2-b7de73993fe2
+												22 链接 我的项目 Value: http://127.0.0.1:3181/marketpilot/workbench#/projects
+												23 链接 研究资料库 Value: http://127.0.0.1:3181/marketpilot/workbench#/library
+												24 链接 运行记录 Value: http://127.0.0.1:3181/marketpilot/workbench#/runs
+												25 文本 CURRENT PROJECT
+												26 链接 V4 GUI 验收 - CALM 合成案例 - 2026-10-13 虚构客户 test_data · 修订 90 Value: http://127.0.0.1:3181/marketpilot/workbench#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2
+												65 链接 项目总览 Value: http://127.0.0.1:3181/marketpilot/workbench#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2
+												66 链接 资料与变更 Value: http://127.0.0.1:3181/marketpilot/workbench#/change?p=9145a82a-3c13-470c-99f2-b7de73993fe2
+												67 链接 智能研究 Value: http://127.0.0.1:3181/marketpilot/workbench#/research?p=9145a82a-3c13-470c-99f2-b7de73993fe2
+												68 链接 方案与决策 Value: http://127.0.0.1:3181/marketpilot/workbench#/solution?p=9145a82a-3c13-470c-99f2-b7de73993fe2
+												69 链接 成本与报价 Value: http://127.0.0.1:3181/marketpilot/workbench#/cost?p=9145a82a-3c13-470c-99f2-b7de73993fe2
+												70 链接 文档与交付 Value: http://127.0.0.1:3181/marketpilot/workbench#/deliver?p=9145a82a-3c13-470c-99f2-b7de73993fe2
+												27 链接 设置 Value: http://127.0.0.1:3181/marketpilot/workbench#/settings
+											28 标题
+												71 文本 V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+												72 文本 /
+												29 文本 项目总览
+												30 按钮 选择模型与思考强度 Description: zai / glm-5.3-flash
+												31 链接 设置 Description: 设置 Value: http://127.0.0.1:3181/marketpilot/workbench#/settings
+											32 主要 ID: page
+												73 标题 V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+												74 文本 虚构客户 test_data · 海洋工程（软件验收） · 合成 CALM 单点系泊油污报警
+												75 链接 上传新资料 Value: http://127.0.0.1:3181/marketpilot/workbench#/change?p=9145a82a-3c13-470c-99f2-b7de73993fe2
+												76 文本 需求确认
+												77 文本 4/4
+												78 文本 2
+												79 文本 份资料
+												80 文本 已采纳研究结论
+												81 文本 1
+												82 文本 2
+												83 文本 个研究问题
+												84 文本 技术路线
+												85 文本 已确认
+												86 文本 路线 A：检测网关与监控平台 test_data
+												87 文本 成本审核
+												88 文本 1/3
+												89 文本 7,910.00
+												90 标题 待办事项
+												91 文本 部分研究结论因输入变化需要复核
+												92 链接 去复核 Value: http://127.0.0.1:3181/marketpilot/workbench#/research?p=9145a82a-3c13-470c-99f2-b7de73993fe2
+												93 标题 发布前检查
+												94 文本 技术基线
+												95 文本 检查通过，可在“文档与交付”中由人工发布。
+												96 文本 可发布
+												97 文本 完整基线
+												98 文本 检查通过，可在“文档与交付”中由人工发布。
+												99 文本 可发布
+												100 文本 当前正式版本
+												101 文本 V2
+												102 文本 完整基线 · 2026-10-13 06:09 · Harness human (797db11f-3d0e-45be-b969-2eedfc191081) 发布。正式版本不可修改。
+												103 文本 2
+												104 文本 个版本
+												105 链接 版本与对比 → Value: http://127.0.0.1:3181/marketpilot/workbench#/deliver?p=9145a82a-3c13-470c-99f2-b7de73993fe2
+												106 标题 文档状态
+												107 文本 CALM 合成技术方案 test_data
+												108 文本 修订
+												109 文本 3
+												110 文本 · 已导出
+												111 文本 审核有效
+												112 文本 CALM 合成成本 test_data
+												113 文本 修订
+												114 文本 2
+												115 文本 · 已导出
+												116 文本 审核有效
+												117 标题 最近动态
+												118 文本 研究运行
+												119 文本 2026-10-13 07:23
+												120 文本 ·
+												121 文本 completed · okai2/qwen3.8-flash
+												122 文本 研究运行
+												123 文本 2026-10-13 06:46
+												124 文本 ·
+												125 文本 completed · okai2/qwen3.8-flash
+												126 文本 研究运行
+												127 文本 2026-10-13 06:43
+												128 文本 ·
+												129 文本 failed · okai2/qwen3.8-flash
+												130 文本 研究运行
+												131 文本 2026-10-13 06:40
+												132 文本 ·
+												133 文本 failed · okai2/qwen3.8-flash
+												134 文本 发布正式版本 V2
+												135 文本 2026-10-13 06:09
+												136 文本 ·
+												137 文本 完整基线 · Harness human (797db11f-3d0e-45be-b969-2eedfc191081)
+												138 文本 人工确认技术路线
+												139 文本 2026-10-13 05:52
+												140 文本 ·
+												141 文本 路线 A：检测网关与监控平台 test_data · Harness human (eca9a389-bc97-4e22-9900-e36f1036c11b)
+												142 文本 AI 对话
+												143 文本 2026-10-13 05:45
+												144 文本 ·
+												145 文本 completed · okai2/qwen3.8-flash
+												146 文本 深度变更分析
+												147 文本 2026-10-13 03:01
+												148 文本 ·
+												149 文本 completed · okai2/qwen3.8-flash
+											38 警报
+								39 区域
+
+Document text: ```
+M
+MarketPilot 智策
+WORKSPACE
+工作台
+我的项目
+研究资料库
+运行记录
+CURRENT PROJECT
+V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+虚构客户 test_data · 修订 90
+项目总览
+资料与变更
+智能研究
+方案与决策
+成本与报价
+文档与交付
+设置
+V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+/
+项目总览
+glm-5.3-flash
+max
+设置
+V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+虚构客户 test_data · 海洋工程（软件验收） · 合成 CALM 单点系泊油污报警
+上传新资料
+需求确认
+4/4
+2 份资料
+已采纳研究结论
+1
+2 个研究问题
+技术路线
+已确认
+路线 A：检测网关与监控平台 test_data
+成本审核
+1/3
+7,910.00
+待办事项
+部分研究结论因输入变化需要复核
+去复核
+发布前检查
+技术基线
+检查通过，可在“文档与交付”中由人工发布。
+可发布
+完整基线
+检查通过，可在“文档与交付”中由人工发布。
+可发布
+当前正式版本
+V2
+完整基线 · 2026-10-13 06:09 · Harness human (797db11f-3d0e-45be-b969-2eedfc191081) 发布。正式版本不可修改。
+2 个版本
+版本与对比 →
+文档状态
+CALM 合成技术方案 test_data
+修订 3 · 已导出
+审核有效
+CALM 合成成本 test_data
+修订 2 · 已导出
+审核有效
+最近动态
+研究运行
+2026-10-13 07:23 · completed · okai2/qwen3.8-flash
+研究运行
+2026-10-13 06:46 · completed · okai2/qwen3.8-flash
+研究运行
+2026-10-13 06:43 · failed · okai2/qwen3.8-flash
+研究运行
+2026-10-13 06:40 · failed · okai2/qwen3.8-flash
+发布正式版本 V2
+2026-10-13 06:09 · 完整基线 · Harness human (797db11f-3d0e-45be-b969-2eedfc191081)
+人工确认技术路线
+2026-10-13 05:52 · 路线 A：检测网关与监控平台 test_data · Harness human (eca9a389-bc97-4e22-9900-e36f1036c11b)
+AI 对话
+2026-10-13 05:45 · completed · okai2/qwen3.8-flash
+深度变更分析
+2026-10-13 03:01 · completed · okai2/qwen3.8-flash
+￼
+```

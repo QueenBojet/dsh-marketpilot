@@ -1,0 +1,92 @@
+[
+  {
+    "size": 1440,
+    "page": "项目总览",
+    "viewport": 1440,
+    "width": 1425
+  },
+  {
+    "size": 1440,
+    "page": "智能研究",
+    "viewport": 1440,
+    "width": 1425
+  },
+  {
+    "size": 1440,
+    "page": "方案与决策",
+    "viewport": 1440,
+    "width": 1440
+  },
+  {
+    "size": 1440,
+    "page": "成本与报价",
+    "viewport": 1440,
+    "width": 1425
+  },
+  {
+    "size": 1440,
+    "page": "文档与交付",
+    "viewport": 1440,
+    "width": 1425
+  },
+  {
+    "size": 1024,
+    "page": "项目总览",
+    "viewport": 1024,
+    "width": 1009
+  },
+  {
+    "size": 1024,
+    "page": "智能研究",
+    "viewport": 1024,
+    "width": 1009
+  },
+  {
+    "size": 1024,
+    "page": "方案与决策",
+    "viewport": 1024,
+    "width": 1009
+  },
+  {
+    "size": 1024,
+    "page": "成本与报价",
+    "viewport": 1024,
+    "width": 1009
+  },
+  {
+    "size": 1024,
+    "page": "文档与交付",
+    "viewport": 1024,
+    "width": 1009
+  },
+  {
+    "size": 390,
+    "page": "总览",
+    "viewport": 390,
+    "width": 375
+  },
+  {
+    "size": 390,
+    "page": "研究",
+    "viewport": 390,
+    "width": 375
+  },
+  {
+    "size": 390,
+    "page": "方案",
+    "viewport": 390,
+    "width": 375
+  },
+  {
+    "size": 390,
+    "page": "成本",
+    "viewport": 390,
+    "width": 375
+  },
+  {
+    "size": 390,
+    "page": "交付",
+    "viewport": 390,
+    "width": 375
+  }
+]

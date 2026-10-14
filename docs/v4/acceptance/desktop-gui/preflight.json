@@ -1,0 +1,16 @@
+{
+  "prepared": true,
+  "launched": false,
+  "root": "C:\\Users\\zjdzc\\AppData\\Local\\Temp\\marketpilot-v4-gui-isolated-C0MRRc",
+  "profile": "C:\\Users\\zjdzc\\AppData\\Local\\Temp\\marketpilot-v4-gui-isolated-C0MRRc\\harness\\profiles\\web",
+  "storage": "C:\\Users\\zjdzc\\AppData\\Local\\Temp\\marketpilot-v4-gui-isolated-C0MRRc\\harness\\storages",
+  "plugin": "C:\\Users\\zjdzc\\AppData\\Local\\Temp\\marketpilot-v4-gui-isolated-C0MRRc\\plugin",
+  "sourceProfile": "C:\\Users\\zjdzc\\AppData\\Roaming\\dsh-desktop\\harness\\profiles\\web",
+  "backupSha256": "669636b62c40dd2c87b78d05e578c2529bb85f064cc76d780f4eeee48fec6f20",
+  "sourceUnchanged": true,
+  "credentialsCopied": false,
+  "userProviderPatchCopied": false,
+  "sharedDependencies": true,
+  "dependencyWritesForbidden": true,
+  "next": "Set DSH_HOME to <root>/harness and launch this cloned web profile through the installed Harness launcher on a distinct loopback port. Do not install/update dependencies through these shared links. Native Desktop window and live providers still require acceptance."
+}

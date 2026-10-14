@@ -1,0 +1,87 @@
+- complementary "主导航":
+  - generic: M
+  - generic: MarketPilot 智策
+  - generic: ENGINEERING INTELLIGENCE
+  - generic: WORKSPACE
+  - link "工作台":
+    - /url: "#/home?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 工作台
+  - link "我的项目":
+    - /url: "#/projects?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 我的项目
+  - link "研究资料库":
+    - /url: "#/library?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 研究资料库
+  - link "运行记录" [active]:
+    - /url: "#/runs?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 运行记录
+  - generic: CURRENT PROJECT
+  - link "V4 GUI 验收 - CALM 合成案例 - 2026-10-13 虚构客户 test_data · 修订 5":
+    - /url: "#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - text: V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+    - generic: 虚构客户 test_data · 修订 5
+  - link "项目总览":
+    - /url: "#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 项目总览
+  - link "资料与变更 有待处理事项":
+    - /url: "#/change?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 资料与变更
+    - generic "有待处理事项"
+  - link "智能研究":
+    - /url: "#/research?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 智能研究
+  - link "方案与决策":
+    - /url: "#/solution?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 方案与决策
+  - link "成本与报价":
+    - /url: "#/cost?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 成本与报价
+  - link "文档与交付":
+    - /url: "#/deliver?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 文档与交付
+  - link "设置":
+    - /url: "#/settings?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 设置
+  - generic: 工
+  - text: 工程师工作空间
+  - generic: 本机独立网页 · 仅回环地址
+- banner:
+  - text: 工作台
+  - generic: /
+  - strong: 运行记录
+  - generic "已注册模型路由；调用可用性仍以实际任务为准。": 模型可用 · glm-5.3-flash
+  - link "设置":
+    - /url: "#/settings?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+- main:
+  - generic: 运行记录
+  - heading "V4 GUI 验收 - CALM 合成案例 - 2026-10-13 · 运行记录" [level=1]
+  - paragraph: 每次 AI 运行都记录实际使用的模型路由（全局默认 → 项目偏好 → 本次指定）、联网状态与来源数量；失败与取消会如实保留。
+  - heading "AI 运行（1）" [level=2]
+  - table:
+    - rowgroup:
+      - row "运行 状态 实际模型 路由来源 联网 来源数 时间":
+        - columnheader "运行"
+        - columnheader "状态"
+        - columnheader "实际模型"
+        - columnheader "路由来源"
+        - columnheader "联网"
+        - columnheader "来源数"
+        - columnheader "时间"
+    - rowgroup:
+      - row "深度变更分析 · local 错误：模型步骤结束：error 失败 zai / glm-5.3-flash (max) 全局默认 未请求联网 0 2026-10-13 02:03 → 2026-10-13 02:03":
+        - cell "深度变更分析 · local 错误：模型步骤结束：error":
+          - strong: 深度变更分析 · local
+          - generic: 错误：模型步骤结束：error
+        - cell "失败":
+          - generic: 失败
+        - cell "zai / glm-5.3-flash (max)"
+        - cell "全局默认"
+        - cell "未请求联网"
+        - cell "0"
+        - cell "2026-10-13 02:03 → 2026-10-13 02:03"
+  - heading "工具执行（1）" [level=2]
+  - generic: 服务重启后，未完成的执行会被标记为已中断
+  - text: marketpilot_v4_intake_deep_analyze
+  - generic: "2026-10-13 02:03 · Error: 模型步骤结束：error"
+  - generic: 失败
+- alert

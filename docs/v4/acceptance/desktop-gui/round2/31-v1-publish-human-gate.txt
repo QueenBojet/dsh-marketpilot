@@ -1,0 +1,200 @@
+- complementary "主导航":
+  - generic: M
+  - generic: MarketPilot 智策
+  - generic: ENGINEERING INTELLIGENCE
+  - generic: WORKSPACE
+  - link "工作台":
+    - /url: "#/home?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 工作台
+  - link "我的项目":
+    - /url: "#/projects?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 我的项目
+  - link "研究资料库":
+    - /url: "#/library?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 研究资料库
+  - link "运行记录":
+    - /url: "#/runs?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 运行记录
+  - generic: CURRENT PROJECT
+  - link "V4 GUI 验收 - CALM 合成案例 - 2026-10-13 虚构客户 test_data · 修订 45":
+    - /url: "#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - text: V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+    - generic: 虚构客户 test_data · 修订 45
+  - link "项目总览":
+    - /url: "#/overview?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 项目总览
+  - link "资料与变更":
+    - /url: "#/change?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 资料与变更
+  - link "智能研究":
+    - /url: "#/research?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 智能研究
+  - link "方案与决策":
+    - /url: "#/solution?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 方案与决策
+  - link "成本与报价":
+    - /url: "#/cost?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 成本与报价
+  - link "文档与交付":
+    - /url: "#/deliver?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 文档与交付
+  - link "设置":
+    - /url: "#/settings?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+    - generic: 设置
+  - generic: 工
+  - text: 工程师工作空间
+  - generic: 本机独立网页 · 仅回环地址
+- banner:
+  - text: 工作台
+  - generic: /
+  - text: V4 GUI 验收 - CALM 合成案例 - 2026-10-13
+  - generic: /
+  - strong: 文档与交付
+  - generic "已注册模型路由；调用可用性仍以实际任务为准。": 模型可用 · glm-5.3-flash
+  - link "设置":
+    - /url: "#/settings?p=9145a82a-3c13-470c-99f2-b7de73993fe2"
+- main:
+  - generic: 文档与交付
+  - heading "文档、审核与正式版本" [level=1]
+  - paragraph: 文档章节由项目数据确定性生成，可逐节编辑或请 AI 提出建议。已审核、已导出、已对外发送是三个独立状态；编辑会使审核失效。
+  - button "新建文档":
+    - text: 新建文档
+  - button "发布正式版本":
+    - text: 发布正式版本
+  - generic: 项目文档（2）
+  - button "CALM 合成技术方案 test_data 技术方案 · 修订 1 审核有效":
+    - text: CALM 合成技术方案 test_data
+    - generic: 技术方案 · 修订 1
+    - generic: 审核有效
+  - button "CALM 合成成本 test_data 成本与报价 · 修订 1 审核有效":
+    - text: CALM 合成成本 test_data
+    - generic: 成本与报价 · 修订 1
+    - generic: 审核有效
+  - generic: 审核有效
+  - generic: 当前版本已导出
+  - generic: 未对外发送
+  - combobox "DOCX 模板":
+    - option "默认模板" [selected]
+  - button "重新审核" [disabled]:
+    - text: 重新审核
+  - button "导出 DOCX":
+    - text: 导出 DOCX
+  - button "记录对外发送" [disabled]:
+    - text: 记录对外发送
+  - generic: 已有运行进行中
+  - generic: V4 GUI 验收 - CALM 合成案例 - 2026-10-13 · 成本与报价
+  - heading "CALM 合成成本 test_data" [level=1]
+  - generic: 修订 1 · 默认模板 · 指纹 f68914cbab2d · 审核 Harness human (35b9c793-29cf-47a8-bfd4-8ed5cd34af65) 2026-10-13 02:56
+  - heading "系统配置 编辑" [level=3]:
+    - text: 系统配置
+    - button "编辑"
+  - paragraph: 配置项 1 项。
+  - table:
+    - rowgroup:
+      - row "分组 名称 型号 关键参数 数量 接口 安装":
+        - columnheader "分组"
+        - columnheader "名称"
+        - columnheader "型号"
+        - columnheader "关键参数"
+        - columnheader "数量"
+        - columnheader "接口"
+        - columnheader "安装"
+    - rowgroup:
+      - row "合成传感器 test_data 合成漏油事件检测器 test_data TEST-SENSOR-01 — 4 套 — —":
+        - cell "合成传感器 test_data"
+        - cell "合成漏油事件检测器 test_data"
+        - cell "TEST-SENSOR-01"
+        - cell "—"
+        - cell "4 套"
+        - cell "—"
+        - cell "—"
+  - heading "成本估算 编辑" [level=3]:
+    - text: 成本估算
+    - button "编辑"
+  - table:
+    - rowgroup:
+      - row "类别 名称 数量 币种 单价 金额 价格状态":
+        - columnheader "类别"
+        - columnheader "名称"
+        - columnheader "数量"
+        - columnheader "币种"
+        - columnheader "单价"
+        - columnheader "金额"
+        - columnheader "价格状态"
+    - rowgroup:
+      - row "设备 检测器成本 test_data 4 CNY 1000.00 4,000.00 测试数据":
+        - cell "设备"
+        - cell "检测器成本 test_data"
+        - cell "4"
+        - cell "CNY"
+        - cell "1000.00"
+        - cell "4,000.00"
+        - cell "测试数据"
+      - row "服务 集成服务 test_data 2 CNY 500.00 1,000.00 测试数据":
+        - cell "服务"
+        - cell "集成服务 test_data"
+        - cell "2"
+        - cell "CNY"
+        - cell "500.00"
+        - cell "1,000.00"
+        - cell "测试数据"
+  - paragraph: 合计（CNY）：5,650.00
+  - generic: 含 2 行测试数据，仅用于演示流程，不构成报价。
+  - generic: 税费说明：test_data：统一未税测试单价，演示税率13%，非税务结论
+  - complementary:
+    - generic: 系统生成内容
+    - button: ×
+    - button: 取消
+    - button: 保存章节
+  - heading "正式版本（0）" [level=2]
+  - button "发布正式版本":
+    - text: 发布正式版本
+  - generic: 尚未发布正式版本。工作草稿可持续修改；只有人工发布才会生成 V1、V2…
+  - heading "DOCX 模板（1）" [level=2]
+  - strong: 默认模板
+  - generic: 系统内置 A4 版式；未选择模板的文档使用此模板。
+  - generic: 内置
+  - generic: "上传公司 .docx 模板：可使用 {{project.name}}、{{doc.title}} 等占位符，及 {{sections}} 或 {{section:KEY}} 章节槽位；未提供槽位时章节追加在正文末尾。"
+  - text: 模板名称
+  - textbox "模板名称":
+    - /placeholder: 留空使用文件名
+  - text: 文件
+  - button "文件"
+  - button "上传模板" [disabled]:
+    - text: 上传模板
+  - heading "版本差异（业务级）" [level=2]
+  - generic: 至少发布两个正式版本后，才能比较业务差异。
+  - dialog "人工发布正式版本":
+    - heading "人工发布正式版本" [level=2]
+    - generic: 发布会冻结当前工作草稿的快照；正式版本不可修改，之后的草稿编辑不会影响它。需要在 Human Gate 中再次确认。
+    - button "技术方案基线 冻结需求、路线、配置、研究结论与技术文档。 检查通过":
+      - heading "技术方案基线" [level=3]
+      - paragraph: 冻结需求、路线、配置、研究结论与技术文档。
+      - generic: 检查通过
+    - button "完整方案包（含成本） 在技术基线基础上冻结成本明细与三项成本审核、成本文档。 检查通过":
+      - heading "完整方案包（含成本）" [level=3]
+      - paragraph: 在技术基线基础上冻结成本明细与三项成本审核、成本文档。
+      - generic: 检查通过
+    - text: 版本标签
+    - textbox "版本标签 留空为 V1"
+    - text: 留空为 V1
+    - text: 发布说明
+    - textbox "发布说明": 隔离 CALM 合成验收 V1；人民币成本5650；test_data，未核实技术结论，未对外发送。
+    - checkbox "我确认发布内容已经过人工审核，并对该正式版本负责。" [checked]
+    - generic: 我确认发布内容已经过人工审核，并对该正式版本负责。
+    - button "取消"
+    - button "发布 V1" [disabled]:
+      - text: 发布 V1
+    - generic: 已有运行进行中
+- dialog "MarketPilot 人工审核":
+  - heading "MarketPilot 人工审核" [level=2]
+  - generic: Human Gate：这一步必须由人确认，AI 不能代替。
+  - paragraph:
+    - strong: 是否确认 v4_baseline_publish？
+  - generic: "{ \"type\": \"full\", \"label\": \"V1\", \"number\": 1, \"note\": \"隔离 CALM 合成验收 V1；人民币成本5650；test_data，未核实技术结论，未对外发送。\", \"snapshotHash\": \"dc8b6b97c722dadebe6a314ccbc20a71a9a82a2f98ee5090bd08ebd311496913\", \"summary\": { \"requirements\": 3, \"config\": 1, \"alternative\": \"路线 A：检测网关与监控平台 test_data\" } }"
+  - text: 备注（可选）
+  - textbox "备注（可选）"
+  - button "取消运行"
+  - button "确认"
+  - button "退回修改"
+- alert
