@@ -7,3 +7,6 @@ marketpilot-private/
 private-fixtures/
 *.secret.*
 *.local.*
+
+# Office temporary lock files
+~$*
