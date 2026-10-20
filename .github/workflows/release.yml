@@ -1,0 +1,91 @@
+name: Release prebuilt plugin
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.34.5
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      # The plugin builds against a pinned DeepSeek Harness baseline checked out
+      # as the sibling directory its link: devDependencies point at.
+      - name: Check out pinned DeepSeek Harness baseline
+        working-directory: ..
+        run: |
+          git init deepseek-harness
+          git -C deepseek-harness remote add origin https://github.com/deepseek-ai/deepseek-harness.git
+          git -C deepseek-harness fetch --depth 1 origin 5badb15009ae1756c3afe0ae0cef1faafc290ccc \
+            || git -C deepseek-harness fetch origin 5badb15009ae1756c3afe0ae0cef1faafc290ccc
+          git -C deepseek-harness checkout FETCH_HEAD
+
+      - name: Install Harness dependencies
+        working-directory: ../deepseek-harness
+        run: pnpm install --frozen-lockfile || pnpm install
+
+      - name: Install plugin dependencies
+        run: pnpm install
+
+      - name: Prepare Harness types and runtime
+        run: |
+          pnpm prepare:harness-types
+          pnpm prepare:harness-runtime
+
+      - name: Build plugin
+        run: pnpm build
+
+      - name: Pack
+        run: |
+          mkdir dist
+          npm pack --pack-destination dist
+          VERSION=$(node -p "require('./package.json').version")
+          echo "TARBALL=dist/dsh-marketpilot-${VERSION}.tgz" >> "$GITHUB_ENV"
+          echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
+
+      # One version maps to exactly one commit. The release asset URL is pinned
+      # by sha512 in consumers' lockfiles, so an existing version is never
+      # overwritten — bump "version" in package.json instead.
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v${VERSION}"
+          BODY=$(cat <<EOF
+          Prebuilt plugin package built from \`main\`.
+
+          Commit: ${GITHUB_SHA}
+          Install source (DSH profile dependency):
+          https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/dsh-marketpilot-${VERSION}.tgz
+          EOF
+          )
+          if gh release view "$TAG" --json body -q .body > existing_body.txt 2>/dev/null; then
+            if grep -q "Commit: ${GITHUB_SHA}" existing_body.txt; then
+              echo "Release ${TAG} already published for this commit; nothing to do."
+            else
+              echo "::error::Tag ${TAG} already exists for a different commit. Bump \"version\" in package.json and push again."
+              exit 1
+            fi
+          else
+            gh release create "$TAG" "$TARBALL" --target "$GITHUB_SHA" \
+              --title "dsh-marketpilot ${TAG} (prebuilt)" --notes "$BODY"
+          fi
