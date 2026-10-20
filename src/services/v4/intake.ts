@@ -11,6 +11,7 @@ import { V4RunBase, errorText, truncate } from './base.ts'
 import type { RunDeps } from './base.ts'
 
 export const intakeInput = z.strictObject({
+  structuredOnly: z.boolean().default(false),
   label: text.max(200), sourceNote: z.string().trim().max(4000).optional(), receivedOn: z.iso.date().optional(),
   manualSummary: z.string().trim().max(4000).optional(),
   files: z.array(documentInput.extend({ warnings: z.array(z.string()).max(50).optional() })).min(1).max(20),
@@ -56,7 +57,7 @@ export class IntakeService extends V4RunBase {
     for (const r of state.requirements) if (r.status !== 'superseded')
       corpus.push({ text: r.originalText, locator: r.sourceLocator ?? '需求', requirementId: r.id, confirmed: r.status === 'confirmed' })
     const changes: ChangeProposal[] = []
-    for (const d of docs) for (const c of compareLines(splitLines(d.textContent), corpus, 200)) {
+    for (const d of data.structuredOnly || state.v4?.discovery ? [] : docs) for (const c of compareLines(splitLines(d.textContent), corpus, 200)) {
       const reqId = c.old?.requirementId
       const summary = c.old ? `${LABELS[c.kind]}：${c.old.text} → ${c.text}` : `${LABELS[c.kind]}：${c.text}`
       changes.push({ ...this.ctx.fields(projectId), batchId: batch.id, kind: c.kind, newText: truncate(c.text, 2000),
@@ -66,14 +67,15 @@ export class IntakeService extends V4RunBase {
         ...c.similarity !== undefined ? { impactNote: `规则相似度 ${c.similarity}，需人工判断是否为同一要求` } : {} })
     }
     const count = (k: ChangeProposal['kind']) => changes.filter(c => c.kind === k).length
-    const notes = ['轻量识别仅基于文本规则比对，结果是“可能的变化”；请人工启动深度分析或逐条审阅。']
+    const structuredOnly = data.structuredOnly || !!state.v4?.discovery
+    const notes = [structuredOnly ? '原文已接收。请精选与目标、约束、验收、接口或风险相关的摘要，经人工固化后作为后续支撑。' : '轻量识别仅基于文本规则比对，结果是“可能的变化”；请人工启动深度分析或逐条审阅。']
     if (!docs.length) notes.push('本批次文件均与已有资料重复，未新增文档。')
     if (!data.sourceNote) notes.push('来源未填写：请补充资料来源以便追溯。')
     await this.mutate(projectId, s => {
       s.documents.push(...docs)
       s.v4.intakeBatches.push({ ...batch, label: data.label, ...data.sourceNote ? { sourceNote: data.sourceNote } : {},
         ...data.receivedOn ? { receivedOn: data.receivedOn } : {}, ...data.manualSummary ? { manualSummary: data.manualSummary } : {},
-        documentIds: docs.map(d => d.id), status: 'hinted', warnings,
+        documentIds: docs.map(d => d.id), status: structuredOnly ? 'received' : 'hinted', warnings,
         hint: { added: count('added'), modified: count('modified'), conflict: count('conflict'), background: count('background'), duplicates, notes } })
       s.v4.changes.push(...changes)
     })

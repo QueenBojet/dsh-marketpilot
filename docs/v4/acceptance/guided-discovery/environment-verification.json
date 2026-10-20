@@ -1,0 +1,21 @@
+{
+  "checkedAt": "2026-10-14T13:06:56.0159231+08:00",
+  "branch": "feat/v4-guided-discovery",
+  "formalStorage": {
+    "initialSHA256": "10feff86648afe51429214887165d3d89e9283fbc9b4d1d3f53b3ae54da327bd",
+    "finalSHA256": "10feff86648afe51429214887165d3d89e9283fbc9b4d1d3f53b3ae54da327bd",
+    "unchanged": true
+  },
+  "formalBuildFiles": [
+    {
+      "FullName": "E:\\PythonProjects\\Work_Platform\\marketpilot\\lib\\harness\\v4-page.generated.js",
+      "Length": 323165,
+      "LastWriteTime": "2026-10-14T09:28:56.1535615+08:00"
+    },
+    {
+      "FullName": "E:\\PythonProjects\\Work_Platform\\marketpilot\\client\\client.js",
+      "Length": 462185,
+      "LastWriteTime": "2026-10-14T09:28:56.7194524+08:00"
+    }
+  ]
+}

@@ -50,7 +50,7 @@ export function ModelPicker() {
   return <>
     <button className="model-trigger" onClick={show} aria-label="选择模型与思考强度" aria-haspopup="dialog" title={selection ? `${selection.provider} / ${selection.model}` : '选择模型'}>
       <span className={`model-indicator${unavailable || catalogError ? ' unavailable' : ''}`} />
-      <span className="model-trigger-name">{selection?.model ?? '选择模型'}</span>
+      <span className="model-trigger-name">{selection ? `${selection.provider} / ${selection.model}` : '选择供应商与模型'}</span>
       {selection?.reasoningEffort ? <span className="model-effort">{selection.reasoningEffort}</span> : null}<span aria-hidden="true">⌄</span>
     </button>
     <Modal open={open} title="模型" onClose={() => setOpen(false)} actions={<><Btn kind="ghost" onClick={() => setOpen(false)}>取消</Btn><Btn kind="primary" disabled={reason} onClick={save}>使用此模型</Btn></>}>

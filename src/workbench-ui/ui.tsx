@@ -1,10 +1,11 @@
-/** Shared presentational pieces: buttons with disabled reasons, badges, modal, drawer, labels. */
+/** Shared presentational pieces: buttons with disabled reasons, badges, modal, drawer, labels, and structured Markdown block renderer. */
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 
 export const cx = (...xs: (string | false | null | undefined)[]) => xs.filter(Boolean).join(' ')
 
-/** A button that is either live or disabled with a stated reason (shown as tooltip and inline caption). */
+/** A button that is either live or disabled with a stated reason (shown as tooltip and optional inline caption). */
 export function Btn(props: {
   children: ReactNode; onClick?: () => void | Promise<void>; kind?: 'primary' | 'ghost' | 'teal' | 'text'; small?: boolean
   disabled?: string | false | null | undefined; title?: string; type?: 'button' | 'submit'; showReason?: boolean
@@ -40,15 +41,17 @@ export function Modal(props: { open: boolean; title: string; subtitle?: ReactNod
     return () => window.removeEventListener('keydown', onKey)
   }, [props.open, props.onClose])
   if (!props.open) return null
-  return (
+  return createPortal(
     <div className="overlay open" onMouseDown={e => { if (e.target === e.currentTarget) props.onClose() }}>
       <div className={cx('modal', props.wide && 'wide')} role="dialog" aria-modal="true" aria-label={props.title}>
-        <h2>{props.title}</h2>
-        {props.subtitle ? <div className="subtitle">{props.subtitle}</div> : null}
+        <div className="modal-head">
+          <h2>{props.title}</h2>
+          {props.subtitle ? <div className="subtitle">{props.subtitle}</div> : null}
+        </div>
         <div className="modal-body">{props.children}</div>
         <div className="modal-actions">{props.actions ?? <Btn kind="ghost" onClick={props.onClose}>关闭</Btn>}</div>
       </div>
-    </div>
+    </div>, document.body
   )
 }
 
@@ -68,10 +71,16 @@ export function Drawer(props: { open: boolean; title: string; cap?: string; chil
   )
 }
 
-export function Panel(props: { title: ReactNode; extra?: ReactNode; children: ReactNode; className?: string }) {
+export function Panel(props: { title: ReactNode; subtitle?: ReactNode; extra?: ReactNode; children: ReactNode; className?: string }) {
   return (
-    <section className={cx('panel', props.className)}>
-      <div className="panel-heading"><h2>{props.title}</h2>{props.extra ? <div className="actions">{props.extra}</div> : null}</div>
+    <section className={cx('card panel', props.className)}>
+      <div className="panel-heading">
+        <div>
+          <h2>{props.title}</h2>
+          {props.subtitle ? <p>{props.subtitle}</p> : null}
+        </div>
+        {props.extra ? <div className="actions">{props.extra}</div> : null}
+      </div>
       {props.children}
     </section>
   )
@@ -80,7 +89,11 @@ export function Panel(props: { title: ReactNode; extra?: ReactNode; children: Re
 export function PageHead(props: { eyebrow: string; title: string; lede?: ReactNode; actions?: ReactNode }) {
   return (
     <div className="pagehead">
-      <div><h1>{props.title}</h1>{props.lede ? <p className="lede">{props.lede}</p> : null}</div>
+      <div>
+        <div className="eyebrow">{props.eyebrow}</div>
+        <h1>{props.title}</h1>
+        {props.lede ? <p className="lede">{props.lede}</p> : null}
+      </div>
       {props.actions ? <div className="actions">{props.actions}</div> : null}
     </div>
   )
@@ -93,6 +106,67 @@ export function Field(props: { label: string; children: ReactNode; hint?: string
 }
 
 export const fmtTime = (s?: string) => s ? s.replace('T', ' ').slice(0, 16) : '—'
+
+export function inlineText(text: string): ReactNode {
+  return text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g).map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**') && part.length > 4) return <strong key={i}>{part.slice(2, -2)}</strong>
+    if (part.startsWith('`') && part.endsWith('`') && part.length > 2) return <code key={i} className="inline-code">{part.slice(1, -1)}</code>
+    return part
+  })
+}
+
+/** Structured Markdown block renderer for reports, brainstorm summaries, and document previews. */
+export function Blocks({ content, className }: { content: string; className?: string }) {
+  const out: ReactNode[] = []
+  let list: string[] = []
+  let olist: string[] = []
+  let table: string[][] = []
+  const flush = () => {
+    if (list.length) { out.push(<ul key={`ul-${out.length}`} className="md-list">{list.map((x, i) => <li key={i}>{inlineText(x)}</li>)}</ul>); list = [] }
+    if (olist.length) { out.push(<ol key={`ol-${out.length}`} className="md-list">{olist.map((x, i) => <li key={i}>{inlineText(x)}</li>)}</ol>); olist = [] }
+    if (table.length) {
+      const [head, ...rows] = table
+      out.push(
+        <div key={`tb-${out.length}`} className="table-scroll">
+          <table className="paper-table">
+            <thead><tr>{head!.map((c, i) => <th key={i}>{inlineText(c)}</th>)}</tr></thead>
+            <tbody>{rows.map((r, i) => <tr key={i}>{r.map((c, j) => <td key={j}>{inlineText(c)}</td>)}</tr>)}</tbody>
+          </table>
+        </div>
+      )
+      table = []
+    }
+  }
+  for (const raw of content.split(/\r?\n/)) {
+    const line = raw.trim()
+    if (/^\|.*\|$/.test(line) && line.length > 2) {
+      if (list.length || olist.length) { const t = table; table = []; flush(); table = t }
+      const cells = line.slice(1, -1).split('|').map(c => c.trim())
+      if (!cells.every(c => /^:?-{2,}:?$/.test(c))) table.push(cells)
+      continue
+    }
+    if (/^[-*•]\s+/.test(line)) {
+      if (table.length || olist.length) { const l = list; list = []; flush(); list = l }
+      list.push(line.replace(/^[-*•]\s+/, ''))
+      continue
+    }
+    if (/^\d+[.)]\s+/.test(line)) {
+      if (table.length || list.length) { const ol = olist; olist = []; flush(); olist = ol }
+      olist.push(line.replace(/^\d+[.)]\s+/, ''))
+      continue
+    }
+    flush()
+    if (!line || /^-{3,}$/.test(line)) continue
+    if (line.startsWith('#### ')) out.push(<h5 key={out.length} className="md-h4">{inlineText(line.slice(5))}</h5>)
+    else if (line.startsWith('### ')) out.push(<h4 key={out.length} className="md-h3">{inlineText(line.slice(4))}</h4>)
+    else if (line.startsWith('## ')) out.push(<h4 key={out.length} className="md-h2">{inlineText(line.slice(3))}</h4>)
+    else if (line.startsWith('# ')) out.push(<h3 key={out.length} className="md-h1">{inlineText(line.slice(2))}</h3>)
+    else if (line.startsWith('> ')) out.push(<div key={out.length} className="boxnote md-quote">{inlineText(line.slice(2))}</div>)
+    else out.push(<p key={out.length} className="md-p">{inlineText(line)}</p>)
+  }
+  flush()
+  return <div className={cx('md-blocks', className)}>{out}</div>
+}
 
 export const REQ_STATUS: Record<string, [string, 'warn' | 'teal' | 'blue' | 'red' | 'gray']> = {
   proposed: ['待确认', 'warn'], confirmed: ['已确认', 'teal'], unknown: ['未知', 'gray'], conflict: ['冲突', 'red'], superseded: ['已替代', 'gray'],

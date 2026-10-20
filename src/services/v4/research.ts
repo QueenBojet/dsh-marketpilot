@@ -3,14 +3,17 @@ import { z } from 'zod'
 import { ensure, id, ids, text } from '../../domain/common.ts'
 import { sourceRefSchema } from '../../domain/v4.ts'
 import type { Finding } from '../../domain/v4.ts'
-import { sha256 } from '../../domain/v4-text.ts'
+import { hashOf, sha256 } from '../../domain/v4-text.ts'
+import type { ProjectState } from '../../domain/state.ts'
 import { V4RunBase, errorText, sentOnly, truncate } from './base.ts'
 import type { RunDeps, RunMode } from './base.ts'
 import { researchSkill } from './research-skill.ts'
+import { briefConfirmed, fixedNotes, latestExploration, supportContext } from './discovery-context.ts'
 
 const optText = (max: number) => z.string().trim().max(max).optional()
 export const questionInput = z.strictObject({
   title: text.max(200), description: optText(4000), requirementIds: ids.default([]), documentIds: ids.default([]),
+  alternativeIds: ids.default([]), direction: optText(4000), decisionUse: optText(4000),
 })
 export const questionPatch = questionInput.partial().extend({ status: z.enum(['open', 'answered', 'closed']).optional(), report: z.string().max(200_000).optional() })
 export const planInput = z.strictObject({
@@ -41,6 +44,12 @@ const reportOutput = z.strictObject({
 const chatOutput = z.strictObject({ answer: text.max(20_000) })
 
 const squash = (value: string) => value.replace(/\s+/g, '')
+function researchInputHash(state: ProjectState, questionId: string) {
+  const q = state.v4?.questions.find(q => q.id === questionId)
+  return hashOf({ support: supportContext(state), initial: latestExploration(state, 'initial'),
+    question: q && { title: q.title, description: q.description, direction: q.direction, decisionUse: q.decisionUse,
+      alternativeIds: q.alternativeIds, documentIds: q.documentIds, requirementIds: q.requirementIds, plan: q.plan } })
+}
 /** Strip markup so a stored snapshot is readable text, never executable HTML. */
 export function htmlToText(body: string): string {
   return body.replace(/<script[\s\S]*?<\/script>/gi, ' ').replace(/<style[\s\S]*?<\/style>/gi, ' ').replace(/<[^>]+>/g, ' ')
@@ -53,19 +62,36 @@ interface Material { kind: 'document' | 'web'; refId: string; name: string; url?
 export class ResearchV4Service extends V4RunBase {
   async addQuestion(projectId: string, input: unknown) {
     const data = questionInput.parse(input)
+    this.checkDirection(projectId, data)
     const row = { ...this.ctx.fields(projectId), ...data, status: 'open' as const }
     await this.mutate(projectId, s => { s.v4.questions.push(row) })
     return row
   }
   async updateQuestion(projectId: string, questionId: string, input: unknown) {
     const patch = sentOnly(input, questionPatch.parse(input))
+    this.checkDirection(projectId, { ...this.question(projectId, questionId), ...patch }, questionId)
     await this.mutate(projectId, s => {
       const q = s.v4.questions.find(x => x.id === questionId)
       ensure(q, 'RECORD_NOT_FOUND', '研究问题不存在。')
       ensure(q.status !== 'researching', 'RUN_IN_PROGRESS', '研究进行中，请稍后修改。')
+      if (['title', 'description', 'direction', 'decisionUse', 'alternativeIds', 'documentIds', 'requirementIds'].some(k =>
+        k in patch && JSON.stringify(patch[k as keyof typeof patch]) !== JSON.stringify(q[k as keyof typeof q]))) {
+        delete q.plan
+        q.status = q.report ? 'needs_review' : 'open'
+        q.reviewReason = '研究范围已变化，请重新确认计划并研究；旧报告保留供追溯。'
+      }
       Object.assign(q, patch, { updatedAt: this.ctx.now() })
     })
     return this.question(projectId, questionId)
+  }
+  private checkDirection(projectId: string, q: { direction?: string | undefined; decisionUse?: string | undefined; alternativeIds?: string[] | undefined }, except?: string) {
+    const s = this.ctx.state(projectId)
+    if (!s.v4?.discovery) return
+    ensure(briefConfirmed(s) && latestExploration(s, 'initial'), 'INITIAL_REQUIRED', '请先确认需求并完成当前多路线初筛。')
+    ensure(q.direction?.trim() && q.decisionUse?.trim() && q.alternativeIds?.length, 'DIRECTION_REQUIRED', '每项研究需指定候选路线、具体方向及对路线决策的用途。')
+    const initial = latestExploration(s, 'initial')!
+    ensure(q.alternativeIds!.every(a => initial.routes.some(r => r.alternativeId === a)), 'ROUTE_SCOPE_CHANGED', '研究关联路线不属于当前初筛，请更新研究范围和计划。')
+    ensure(!s.v4.questions.some(x => x.id !== except && x.status !== 'closed' && x.direction?.trim() === q.direction!.trim()), 'DUPLICATE_DIRECTION', '已有同方向研究，请编辑原问题或使用不同的具体方向。')
   }
   private question(projectId: string, questionId: string) {
     const q = this.v4(projectId).questions.find(x => x.id === questionId)
@@ -78,7 +104,9 @@ export class ResearchV4Service extends V4RunBase {
     await this.mutate(projectId, s => {
       const q = s.v4.questions.find(x => x.id === questionId)
       ensure(q, 'RECORD_NOT_FOUND', '研究问题不存在。')
+      ensure(q.status !== 'researching', 'RUN_IN_PROGRESS', '研究进行中，请稍后修改计划。')
       q.plan = { ...plan, confirmedBy: truncate(by || '用户', 80), confirmedAt: this.ctx.now() }
+      if (q.report) { q.status = 'needs_review'; q.reviewReason = '研究计划已更新，请重新执行。' }
       q.updatedAt = this.ctx.now()
     })
     return this.question(projectId, questionId)
@@ -90,7 +118,9 @@ export class ResearchV4Service extends V4RunBase {
     const state = this.ctx.state(projectId)
     const skill = await researchSkill()
     const prompt = [skill.text, '为以下工程技术问题拟定简明研究计划（3-6 步）和至多 4 条联网检索关键词。仅输出 JSON。',
-      `问题：${q.title}`, q.description ?? '', '相关需求：', ...state.requirements.filter(r => q.requirementIds.includes(r.id)).map(r => `- ${r.normalizedText}`)].join('\n')
+      `问题：${q.title}`, q.description ?? '', `具体方向：${q.direction ?? q.title}；决策用途：${q.decisionUse ?? '技术比较'}`,
+      `候选路线：${state.alternatives.filter(a => q.alternativeIds?.includes(a.id)).map(a => `${a.name}：${a.summary}`).join('\n')}`,
+      supportContext(state), '相关需求：', ...state.requirements.filter(r => q.requirementIds.includes(r.id)).map(r => `- ${r.normalizedText}`)].join('\n')
     return model.generate({ prompt, schema: planOutput, signal: deps.signal })
   }
 
@@ -98,7 +128,10 @@ export class ResearchV4Service extends V4RunBase {
     const state = this.ctx.state(projectId)
     const q = questionId ? this.question(projectId, questionId) : undefined
     const docs = q?.documentIds.length ? state.documents.filter(d => q.documentIds.includes(d.id)) : state.documents
-    const out: Material[] = docs.map(d => ({ kind: 'document', refId: d.id, name: d.name, text: d.textContent }))
+    const out: Material[] = state.v4?.discovery
+      ? fixedNotes(state).filter(n => n.documentId && (!q?.documentIds.length || q.documentIds.includes(n.documentId)))
+        .map(n => ({ kind: 'document', refId: n.documentId!, name: n.title, text: `${n.content}\n用途：${n.relevance}\n原文摘录：${n.quote ?? ''}` }))
+      : docs.map(d => ({ kind: 'document', refId: d.id, name: d.name, text: d.textContent }))
     for (const src of state.v4?.sources ?? []) if (src.status === 'fetched' && src.snapshot && (!questionId || src.questionId === questionId))
       out.push({ kind: 'web', refId: src.id, name: src.title, url: src.url, text: src.snapshot })
     return out
@@ -170,6 +203,7 @@ export class ResearchV4Service extends V4RunBase {
       '你不能替用户确认需求、决策、成本或发布版本，只能给出建议。仅输出 JSON {"answer": "..."}。',
       q ? `当前研究问题：${q.title}\n${q.report ? `现有报告摘要：${truncate(q.report, 4000)}` : ''}` : '',
       '已确认需求：', ...state.requirements.filter(r => r.status === 'confirmed').map(r => `- ${truncate(r.normalizedText, 300)}`),
+      supportContext(state),
       '资料摘录：', ...materials.slice(0, 8).map(m => `### ${m.name}\n${truncate(m.text, 6000)}`),
       '对话：', ...history.map(m => `${m.role === 'user' ? '用户' : '助手'}：${truncate(m.content, 4000)}`),
     ].filter(Boolean).join('\n')
@@ -199,7 +233,10 @@ export class ResearchV4Service extends V4RunBase {
     const model = this.requireModel(deps)
     const q = this.question(projectId, questionId)
     ensure(q.status !== 'researching', 'RUN_IN_PROGRESS', '该问题正在研究中。')
+    this.checkDirection(projectId, q, questionId)
+    if (this.ctx.state(projectId).v4?.discovery) ensure(q.plan?.confirmedAt, 'PLAN_REQUIRED', '请先人工确认本方向研究计划。')
     const mode: RunMode = modeOverride ?? q.plan?.mode ?? 'local'
+    const inputState = this.ctx.state(projectId), inputHash = researchInputHash(inputState, questionId)
     const runId = await this.startRun(projectId, 'research', mode, deps.route, questionId)
     await this.mutate(projectId, s => { Object.assign(s.v4.questions.find(x => x.id === questionId)!, { status: 'researching', updatedAt: this.ctx.now() }) })
     let web: Awaited<ReturnType<ResearchV4Service['webPass']>> | undefined
@@ -214,6 +251,10 @@ export class ResearchV4Service extends V4RunBase {
         '同时提炼至多 8 条候选发现：每条给出 sourceKind（document/web/none）、sourceIndex（资料编号）和 quote（逐字摘自该资料的原文片段，≤200字）。',
         '找不到原文依据的发现必须 sourceKind=none。不得编造引用、数据或价格。仅输出 JSON。',
         `研究问题：${q.title}`, q.description ?? '',
+        `具体方向：${q.direction ?? q.title}；本次研究必须解决的决策问题：${q.decisionUse ?? '技术可行性'}`,
+        '分别写出支持/反对各关联路线的证据、适用条件、工业可行性、试验验证建议和信息缺口，不要重复其他研究方向的泛化报告。',
+        `关联路线：${state.alternatives.filter(a => q.alternativeIds?.includes(a.id)).map(a => `${a.id} ${a.name}：${a.summary}`).join('\n')}`,
+        supportContext(state),
         q.plan ? `已确认研究计划：\n${q.plan.steps.map((x, i) => `${i + 1}. ${x}`).join('\n')}` : '',
         '相关需求：', ...state.requirements.filter(r => q.requirementIds.includes(r.id) || r.status === 'confirmed').slice(0, 40).map(r => `- ${truncate(r.normalizedText, 300)}`),
         '资料：', ...materials.slice(0, 12).map((m, i) => `[${i}] (${m.kind}) ${m.name}${m.url ? ` ${m.url}` : ''}\n${truncate(m.text, 12000)}`),
@@ -223,7 +264,8 @@ export class ResearchV4Service extends V4RunBase {
       let unlocated = 0
       for (const f of out.findings) {
         const m = f.sourceIndex !== undefined ? materials[f.sourceIndex] : undefined
-        const located = f.sourceKind !== 'none' && m && f.quote && squash(f.quote).length >= 4 && squash(m.text).includes(squash(f.quote))
+        const original = m?.kind === 'document' ? state.documents.find(d => d.id === m.refId)?.textContent : m?.text
+        const located = f.sourceKind !== 'none' && m && f.quote && squash(f.quote).length >= 4 && squash(m.text).includes(squash(f.quote)) && original && squash(original).includes(squash(f.quote))
         if (f.sourceKind !== 'none' && !located) unlocated++
         const source = located && m && f.quote
           ? { type: m.kind, ...m.kind === 'document' ? { documentId: m.refId } : { sourceId: m.refId }, quote: f.quote, quoteHash: sha256(squash(f.quote)) }
@@ -231,11 +273,13 @@ export class ResearchV4Service extends V4RunBase {
         findings.push({ ...this.ctx.fields(projectId), questionId, statement: f.statement, ...f.conditions ? { conditions: f.conditions } : {},
           origin: 'ai', source, adoption: 'candidate', verification: 'unverified',
           needsReview: !located, ...located ? {} : { reviewReason: f.sourceKind === 'none' ? '无资料依据，需人工核实' : '模型引用无法在原文中定位，已移除来源' },
-          history: [], requirementIds: [...q.requirementIds], alternativeIds: [], decisionIds: [], configItemIds: [] })
+          history: [], requirementIds: [...q.requirementIds], alternativeIds: [...q.alternativeIds ?? []], decisionIds: [], configItemIds: [] })
       }
       const note = [skill.receipt, web?.note, `生成候选发现 ${findings.length} 条${unlocated ? `，其中 ${unlocated} 条引用无法定位` : ''}。`].filter(Boolean).join(' ')
       await this.finishRun(projectId, runId, deps.signal, { status: 'completed', note, webStatus: web?.status ?? 'not_requested', sourceIds: web?.sourceIds ?? [] }, s => {
+        ensure(!inputState.v4?.discovery || researchInputHash(s, questionId) === inputHash, 'STALE_CONTEXT', '需求、路线或支撑资料在研究期间已变化，请更新研究范围后重新运行。')
         Object.assign(s.v4.questions.find(x => x.id === questionId)!, { report: out.report, reportRunId: runId, status: 'answered', updatedAt: this.ctx.now() })
+        delete s.v4.questions.find(x => x.id === questionId)!.reviewReason
         s.v4.findings.push(...findings)
       })
       if (deps.signal.aborted) await this.reopen(projectId, questionId)

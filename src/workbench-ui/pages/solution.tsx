@@ -1,5 +1,6 @@
 /** 方案与决策: candidate routes, draft route, human route confirmation and the structured configuration list. */
 import { useState } from 'react'
+import { ExplorationPanel } from './exploration.tsx'
 import { del, patch, post, pp, put } from '../api.ts'
 import { Icon } from '../icons.tsx'
 import { href } from '../shell.tsx'
@@ -76,35 +77,126 @@ function DecisionModal({ alt, onClose }: { alt: Alternative | undefined; onClose
 function RouteCards({ onDecide }: { onDecide: (a: Alternative) => void }) {
   const { ov, pid, act, run, active } = useStore()
   const [add, setAdd] = useState(false)
+  const [viewMode, setViewMode] = useState<'cards' | 'matrix'>('cards')
   const model = ov!.capabilities.model
   const draft = ov!.route.draftAlternativeId
   const choose = (a: Alternative) => act(() => put(pp(pid!, 'route/draft'), { alternativeId: a.id }),
     ov!.route.confirmedAlternativeId && ov!.route.confirmedAlternativeId !== a.id ? '已写入工作草稿；与已确认决策不一致，需要重新确认' : '已写入工作草稿')
   const confirmedReqs = ov!.requirements.filter(r => r.status === 'confirmed').length
+  const synIds = new Set((ov!.v4.explorations ?? []).filter(e => e.phase === 'synthesis').at(-1)?.routes.map(r => r.alternativeId) ?? [])
+  const initIds = new Set((ov!.v4.explorations ?? []).filter(e => e.phase === 'initial').at(-1)?.routes.map(r => r.alternativeId) ?? [])
+
   return (
     <>
-      <div className="panel-heading"><div><h2>候选技术路线（{ov!.alternatives.length}）</h2><p>选择只写入工作草稿；确认需要人工记录理由。</p></div>
+      <div className="panel-heading">
+        <div>
+          <h2>候选技术路线比选（{ov!.alternatives.length}）</h2>
+          <p>选择路线仅更新工作草稿；开启引导流程的项目须从“第二轮研究综合”产生的最终候选路线中人工确认决策。</p>
+        </div>
         <div className="actions">
+          {ov!.alternatives.length > 1 ? (
+            <div className="segment">
+              <button type="button" className={cx(viewMode === 'cards' && 'active')} onClick={() => setViewMode('cards')}>卡片视图</button>
+              <button type="button" className={cx(viewMode === 'matrix' && 'active')} onClick={() => setViewMode('matrix')}>对比矩阵</button>
+            </div>
+          ) : null}
           <Btn small kind="ghost" onClick={() => setAdd(true)}><Icon name="plus" />手工新增</Btn>
-          <Btn small kind="teal" onClick={() => run('marketpilot_alternative_generate', {}, { ok: '已生成候选路线，请人工比选' }).then(() => {})} showReason
-            disabled={!model.available ? `模型不可用：${model.reason}` : !confirmedReqs ? '需要至少一条已确认需求' : active ? '已有运行进行中' : ''}><Icon name="spark" />AI 生成候选</Btn>
-        </div></div>
-      {ov!.alternatives.length ? <div className="route-grid">{ov!.alternatives.map(a => (
-        <div key={a.id} className={cx('route-card', draft === a.id && 'chosen')}>
-          <Badge tone={ALT_STATUS[a.status][1]}>{ALT_STATUS[a.status][0]}</Badge>
-          {ov!.route.confirmedAlternativeId === a.id ? <> <Badge tone="teal">已人工确认</Badge></> : null}
-          <h3>{a.name}</h3><p>{a.summary}</p>
-          <div className="tiny-caption">组成：{a.components.join('、')}</div>
-          <div className="route-tags">{[...a.risks.map(x => `风险：${x}`), ...a.unknowns.map(x => `待核实：${x}`)].slice(0, 4).map(t => <span key={t}>{t}</span>)}</div>
-          {a.strengths.length ? <div className="tiny-caption">优势：{a.strengths.join('；')}</div> : null}
-          {a.limitations.length ? <div className="tiny-caption">局限：{a.limitations.join('；')}</div> : null}
-          <div className="actions" style={{ marginTop: 14 }}>
-            <Btn small kind={draft === a.id ? 'teal' : 'ghost'} disabled={a.status === 'rejected' ? '已否决的路线不能作为草稿' : draft === a.id ? '当前草稿已采用' : active ? '已有运行进行中' : ''} onClick={() => { void choose(a) }}>
-              {draft === a.id ? '当前草稿采用' : '选为草稿路线'}</Btn>
-            {draft === a.id ? <Btn small kind="primary" disabled={active ? '已有运行进行中' : ''} onClick={() => onDecide(a)}><Icon name="shield" />{ov!.route.confirmed ? '重新确认' : '人工确认'}</Btn> : null}
+          {!ov!.v4.discovery ? <Btn small kind="teal" onClick={() => run('marketpilot_alternative_generate', {}, { ok: '已生成候选路线，请人工比选' }).then(() => {})} showReason
+            disabled={!model.available ? `模型不可用：${model.reason}` : !confirmedReqs ? '需要至少一条已确认需求' : active ? '已有运行进行中' : ''}><Icon name="spark" />AI 生成候选</Btn> : null}
+        </div>
+      </div>
+      {ov!.alternatives.length ? (
+        viewMode === 'matrix' ? (
+          <div className="table-scroll">
+            <table className="data-table">
+              <thead>
+                <tr><th>候选路线</th><th>阶段来源</th><th>系统组成</th><th>核心优势</th><th>局限与风险</th><th>待核实项</th><th>操作</th></tr>
+              </thead>
+              <tbody>
+                {ov!.alternatives.map(a => {
+                  const isSyn = synIds.has(a.id)
+                  const isInit = initIds.has(a.id)
+                  const cardBlocker = ov!.discoveryStatus?.decisionBlocker
+                    || (ov!.v4.discovery && synIds.size > 0 && !isSyn ? '请选择最新综合判断中的最终候选路线' : '')
+                  return (
+                    <tr key={a.id}>
+                      <td className="main-cell">
+                        <strong>{a.name}</strong>
+                        <small>{a.summary}</small>
+                        <div style={{ marginTop: 4, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                          <Badge tone={ALT_STATUS[a.status][1]}>{ALT_STATUS[a.status][0]}</Badge>
+                          {ov!.route.confirmedAlternativeId === a.id ? <Badge tone="teal">已人工确认</Badge> : null}
+                        </div>
+                      </td>
+                      <td>
+                        <Badge tone={isSyn ? 'teal' : isInit ? 'blue' : 'gray'}>
+                          {isSyn ? '二次综合候选' : isInit ? '第一轮初筛' : '候选路线'}
+                        </Badge>
+                      </td>
+                      <td className="tiny-caption">{a.components.join('、') || '—'}</td>
+                      <td className="tiny-caption">{a.strengths.join('；') || '—'}</td>
+                      <td className="tiny-caption">{[...a.limitations, ...a.risks].join('；') || '—'}</td>
+                      <td className="tiny-caption">{a.unknowns.join('；') || '—'}</td>
+                      <td>
+                        <div className="actions">
+                          <Btn small kind={draft === a.id ? 'teal' : 'ghost'} disabled={a.status === 'rejected' ? '已否决的路线不能作为草稿' : draft === a.id ? '当前草稿已采用' : active ? '已有运行进行中' : ''} onClick={() => { void choose(a) }}>
+                            {draft === a.id ? '当前草稿采用' : '选为草稿路线'}
+                          </Btn>
+                          {draft === a.id ? (
+                            <Btn small kind="primary" showReason disabled={active ? '已有运行进行中' : cardBlocker} onClick={() => onDecide(a)}>
+                              <Icon name="shield" />{ov!.route.confirmed ? '重新确认' : '人工确认'}
+                            </Btn>
+                          ) : null}
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           </div>
-        </div>))}</div> : <Empty>暂无候选路线。可手工新增，或在模型可用时由 AI 生成候选（仅作为比选建议）。</Empty>}
-      <div className="reconcile-note" style={{ marginTop: 18 }}><Icon name="shield" /> AI 生成的路线只是建议，不能代替工程师确认；更换草稿路线会使路线确认失效，并提示重新核查成本与文档。</div>
+        ) : (
+          <div className="route-grid">
+            {ov!.alternatives.map(a => {
+              const isSyn = synIds.has(a.id)
+              const isInit = initIds.has(a.id)
+              const cardBlocker = ov!.discoveryStatus?.decisionBlocker
+                || (ov!.v4.discovery && synIds.size > 0 && !isSyn ? '请选择最新综合判断中的最终候选路线' : '')
+              return (
+                <div key={a.id} className={cx('route-card', draft === a.id && 'chosen')}>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                    <Badge tone={ALT_STATUS[a.status][1]}>{ALT_STATUS[a.status][0]}</Badge>
+                    {isSyn ? <Badge tone="teal">二次综合候选</Badge> : isInit ? <Badge tone="blue">第一轮初筛</Badge> : null}
+                    {ov!.route.confirmedAlternativeId === a.id ? <Badge tone="teal">已人工确认</Badge> : null}
+                  </div>
+                  <h3>{a.name}</h3>
+                  <p>{a.summary}</p>
+                  <div className="tiny-caption"><b>系统组成：</b>{a.components.join('、')}</div>
+                  <div className="route-tags">
+                    {[...a.risks.map(x => `风险：${x}`), ...a.unknowns.map(x => `待核实：${x}`)].slice(0, 4).map(t => <span key={t}>{t}</span>)}
+                  </div>
+                  {a.strengths.length ? <div className="tiny-caption"><b>优势：</b>{a.strengths.join('；')}</div> : null}
+                  {a.limitations.length ? <div className="tiny-caption" style={{ marginTop: 3 }}><b>局限：</b>{a.limitations.join('；')}</div> : null}
+                  <div className="actions" style={{ marginTop: 'auto', paddingTop: 14 }}>
+                    <Btn small kind={draft === a.id ? 'teal' : 'ghost'} disabled={a.status === 'rejected' ? '已否决的路线不能作为草稿' : draft === a.id ? '当前草稿已采用' : active ? '已有运行进行中' : ''} onClick={() => { void choose(a) }}>
+                      {draft === a.id ? '当前草稿采用' : '选为草稿路线'}
+                    </Btn>
+                    {draft === a.id ? (
+                      <Btn small kind="primary" showReason disabled={active ? '已有运行进行中' : cardBlocker} onClick={() => onDecide(a)}>
+                        <Icon name="shield" />{ov!.route.confirmed ? '重新确认' : '人工确认'}
+                      </Btn>
+                    ) : null}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )
+      ) : <Empty>暂无候选路线。可手工新增，或在上方执行多路线头脑风暴生成候选（仅作为比选建议）。</Empty>}
+      <div className="reconcile-note" style={{ marginTop: 18 }}>
+        <Icon name="shield" />
+        <div>AI 生成的路线只是建议，不能代替工程师确认；更换草稿路线会使路线确认失效，并提示重新核查成本与文档。</div>
+      </div>
       <AltModal open={add} onClose={() => setAdd(false)} />
     </>
   )
@@ -178,6 +270,7 @@ function ConfigTable() {
     <>
       <div className="panel-heading"><div><h2>方案设备配置清单</h2><p>数量为非负整数；成本行可“跟随配置”数量。</p></div>
         <div className="actions"><label className="tiny-caption"><input type="checkbox" checked={showRemoved} onChange={e => setShowRemoved(e.target.checked)} /> 显示已移除</label>
+          <a className="btn small ghost" href={href('cost', pid)}><Icon name="coins" />联动 BOM 成本 →</a>
           <Btn small kind="primary" onClick={() => setEdit('new')}><Icon name="plus" />新增配置</Btn></div></div>
       {items.length ? <div className="table-scroll"><table className="data-table">
         <thead><tr><th>配置项</th><th>分组</th><th>数量</th><th>依据</th><th>状态</th><th /></tr></thead>
@@ -205,11 +298,15 @@ export function SolutionPage() {
   const conf = ov.alternatives.find(a => a.id === ov.route.confirmedAlternativeId)
   const latest = [...ov.baselines].sort((a, b) => b.number - a.number)[0]
   const mismatch = Boolean(draft && conf && draft.id !== conf.id)
+  const activeCfgCount = ov.v4.configItems.filter(c => c.status === 'active').length
   return (
     <>
-      <PageHead eyebrow="方案与决策" title="技术路线与配置"
+      <PageHead eyebrow="STAGE 3 & 5 · ROUTE EXPLORATION & DECISION" title="技术路线与配置"
+        lede="执行多路线工业可行性初筛与研究综合重组，经 Human Gate 人工确认最终技术路线并维护结构化设备配置。"
         actions={<><a className="btn ghost" href={href('research', pid)}><Icon name="microscope" />查看研究依据</a>
           <a className="btn primary" href={href('deliver', pid)}><Icon name="check" />去发布版本</a></>} />
+      <ExplorationPanel />
+      <div className="section-spacer" />
       {mismatch ? <div className="reconcile-note"><Icon name="shield" /> 草稿路线「{draft!.name}」与已确认决策「{conf!.name}」不一致：路线确认已失效，请重新人工确认。</div> : null}
       <div className="summary-grid">
         <div className="summary-box"><div className="cap"><Icon name="layers" />当前正式版本</div><div className="val">{latest?.label ?? '未发布'}</div><div className="detail">正式版本不可修改，草稿编辑不会覆盖</div></div>
@@ -217,7 +314,7 @@ export function SolutionPage() {
         <div className="summary-box"><div className="cap"><Icon name="shield" />人工决策</div><div className="val" style={{ fontSize: 18 }}>{ov.route.confirmed ? '已确认' : '待确认'}</div><div className="detail">{ov.route.decision ? `${ov.route.decision.confirmedBy} · ${fmtTime(ov.route.decision.confirmedAt)}` : '需要记录理由与覆盖需求'}</div></div>
       </div>
       <div className="dual-grid">
-        <Panel title="方案工作空间" extra={<div className="segment">{([['routes', '技术路线'], ['config', '设备配置']] as const).map(([k, t]) =>
+        <Panel title="方案工作空间" extra={<div className="segment">{([['routes', `技术路线 (${ov.alternatives.length})`], ['config', `设备配置 (${activeCfgCount})`]] as const).map(([k, t]) =>
           <button key={k} type="button" className={cx(tab === k && 'active')} onClick={() => setTab(k)}>{t}</button>)}</div>}>
           {tab === 'routes' ? <RouteCards onDecide={setDecide} /> : <ConfigTable />}
         </Panel>
@@ -229,7 +326,9 @@ export function SolutionPage() {
               <div key={d.id} className="dtl-row"><div><strong>{ov.alternatives.find(a => a.id === d.alternativeId)?.name ?? d.alternativeId}</strong>
                 <small>{d.confirmedBy} · {fmtTime(d.confirmedAt)}</small></div>
                 {d.id === ov.route.decision?.id ? <Badge tone="teal">当前</Badge> : <Badge tone="gray">历史</Badge>}</div>))}</> : null}
-          <Btn kind="primary" disabled={!draft ? '请先选择草稿路线' : ''} onClick={() => draft && setDecide(draft)}><Icon name="shield" />{ov.route.confirmed ? '重新确认路线' : '确认本轮技术路线'}</Btn>
+          <div style={{ marginTop: 14 }}>
+            <Btn kind="primary" showReason disabled={!draft ? '请先选择草稿路线' : ov.discoveryStatus?.decisionBlocker ?? ''} onClick={() => draft && setDecide(draft)}><Icon name="shield" />{ov.route.confirmed ? '重新确认路线' : '确认本轮技术路线'}</Btn>
+          </div>
         </Panel>
       </div>
       <DecisionModal alt={decide} onClose={() => setDecide(undefined)} />

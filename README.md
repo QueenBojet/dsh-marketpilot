@@ -1,59 +1,122 @@
-# MarketPilot
+# MarketPilot V4
 
-继续开发先读 [V3.3 终验报告](docs/V3_3_FINAL_ACCEPTANCE.md)和[上线 / 回退指引](docs/V3_3_RELEASE_GUIDE.md)。历史基线见[项目说明与续开发指南](docs/README.workspace.md)、[实施记录](docs/IMPLEMENTATION_NOTES.md)和[UI V3 实施日志](docs/UI_V3_IMPLEMENTATION_LOG.md)；旧日期的结果不代表本轮复验。
+MarketPilot（智策）是 DeepSeek Harness（DSH）的工程方案工作台插件，覆盖 **需求访谈 → 精选资料 → 多路线初筛 → 定向研究 → 综合决策 → 成本报价 → 模板文档与交付**。业务代码独立于 Harness 核心，所有在线 AI 能力通过 DSH 实现。
 
-DeepSeek Harness 的独立业务插件：需求基线 → 证据台账 → 竞品/候选路线 → 人工 Decision → 技术方案 → 投标符合性矩阵。业务代码位于本包，不修改 Harness 核心或 agent loop。
+V4 已通过 [PR #1](https://github.com/QueenBojet/dsh-marketpilot/pull/1) 合并到 `main`（merge commit：`7605353`）。V4 是产品功能版本；当前 `package.json` 包版本仍为 `0.1.0`。
 
-2026-10-11 的 V3.3 M5 回归为 **33 文件 / 258 测试通过**，typecheck、build、最终客户端 bundle 和离线 CALM smoke 通过。M1—M4 的导航、批次审阅、本地研究、路线矩阵、方案版本与依赖提示已接入原生主面板。本轮真实路由为 **zai / glm-5.3-flash / max**：CALM 新方案 ART-06 经7次模型调用、702523 ms（11分43秒）生成；未重新验证非 Flash `glm-5.3` 或全新在线需求→路线→投标链路。三尺寸 / 两主题真实宿主截图见终验报告，旧记录保留。联网仍 unavailable / unverified；ART-06 已获用户明确批准并经官方工具正式导出，[正式文件归档](docs/gui-acceptance/v3.3-m5/exports/CALM-M5-ART-06.md)与存档逐字一致；导出策略补修的33项针对性测试、typecheck和build通过。人类10分钟口述彩排尚待完成，批准不替代逐条技术质量审核。
+- [产品实际操作验收](docs/v4/acceptance/DESKTOP_GUI_REPORT.md)：浏览器、Desktop 隔离复制件、Word 的操作结果与证据。
+- [DSH AI 与研究 Skill](docs/v4/acceptance/DSH_AI_RUNTIME.md)：模型、搜索 Provider、技能注入与适用版本。
+- [需求澄清与路线探索验收](docs/v4/acceptance/GUIDED_DISCOVERY_REPORT.md)：本轮七项改进、隔离页面操作、Word 模板交付和验证边界。
+- [限制与验证边界](docs/v4/acceptance/RISKS_AND_LIMITS.md) · [数据回退与恢复](docs/v4/acceptance/ROLLBACK.md)。
 
-## 0. 项目工作台（Web UI V3 主面板）
+**功能分支状态（2026-10-14）**：下述需求访谈、精选支撑、多路线探索、分方向研究和模板撰写新增流程已在 `feat/v4-guided-discovery` 完成隔离验收，并按授权构建部署到本机正式 Desktop、重启及完成页面点击核对；代码在功能分支提交和推送，尚未合并 `main`。详见 [正式部署记录](docs/v4/acceptance/GUIDED_DEPLOYMENT_REPORT.md)。
 
-本包自带 Web 客户端插件（`dsh.client`）与受控 HTTP API。MarketPilot 使用左侧「MarketPilot 智策」→ 官方 `main` keyed 槽。项目概览按真实事实投影 S0—S7，支持引导 / 专业模式；八个分区保留资料与需求、情报研究、证据审查、技术路线、方案、可选投标与成果工作区，任务中心展示实际执行及持久化 Run 历史。
+## V4 能做什么
 
-### 加载与打开
+| 工作区 | 主要能力 |
+| --- | --- |
+| 项目总览 | 项目状态、需求确认进度、待办、发布前检查与文档状态 |
+| 需求访谈 | DSH 多轮追问、辅助资料选择、可编辑需求简报、独立人工确认 |
+| 资料与变更 | 原文上传、精选结构化支撑摘要、原文摘录定位与人工固化；保留历史变更审阅 |
+| 智能研究 | 按候选路线与具体方向建立研究、人工确认计划、本地/联网/混合研究、来源与发现追溯 |
+| 方案与决策 | 工业可行性多路线初筛、研究综合与二次重组、最终候选人工决策、结构化设备配置 |
+| 成本与报价 | 配置关联 BOM、数量与价格联动、税费、币种与汇率、独立审核 |
+| 文档与交付 | 上传 Word 模板、按标题章节撰写、逐节审阅建议、A4 预览、人工审核与 DOCX 导出 |
+| 正式版本 | 发布不可修改的 V1/V2/V3…快照，比较需求、路线、配置、成本及文档差异 |
+
+资料上传支持 `.md`、`.txt`、`.csv`、`.docx`、`.xlsx`、`.pdf`。PDF 为尽力提取文本，不提供扫描件 OCR；无可提取文本、损坏文件和重复文件有明确处理。旧 V3 面板的资料导入仍仅支持 md/txt。
+
+右上角统一选择 DSH 模型供应商、模型与思考强度，选择在当前浏览器中持久化并供各项目使用。研究资料库与运行记录提供来源、结果、实际模型路由及失败原因的追溯。
+
+## 在 DSH Desktop 打开
+
+1. 在已加载本插件的 DSH Desktop 中，进入左侧 **MarketPilot 智策**。
+2. 点击 **打开 V4 独立工作台 ↗**，进入完整 V4 页面。
+3. 也可使用当前 DSH 服务地址加 `/marketpilot/workbench`。端口以实际启动地址为准，不能假定始终为 3080。
+
+V4 独立页面由宿主提供，无需另起前端开发服务器。Desktop 内原有面板继续保留，并提供 V4 入口。
+
+### 更新已配置的本地插件
+
+先确认实际 Profile 的 `dsh-marketpilot` 依赖指向哪个目录，并备份配置与项目存储。在该源码目录构建：
 
 ```powershell
 cd E:\PythonProjects\Work_Platform\marketpilot
-pnpm build          # 产出 lib/ + client/client.js
-# 完全退出 DSH Desktop（托盘右键）→ 重新启动
-# 点击左侧边栏「MarketPilot 智策」图标进入主面板
+npm run build
+# 完全退出 DSH Desktop（包括托盘进程），再重新启动。
+# 进入 MarketPilot，点击“打开 V4 独立工作台 ↗”。
 ```
 
-- 宿主半边：`src/harness/routes.ts` 在 `webServer` 上挂载 `/marketpilot/api/*`（same-origin、跨域 403、仅 loopback 监听；上传按 `maxDocumentBytes` 限流；五域投影路由不含正文，内容仅在详情路由）；`src/harness/workbench.ts` 为每次点击创建 guarded Tool 执行（执行记录含 projectId/runId），人工问题经根瀑布停靠（Phase 2 修复：无头 Agent 的会话转发层不截获工作台门问题）。
-- 浏览器半边：`src/client/`（react、TSX、`--dsw-*` 主题 token、ui-primitives、模块级执行注册表——页面切换不打断后台任务、刷新后从服务端领养在途执行）。`pnpm build` 经 tsdown 产出 `client/client.js`（`__ModuleLoader__` 契约；运行时仅依赖冻结模块表内包）。
-- 右侧边栏旧 Tab 已降级为跳转按钮。
+构建生成 `lib/`、`client/client.js` 及内联工作台页面；`skills/` 也是运行必需资源。若 Profile 使用安装副本，需要更新该副本；仅推送 GitHub 或合并 main 不会自动部署到 Desktop。不要在共享依赖 junction 的隔离 Profile 中执行依赖安装。
 
-### 安全边界
+**本机部署记录（2026-10-14）**：正式 Desktop 的插件链接指向本仓库，已构建上述合并版本、配置搜索 Provider 并重启。正式服务返回页面与构建内容逐字一致，原10个项目和7个模型供应商可读取，项目存储 SHA-256 未变。本次窗口/浏览器自动化连接不可用，尚未完成正式部署后的 GUI 点击复核；不能把接口检查视为界面验收。Desktop 对开发目录的依赖链接曾报 `ELOOP` 并延后插件代际迁移，随后成功启动。2026-10-13 的完整 GUI 验收来自隔离环境。
 
-- **单用户本地使用**：DSH Desktop 仅监听 `127.0.0.1`，Web GUI 有进程令牌鉴权；`/marketpilot/api` 做同源校验（跨域 403）。当前版本不支持对外网监听或多租户；远程部署前须补齐认证与授权。
-- 项目/执行/运行 ID 绑定：所有工具调用带 projectId；确认/导出校验 runId 归属；跨项目 runId 拒绝（有测试覆盖）。
-- 重启中断：前端显示"任务中断需重试"，不虚称审批可恢复。
+**后续部署（2026-10-14 14:26）**：已按用户授权更新为需求澄清功能分支构建，正常退出并重启正式 Desktop。实际点击插件入口、模型供应商切换、新建弹窗及旧合成项目的需求访谈页；正式项目列表为 11 项，存储哈希保持不变。正式服务为 `http://127.0.0.1:43129/marketpilot/workbench`，返回页面与新构建逐字一致。完整流程写入仍只在隔离环境验收，详见 [部署报告](docs/v4/acceptance/GUIDED_DEPLOYMENT_REPORT.md)。
 
-### 验收与演示
+## AI、搜索与研究 Skills
 
-- V3.3 当前终验：[docs/V3_3_FINAL_ACCEPTANCE.md](docs/V3_3_FINAL_ACCEPTANCE.md)；[上线 / 回退](docs/V3_3_RELEASE_GUIDE.md)。技术验证与真实人审 / 演示缺口分别记录。
-- 正式验收文档：[docs/UI_V3_GUI_ACCEPTANCE.md](docs/UI_V3_GUI_ACCEPTANCE.md)（九项截图 + 真实 GLM 耗时 + 安全审计 + 人工门记录）。
-- 比赛演示脚本：[docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md)（含备用方案与关键数据）。
-- 实施日志：[docs/UI_V3_IMPLEMENTATION_LOG.md](docs/UI_V3_IMPLEMENTATION_LOG.md)（V3.0 四阶段完整记录 + 3 个真实缺陷修复）。
-- V3.2.1 定向质量收口：[docs/UI_V3_2_1_CLOSEOUT.md](docs/UI_V3_2_1_CLOSEOUT.md)（遗留等待与待办统计、短编号持久化 codeBook、筛选外跳转回退、验收脚本精确断言、GLM-5.3 在线/离线边界与剩余能力缺口评估）。
-- 测试覆盖：路由与人工门全链路（`tests/workbench-routes.spec.ts`）；上传/投影/runId 绑定/跨项目拒绝（`tests/phase2-routes.spec.ts`）；五域投影（`tests/phase4-routes.spec.ts`）；页面渲染 ×5（`tests/phase2-client.spec.tsx` + `tests/phase3-client.spec.tsx` + `tests/phase4-client.spec.tsx`）；模块表纯度（`tests/client-bundle.spec.ts`）；CALM Golden Case E2E（`tests/calm-e2e.spec.ts`）。
+**全部在线模型调用依赖 DSH**：资料分析、研究计划/报告/对话、候选路线和文档建议经过 Harness 结构化模型适配器与 `subagents`，使用宿主模型路由、取消信号和会话记录。MarketPilot 不自建厂商 SDK 客户端，不保存模型密钥；离线 adapter 仅用于显式测试与演示。
 
-## 1. 安装与验证
+在 DSH 的模型管理中配置供应商与凭据，再在 V4 右上角选择模型。不限于 DeepSeek，已实测其他供应商路由。模型调用可用性仍取决于对应服务的凭据、额度和运行状态。
 
-验证基线：Harness `5badb15009ae1756c3afe0ae0cef1faafc290ccc`，Node `24.16.0`，pnpm `11.19.0`。上游 packageManager 为 pnpm `11.7.0`。本地演示要求 Node 24，使用其 SQLite、TypeScript 类型擦除与模块解析 hook。保持以下相邻目录：
+**搜索 Provider 与模型供应商分开配置。** 联网通过 DSH `ctx.web.search` / `ctx.web.fetch`；选择一个聊天模型不等于同时获得网页搜索能力，也不要求所有搜索都使用 `DEEPSEEK_API_KEY`。
+
+已验证的组合为 DSH Desktop `0.11.0` 内置 DSH `0.2.0-rc.2` 与 `dsh-web-search-pro@0.2.1`。该搜索插件声明兼容 `>=0.2.0-rc.2 <0.2.1-0`，不能把此结论套到开发仓库的 `0.2.1-alpha.1`。插件需作为 Profile 的直接依赖及 bundle 加载；以下是关键配置，合并时保留现有配置及各环境自己的数据库路径：
+
+```yaml
+- id: web-search-pro
+  config:
+    registerProvider: true
+    providerId: web-search-pro
+    engines: [ddg, bing]
+    enableCliBackends: false
+    opencliEnabled: false
+    agentReachEnabled: false
+    provider:
+      evidence: off
+    evidence:
+      jevMode: off
+- id: web
+  config:
+    searchProvider: web-search-pro
+    fetchProvider: web-search-pro
+```
+
+插件独立 LLM/Jev 评分关闭，模型生成继续经过 DSH。2026-10-13 已在隔离 Profile 实际搜索并抓取正文；2026-10-14 已将同版本配置到本机正式 Profile。详细技术记录见 [DSH_AI_RUNTIME.md](docs/v4/acceptance/DSH_AI_RUNTIME.md)，其中安装路径与搜索结果描述的是隔离验收当日环境。
+
+研究技能位于 [skills/marketpilot-deep-research/SKILL.md](skills/marketpilot-deep-research/SKILL.md)，参考 [Deep-Research-skills](https://github.com/Weizhena/Deep-Research-skills)，保留 MIT 许可证及来源说明。支持 Skills 服务的 DSH 会注册技能；研究计划、对话和报告在模型调用前还会显式注入技能，运行记录保留技能指纹。缺失或无效的技能文件会明确失败。
+
+仅成功抓取的网页正文才计作网页来源。仅联网研究没有本次正文时停止生成，不静默改用本地资料或旧网页；混合研究保留真实联网状态。能搜索、能生成报告不代表来源充分或结论已核实，研究发现仍需人工审阅。
+
+## 推荐使用流程
+
+1. 新建项目后先进行需求访谈，按需选取辅助资料。审阅并保存 AI 建议的简报，解决待澄清问题后单独人工确认。
+2. 上传原始资料，精选与决策有关的事实、约束、接口和验收信息，附原文摘录并人工固化。上传本身不逐行生成需求或自动采纳全文。
+3. 完成多路线头脑风暴，比较工业支撑、可行性和证据缺口；选择不同具体方向，关联候选路线并确认研究计划，再开展深入研究。
+4. 至少形成两个不同方向的有效报告后，进行综合判断与二次头脑风暴。比较保留、舍弃与重组理由，选择最终候选并人工确认，填写设备配置。
+5. 生成成本行、补充价格和税费，完成审核。混合币种缺少汇率时只显示分币种小计。
+6. 上传含 Word 标题 1–3 或章节插槽的 `.docx` 模板，按模板创建文档并撰写，逐节审阅接受建议，核对预览后审核和导出。模板正文作为写作指导，不能充当工程事实。
+7. 人工发布正式版本 V1。上传后续资料、替代旧需求或调整配置/价格后，重新核查失效的审核并同步文档，发布 V2。
+8. 比较版本业务差异。对外发送需要人工登记，系统本身不发送邮件。
+
+已发布版本不可改写。历史决策引用的需求保留原正文与确认；只有当前决策不再引用时，才允许将其标记为已替代。
+
+已有项目保留原工作模式，可在需求访谈页显式开启新流程。需求、固化摘要、候选正文或研究范围变化后，应重新核查初筛、综合决策和文档依据；过期文档不能登记发送或用于发布。不兼容的模板需要新建文档，保留原文。
+
+## 开发与构建
+
+本仓库通过 `link:../deepseek-harness/...` 引用开发依赖，需要相邻的 Harness 源码与已安装依赖。既有开发基线为 Harness `5badb15009ae1756c3afe0ae0cef1faafc290ccc`，Node 24；这与 Desktop 内置运行时版本分别管理。
 
 ```text
-工作台/
-├─ deepseek-harness/   # https://github.com/deepseek-ai/deepseek-harness
-├─ marketpilot/
-└─ docs/IMPLEMENTATION_NOTES.md
+Work_Platform/
+├─ deepseek-harness/
+└─ marketpilot/
 ```
 
-新环境先克隆官方仓库并检出上述 commit。完整 Harness 的官方步骤是仓库根目录下 `pnpm install`、`pnpm run build`。本环境的大型依赖下载超时，以下只安装演示及类型检查所需的生产依赖闭包。在 `marketpilot` 目录运行：
+首次准备环境时，在 Harness 仓库按其官方说明安装和构建，再在 MarketPilot 运行：
 
 ```powershell
-pnpm --dir ../deepseek-harness --filter @deepseek-ai/dsh-storage-domain... --filter @deepseek-ai/dsh-storage-json... --filter @deepseek-ai/dsh-storage-sqlite... --filter @deepseek-ai/dsh-tools... --filter @deepseek-ai/dsh-user-questions... --filter @deepseek-ai/dsh-fs-local... --filter @deepseek-ai/dsh-subagent... --filter @deepseek-ai/dsh-cmdline... --filter @deepseek-ai/dsh-web... install --prod --frozen-lockfile --ignore-scripts --registry=https://registry.npmjs.org
-pnpm install --frozen-lockfile --registry=https://registry.npmjs.org
+pnpm install --frozen-lockfile
 pnpm prepare:harness-types
 pnpm prepare:harness-runtime
 pnpm test
@@ -61,96 +124,59 @@ pnpm typecheck
 pnpm build
 ```
 
-`prepare:harness-types` 按官方各包自己的 tsconfig 生成声明，`prepare:harness-runtime` 按官方 package exports 构建演示所需的 23 个运行时入口。只写上游被忽略的 `lib/`，不改源码。演示专用 `demo-resolution.mjs` 将过滤安装后的 peer imports 指向这些官方构建文件；生产 `dsh` 使用其自己的 profile resolver。此流程不证明完整 Web 已构建。
+`prepare:harness-types` 和 `prepare:harness-runtime` 生成相邻 Harness 包所需声明与运行时入口，不修改其源码。在依赖已就绪的本机，也可使用 `npm test`、`npm run typecheck`、`npm run build`。只更新工作台 bundle 可用 `npm run build:workbench`；部署仍应使用完整 build。
 
-## 2. CALM Golden Case
-
-```powershell
-# 离线模型替身；需要人在终端逐项输入“确认”
-pnpm marketpilot:demo
-
-# 自动回归：离线模型替身 + 明确标注的模拟人工
-pnpm marketpilot:demo:smoke
-
-# 将生成目录移入备份；下次 demo 创建空数据库
-pnpm marketpilot:demo:reset
-```
-
-演示始终使用 `fixtures/calm/offline-model.ts`，不读取 API key、不联网。默认交互命令不会自动批准 Human Gate。`--test-human` 仅存在于演示脚本；生产 Tools 没有自动跳过审核的参数。smoke 验证状态机、引用、持久化和导出，不评估模型理解质量。
-
-演示依次创建新项目、导入 4 份资料、抽取并确认需求、核验两段技术来源、抽取合成竞品、生成候选路线、验证无 Decision 的等待、确认路线、恢复方案生成、提取及审核招标条款，最后审核并导出成果。每次生成独立项目和输出目录，旧记录保留。
-
-预期：10 条 Requirement（6 confirmed、4 unknown）、18 条 Evidence（含 10 UNKNOWN）、2 条 Alternative、2 个合成 Competitor、5 个 Artifact。招标离线替身故意提出无证据 compliant，验证 3 个条款都降为 unknown，并替换无依据的符合性响应。
-
-SQLite 在 `.marketpilot/demo/marketpilot.db`；`.marketpilot/demo/<时间戳>-<随机后缀>/` 内包含 `Requirement Baseline.md`、`Competitor Matrix.md`、`Alternative Comparison.md`、`Solution.md`、`Compliance Matrix.md` 和 `Run Summary.json`。重置只归档带专用标记的生成目录，不改 fixture 输入；备份保留于 `.marketpilot/demo-archive-*`。
-
-## 3. 安装到 Harness profile / 打开 Web
-
-本包 manifest 的 `dsh.bundle.patch` 指向 `cordis.patch.yml`。以下是当前官方文档支持的命令，需要先成功完成整个 Harness 的安装与构建。本机 `pnpm dsh --version` 仍报缺少 `tsx`，因此这些 Web 步骤尚未启动验证。
-
-在 `deepseek-harness` 目录运行：
+使用源码版 Harness 创建独立 Profile 的方式如下（在 Harness 仓库运行，要求其 CLI 已构建可用；已有 Profile 跳过创建步骤）：
 
 ```powershell
-pnpm install --frozen-lockfile
-pnpm run build
-
-# 仅首次创建新的 Web profile；dump 不启动模型
 pnpm dsh marketpilot --from-default-profile web --dump-config
 pnpm dsh plugin --profile marketpilot add ../marketpilot
-pnpm dsh --profile marketpilot --dump-config
 pnpm dsh marketpilot --no-open
 ```
 
-已有 profile 时跳过 `--from-default-profile`。浏览器地址由 Harness 打印，官方默认 `http://127.0.0.1:3080`。使用现有聊天、人工问题组件和通用 Tool 结果，不需要独立 MarketPilot 前端。
+该流程不是替换 Desktop 正式 Profile 的指令。数据后端继承 Profile 的 storageDomain 配置；不要直接改变已有数据的后端。
 
-bundle 继承 profile 的 storageDomain 路由，官方 base 默认 JSON，本地 demo 明确使用 SQLite。已有 SQLite provider 时可在 storage-domain 配置加入 `routes: { marketpilot: sqlite }`。官方 patch 会替换整份 config，必须保留原 backend 和其他 routes。不要在已有数据后随意切换后端；本 MVP 没有自动迁移。
+### 验证
 
-## 4. 配置真实模型与业务使用
+产品通过与否以真实操作为准，自动化测试作为补充。2026-10-13 的 [最终 GUI 验收](docs/v4/acceptance/DESKTOP_GUI_REPORT.md) 覆盖上传与异常拒绝、人工门取消、需求替代、真实模型与搜索、成本联动、V1/V2/V3、重启持久化、15组响应式页面检查，以及 Word 技术4页/成本3页逐页检查。补充回归为 **48文件通过、1跳过；372测试通过、1跳过**，类型检查和构建通过。
 
-在 Harness 的 Models 页面配置 DeepSeek 凭据及当前会话模型，或按官方方式提供 `DEEPSEEK_API_KEY`。凭据由 Harness 管理，不写入本包或 fixture。MarketPilot 通过 `ctx.subagents` 的 `spawn` provider 调用结构化模型，继承父 Agent 路由与 Session 日志，子调用禁用全局工具，仅保留 Harness 结构化结果出口。
+2026-10-14 的 [功能分支验收](docs/v4/acceptance/GUIDED_DISCOVERY_REPORT.md) 另外完成真实多轮访谈、四路线初筛、两方向联网研究、二次综合、人工决策、模板文档六页 Word 检查，以及依据变化后的失效阻断。全量回归为 **382 测试通过、3 跳过**；最后 GUI 修正后相关回归 **83 通过、1 跳过**，类型检查和隔离构建通过。真实搜索的型号级证据仍不足，不能将报告生成成功视为工程结论已核实。
 
-默认配置：`maxDocumentBytes=2097152`、`structuredProvider=spawn`、`modelTimeoutMs=120000`。缺 Agent、subagents 或可用 provider 时明确报错。JSON schema 失败最多重试一次，不从 Markdown 表格反解析；Workflow 不导入具体厂商 SDK。
+正式部署前对最终源码再次执行全量回归：**383 测试通过、3 跳过**（49 文件通过、2 跳过），类型检查与正式构建通过，见 [部署验证](docs/v4/acceptance/GUIDED_DEPLOYMENT_REPORT.md)。
 
-在 Web 聊天中让模型按顺序调用下列工具；文档路径使用绝对路径，后续 ID 读取前一步结果：
+```powershell
+npm test
+npm run typecheck
+npm run build
 
-1. `marketpilot_project_create`，然后 `marketpilot_document_import` 导入 md/txt。
-2. `marketpilot_requirement_extract` 返回 waiting_human 和 run ID。审核后 `marketpilot_requirement_confirm` 传入本批 proposed 需求 ID、runId，生成 Baseline。
-3. `marketpilot_evidence_add/list/verify/link` 管理台账；`marketpilot_competitor_extract` 抽取报告/Datasheet。
-4. `marketpilot_alternative_generate` 生成 2—3 个候选；`marketpilot_decision_confirm` 请求真实人工选择。
-5. `marketpilot_solution_generate` 生成方案；此前无 Decision 等待的 Run 可用相同 runId 恢复。
-6. 导入招标文件，运行 `marketpilot_tender_extract`、`marketpilot_tender_review`。
-7. `marketpilot_artifact_list/export` 查看、人工审核并导出；必须写入新文件，不覆盖已有内容。
+# 可选：在旧存储备份的复制件上验证只读兼容；目录需包含 marketpilot.json。
+$env:MARKETPILOT_LEGACY_STORE = 'E:/path/to/backup-copy'
+npx vitest run tests/v4-legacy-readonly.spec.ts
+```
 
-还提供 `marketpilot_project_get`、`marketpilot_requirement_list`、`marketpilot_run_summary`、`marketpilot_competitor_list`、`marketpilot_policy_extract/list`。当 `web` 服务可用时挂载 `marketpilot_research_search`，需配置实际 search/fetch provider。搜索抓取正文，保存 draft SOURCE，不将标题或搜索摘要当作事实；网络失败、正文截断明确报错。
+原有 CALM CLI 演示继续保留：`pnpm marketpilot:demo` 使用离线模型替身及真人终端确认；`pnpm marketpilot:demo:smoke` 使用明确标注的模拟人工。两者不读取模型密钥、不联网，不能用于证明在线模型质量或 V4 GUI 可用性。
 
-## 5. 数据与业务约束
+## 数据与适用边界
 
-Domain 是独立 TypeScript/Zod，包含 11 个实体。Repository 复用 storageDomain，每个项目是一次原子写入的聚合记录。Workflow 只调用 Service；候选路线、方案、竞品、投标结果提交时比对业务输入版本，拒绝保存并发修改前的旧结果。
+- 单进程、单用户、回环地址使用。MarketPilot API 的同源检查及修改请求头不构成多用户认证，不应直接暴露到局域网或公网。
+- 人工门、证据核验和版本快照不能被模型自动批准。证据结构与引用校验不等于技术真实性核实；演示价格与配置均为 `test_data`。
+- 旧项目可读取，首次 V4 写入才创建对应状态；旧 artifacts 不会自动转成 V4 文档。运行中重启会将未完成任务标记为中断，需要重新发起。
+- **有 V4 写入的数据不能直接交给 V3.4。** 使用 [回退指引](docs/v4/acceptance/ROLLBACK.md) 在复制件上转换/恢复；该工具仅支持官方 single-file JSON，不适用于 SQLite/per-record。
+- 默认 DOCX 为中性 A4 模板，导出后目录直接可读；不承诺所有自定义模板、Office 版本和复杂 PDF 均已验证。
+- 不向仓库提交凭据、真实客户商业资料或正式存储备份。部署前备份实际加载的 Profile 与数据，而非猜测存储路径。
 
-UNKNOWN 分类变更只能通过 Evidence.verify，保留原分类、声明与核验记录；自动解决需要新增、已核验且声明完全一致的 FACT/SOURCE，否则必须人工。Decision 由 `ctx.userQuestions` 的明确确认产生，模型不能自证。方案固定渲染人工路线、confirmed Requirement、开放 UNKNOWN；正文区分证据支持、建议、未知，具体参数需要已核验 FACT/SOURCE。
-
-投标 compliant 必须有已核验 FACT/SOURCE，比“仅严格条款必须有证据”的最低要求更严格。竞品参数引用须包含准确型号和值，缺失为 UNKNOWN，不继承相邻型号。证据检查是结构与引用校验，不证明资料真实性或语义充分性；正式导出须人工审核。
-
-适用范围是单进程、小型项目；没有多租户权限、跨进程写协调或自动 schema 迁移。Artifact 正文保存在项目记录，导出走 Harness fs。未运行整个 Harness 的全量测试。
-
-## 6. 资料与解析边界
-
-应用只支持有大小上限的完整 UTF-8 `.md/.txt`。DocumentParserAdapter 已保留，DOCX/PDF 解析尚未实现。CALM Markdown 是已读水面 DOCX、水下 `V4.0.md` 的最小脱敏整理，不代表应用支持 DOCX。合成 Datasheet 和招标条款不是实际厂商性能或客户要求。
-
-大赛 DOCX、两份指定 CALM 调研报告、可选 camera PDF 尚未找到；水下 V4.0 是否等同指定 V4.0(3) 尚未确认。见 [fixture 说明](fixtures/calm/README.md)。未复制真实客户、地点、报价和部署细节。`.gitignore` 排除 `marketpilot-private/`、`private-fixtures/`、`*.secret.*` 及运行数据。
-
-## 7. 代码与统计
+## 代码导航与历史资料
 
 | 路径 | 内容 |
-|---|---|
-| `src/domain/` | 实体、schema、业务约束 |
-| `src/storage/`, `src/services/` | Repository、CRUD、人工 gate、原子提交 |
-| `src/harness/`, `src/tools/` | Cordis 生命周期、依赖、guarded Tools |
-| `src/adapters/` | 人工、解析、结构化模型与 Web adapter |
-| `src/workflows/` | 固定状态机 |
-| `src/prompts/`, `src/render/` | 外置 Prompt、Markdown 输出 |
-| `fixtures/calm/`, `tests/` | 脱敏输入、离线替身、E2E、负例 |
+| --- | --- |
+| `src/workbench-ui/` | V4 React 独立工作台 |
+| `src/client/` | DSH 原生面板与 V4 入口 |
+| `src/harness/`, `src/tools/` | 宿主集成、HTTP 路由、受控工具与模型目录 |
+| `src/domain/`, `src/services/v4/` | 业务模型、资料、研究、配置、文档与正式版本 |
+| `src/storage/` | 项目聚合存储、V3.4 转换与恢复 |
+| `src/adapters/`, `src/workflows/` | DSH 适配、资料解析、工作流 |
+| `src/render/`, `src/prompts/`, `skills/` | DOCX/Markdown 渲染、提示词、研究技能 |
+| `tests/`, `fixtures/calm/` | 回归测试与脱敏离线样例 |
+| `docs/v4/acceptance/` | V4 验收结论、证据与限制 |
 
-WorkflowRun 记录 start/end、步骤、错误、durationMs、humanWaitMs、modelCalls、toolCalls。modelCalls 是 adapter 请求次数（含本层重试），不是 provider 内部 HTTP 数。toolCalls 是成功返回并关联该 Run 的前台 Tool 次数，不包括无 Run 的 CRUD、失败 Tool 或模型内部工具。Run Summary 耗时是各 Run 已记录耗时之和；离线替身的毫秒数不能代表真实模型速度或人工增效。
-
-仓库核查、API、阶段结果和环境缺口见 [IMPLEMENTATION_NOTES](docs/IMPLEMENTATION_NOTES.md)。
+历史设计包见 [V4 参考资料说明](docs/v4/README_SETUP.md)；其中的开发分支、禁止合并和初始交付要求是开发当时的记录，不代表当前发布状态。V3 历史见 [V3.3 终验](docs/V3_3_FINAL_ACCEPTANCE.md)、[V3.3 上线/回退](docs/V3_3_RELEASE_GUIDE.md)和 [项目续开发指南](docs/README.workspace.md)。最新功能与状态以本 README 和 V4 产品验收记录为准。

@@ -20,14 +20,28 @@ describe('MarketPilot V4 standalone workbench page', () => {
     expect(workbenchPage).toContain('same-origin')
   })
 
-  it('ships global navigation and the six project workspaces', () => {
-    for (const text of ['工作台', '我的项目', '研究资料库', '运行记录', '设置',
-      '项目总览', '资料与变更', '智能研究', '方案与决策', '成本与报价', '文档与交付']) expect(workbenchPage).toContain(text)
+  it('ships global navigation and the seven guided project workspaces with stepper and matrix controls', () => {
+    for (const text of [
+      '工作台', '我的项目', '研究资料库', '运行记录', '设置',
+      '项目总览', '需求访谈', '资料与变更', '智能研究', '方案与决策', '成本与报价', '文档与交付',
+      '工程方案流转阶段', '对比矩阵', '按配置一键生成 BOM 行', '选择模型与思考强度',
+    ]) {
+      expect(workbenchPage).toContain(text)
+    }
   })
 
   it('invokes real gated tools rather than fake buttons', () => {
-    for (const tool of ['marketpilot_v4_route_confirm', 'marketpilot_v4_cost_review', 'marketpilot_alternative_generate'])
+    for (const tool of [
+      'marketpilot_v4_route_confirm',
+      'marketpilot_v4_cost_review',
+      'marketpilot_alternative_generate',
+      'marketpilot_v4_discovery_confirm',
+      'marketpilot_v4_support_fix',
+      'marketpilot_v4_brainstorm',
+      'marketpilot_v4_doc_draft_template',
+    ]) {
       expect(workbenchPage).toContain(tool)
+    }
     expect(workbenchPage).toContain('测试价格（非真实）')
   })
 

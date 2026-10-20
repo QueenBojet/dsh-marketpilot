@@ -1,0 +1,64 @@
+- complementary "主导航":
+  - generic: M
+  - generic: MarketPilot 智策
+  - generic: WORKSPACE
+  - link "工作台":
+    - /url: "#/home?p=2cde69d7-5eb8-4f79-b923-8d1745f0d51c"
+    - generic: 工作台
+  - link "我的项目":
+    - /url: "#/projects?p=2cde69d7-5eb8-4f79-b923-8d1745f0d51c"
+    - generic: 我的项目
+  - link "研究资料库":
+    - /url: "#/library?p=2cde69d7-5eb8-4f79-b923-8d1745f0d51c"
+    - generic: 研究资料库
+  - link "运行记录":
+    - /url: "#/runs?p=2cde69d7-5eb8-4f79-b923-8d1745f0d51c"
+    - generic: 运行记录
+  - generic: CURRENT PROJECT
+  - link "V3.3 M1 GUI 空项目 · synthetic QA 未填写客户 · 修订 0":
+    - /url: "#/overview?p=2cde69d7-5eb8-4f79-b923-8d1745f0d51c"
+    - text: V3.3 M1 GUI 空项目 · synthetic QA
+    - generic: 未填写客户 · 修订 0
+  - link "项目总览":
+    - /url: "#/overview?p=2cde69d7-5eb8-4f79-b923-8d1745f0d51c"
+    - generic: 项目总览
+  - link "需求访谈" [active]:
+    - /url: "#/discovery?p=2cde69d7-5eb8-4f79-b923-8d1745f0d51c"
+    - generic: 需求访谈
+  - link "资料与变更":
+    - /url: "#/change?p=2cde69d7-5eb8-4f79-b923-8d1745f0d51c"
+    - generic: 资料与变更
+  - link "方案与决策":
+    - /url: "#/solution?p=2cde69d7-5eb8-4f79-b923-8d1745f0d51c"
+    - generic: 方案与决策
+  - link "智能研究":
+    - /url: "#/research?p=2cde69d7-5eb8-4f79-b923-8d1745f0d51c"
+    - generic: 智能研究
+  - link "成本与报价":
+    - /url: "#/cost?p=2cde69d7-5eb8-4f79-b923-8d1745f0d51c"
+    - generic: 成本与报价
+  - link "文档与交付":
+    - /url: "#/deliver?p=2cde69d7-5eb8-4f79-b923-8d1745f0d51c"
+    - generic: 文档与交付
+  - link "设置":
+    - /url: "#/settings?p=2cde69d7-5eb8-4f79-b923-8d1745f0d51c"
+    - generic: 设置
+- banner:
+  - text: V3.3 M1 GUI 空项目 · synthetic QA
+  - generic: /
+  - strong: 需求访谈
+  - button "选择模型与思考强度":
+    - generic: okai1 / glm-5.3-flash
+    - generic: low
+    - generic: ⌄
+  - link "设置":
+    - /url: "#/settings?p=2cde69d7-5eb8-4f79-b923-8d1745f0d51c"
+- main:
+  - heading "先把需求说清楚" [level=1]
+  - paragraph: 通过持续对话明确目标、边界和验收标准；资料可随时补充，最终简报由你确认。
+  - link "上传辅助资料":
+    - /url: "#/change?p=2cde69d7-5eb8-4f79-b923-8d1745f0d51c"
+  - heading "继续需求澄清" [level=2]
+  - paragraph: 旧项目可保留当前流程；开启后，新的路线决策将基于已确认简报和定向研究。
+  - button "开启需求访谈"
+- alert

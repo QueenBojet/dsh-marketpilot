@@ -32,6 +32,18 @@ function runDeps(ctx: Context, exec: ToolRunContext, signal: AbortSignal, rawRou
 
 /** V4 workbench tools: every Human Gate and every model-backed step runs as a tracked execution. */
 export function registerV4Tools(ctx: Context) {
+  register(ctx, 'marketpilot_v4_discovery_chat', '需求访谈：持续澄清用户需求并给出待人工保存的简报建议。', {
+    projectId: projectIdParam, input: inputParam, modelRoute: routeParam,
+  }, async (args, s, signal, _p, exec) => s.v4.discovery.chat(args.projectId, args.input, runDeps(ctx, exec, signal, args.modelRoute)))
+  register(ctx, 'marketpilot_v4_discovery_confirm', '人工确认当前需求简报及验收需求。', {
+    projectId: projectIdParam,
+  }, async (args, s) => s.v4.discovery.confirmBrief(args.projectId))
+  register(ctx, 'marketpilot_v4_support_fix', '人工固化精选支撑资料摘要，作为后续研究与方案依据。', {
+    projectId: projectIdParam, noteId: recordIdParam,
+  }, async (args, s) => s.v4.discovery.fixNote(args.projectId, args.noteId))
+  register(ctx, 'marketpilot_v4_brainstorm', '工业可行性多路线初筛，或基于定向研究进行综合判断与二次重组。', {
+    projectId: projectIdParam, phase: { type: 'string', required: true, enum: ['initial', 'synthesis'] }, modelRoute: routeParam,
+  }, async (args, s, signal, _p, exec) => s.v4.discovery.brainstorm(args.projectId, args.phase, runDeps(ctx, exec, signal, args.modelRoute)))
   register(ctx, 'marketpilot_v4_intake_deep_analyze', '对一批新资料做模型深度变更分析（人工发起）；只保存可在原文定位的候选变更。', {
     projectId: projectIdParam, batchId: recordIdParam, modelRoute: routeParam,
   }, async (args, s, signal, _p, exec) => s.v4.intake.deepAnalyze(args.projectId, args.batchId, runDeps(ctx, exec, signal, args.modelRoute)))
@@ -59,6 +71,9 @@ export function registerV4Tools(ctx: Context) {
     projectId: projectIdParam, input: inputParam,
   }, async (args, s) => s.v4.solution.reviewCost(args.projectId, args.input))
 
+  register(ctx, 'marketpilot_v4_doc_draft_template', '根据上传的 Word 模板章节与已确认项目依据撰写整篇交付建议，等待人工采纳。', {
+    projectId: projectIdParam, docId: recordIdParam, modelRoute: routeParam,
+  }, async (args, s, signal, _p, exec) => s.v4.docs.draftFromTemplate(args.projectId, args.docId, runDeps(ctx, exec, signal, args.modelRoute)))
   register(ctx, 'marketpilot_v4_doc_revise_section', '由模型对单个章节提出修改建议；不会覆盖现有内容。', {
     projectId: projectIdParam, docId: recordIdParam, input: inputParam, modelRoute: routeParam,
   }, async (args, s, signal, _p, exec) => s.v4.docs.reviseSection(args.projectId, args.docId, args.input, runDeps(ctx, exec, signal, args.modelRoute)))

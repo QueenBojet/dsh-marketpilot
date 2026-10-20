@@ -1,0 +1,11 @@
+{
+  "checkedAt": "2026-10-14T06:31:22.410Z",
+  "status": 200,
+  "livePageMatchesBuild": true,
+  "livePageSHA256": "1e0f2796555cfe53f8b720aad4ef04330203a5a0814aea88310eb0b8ad6c628d",
+  "builtPageSHA256": "1e0f2796555cfe53f8b720aad4ef04330203a5a0814aea88310eb0b8ad6c628d",
+  "formalStorageUnchanged": true,
+  "formalStorageSHA256": "10feff86648afe51429214887165d3d89e9283fbc9b4d1d3f53b3ae54da327bd",
+  "formalPort": 43129,
+  "backupDirectory": "E:\\PythonProjects\\Work_Platform\\marketpilot\\.marketpilot\\deploy-guided-20261014-142223"
+}

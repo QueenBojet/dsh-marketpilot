@@ -10,7 +10,7 @@ export function renderPrompt(template: string, variables: Record<string, string>
 }
 
 export type PromptName = 'requirement-extract' | 'alternative-generate' | 'solution-outline' | 'solution-section' | 'tender-extract' | 'tender-review'
-  | 'competitor-extract' | 'policy-extract'
+  | 'competitor-extract' | 'policy-extract' | 'discovery' | 'brainstorm'
 export async function loadPrompt(name: PromptName): Promise<string> {
   return readFile(new URL(`./${name}.md`, import.meta.url), 'utf8')
 }

@@ -21,6 +21,7 @@ export interface RenderInput {
 }
 
 export interface TemplateInfo {
+  readonly outline: readonly { key: string; title: string; guidance: string }[]
   readonly placeholders: readonly string[]
   readonly hasSectionsSlot: boolean
   readonly sectionSlots: readonly string[]
@@ -30,6 +31,29 @@ export interface TemplateInfo {
 // ---- Minimal XML tree: parse + serialize (no external deps). ----
 
 interface XmlNode { tag: string; attrs: Record<string, string>; children: XmlNode[] }
+
+/** Recognize ordinary Word heading styles as writing sections. */
+function headingOutline(body: XmlNode, styles?: XmlNode) {
+  const styleIds = new Set<string>()
+  for (const s of styles ? findAll(styles, 'w:style') : []) {
+    const name = findFirst(s, 'w:name')?.attrs['w:val'] ?? ''
+    const level = findFirst(s, 'w:outlineLvl')?.attrs['w:val']
+    if (/^(heading|标题)\s*[1-3]$/i.test(name) || level !== undefined && /^[0-2]$/.test(level)) styleIds.add(s.attrs['w:styleId'] ?? '')
+  }
+  const out: { key: string; title: string; guidance: string; index: number }[] = []
+  for (let index = 0; index < body.children.length; index++) {
+    const p = body.children[index]!
+    const style = findFirst(p, 'w:pStyle')?.attrs['w:val'] ?? ''
+    const outlineLevel = findFirst(p, 'w:outlineLvl')?.attrs['w:val']
+    if (p.tag === 'w:p' && (/^(Heading|标题)[1-3]$/i.test(style) || styleIds.has(style) || outlineLevel !== undefined && /^[0-2]$/.test(outlineLevel)) && textOf(p).trim())
+      out.push({ key: `template_${out.length + 1}`, title: textOf(p).trim(), guidance: '', index })
+    else if (out.length && p.tag !== 'w:sectPr') {
+      const item = out.at(-1)!
+      item.guidance = `${item.guidance}\n${textOf(p)}`.trim().slice(0, 4000)
+    }
+  }
+  return out
+}
 
 const XML_ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" }
 
@@ -191,15 +215,18 @@ function setRunText(tNode: XmlNode, value: string) {
 /** Build one or more <w:r> for a (possibly multi-line) string, cloning rPr for every line's run. */
 function buildRunsForText(text: string, rPr?: XmlNode, bold = false): XmlNode[] {
   const lines = sanitizeText(text).split('\n')
-  return lines.map((line, idx) => {
-    const runProps = rPr ? cloneNode(rPr) : (bold ? el('w:rPr', {}, [el('w:b')]) : undefined)
-    if (runProps && bold && !findFirst(runProps, 'w:b')) runProps.children.push(el('w:b'))
+  return lines.flatMap((line, idx) => line.split(/(\*\*[^*]+\*\*)/g).map((part, partIndex) => {
+    const emphasized = part.startsWith('**') && part.endsWith('**') && part.length > 4
+    const runBold = bold || emphasized
+    const runProps = rPr ? cloneNode(rPr) : (runBold ? el('w:rPr', {}, [el('w:b')]) : undefined)
+    if (runProps && runBold && !findFirst(runProps, 'w:b')) runProps.children.push(el('w:b'))
+    const value = emphasized ? part.slice(2, -2) : part
     return el('w:r', {}, [
       ...(runProps ? [runProps] : []),
-      ...(idx > 0 ? [el('w:br')] : []),
-      el('w:t', { 'xml:space': 'preserve' }, line.length ? [textNode(line)] : []),
+      ...(idx > 0 && partIndex === 0 ? [el('w:br')] : []),
+      el('w:t', { 'xml:space': 'preserve' }, value.length ? [textNode(value)] : []),
     ])
-  })
+  }))
 }
 /** Replace `{{key}}` placeholders in `values` across every paragraph, merging split runs as needed. */
 function substitutePlaceholders(root: XmlNode, values: Readonly<Record<string, string>>) {
@@ -361,9 +388,12 @@ export function inspectTemplate(bytes: Uint8Array): TemplateInfo {
   }
 
   const warnings: string[] = []
-  if (!hasSectionsSlot && sectionSlots.size === 0) warnings.push('模板未声明 {{sections}} 或 {{section:KEY}} 插槽，渲染时章节内容将追加到正文末尾。')
+  const headings = headingOutline(body, zip.has('word/styles.xml') ? parseXml(requirePart(zip, 'word/styles.xml')) : undefined)
+  const outline = !hasSectionsSlot && !sectionSlots.size ? headings.map(({ index: _index, ...h }) => h)
+    : [...sectionSlots].map(key => ({ key, title: key, guidance: `按模板的 ${key} 章节撰写。` }))
+  if (!hasSectionsSlot && sectionSlots.size === 0 && !headings.length) warnings.push('模板未声明 {{sections}} 或 {{section:KEY}} 插槽，也没有 Word 标题 1–3；请设置标题样式后按模板撰写。普通导出将追加到正文末尾。')
 
-  return { placeholders: [...placeholders], hasSectionsSlot, sectionSlots: [...sectionSlots], warnings }
+  return { placeholders: [...placeholders], hasSectionsSlot, sectionSlots: [...sectionSlots], warnings, outline }
 }
 function readTemplateZip(bytes: Uint8Array): Map<string, Uint8Array> {
   ensure(bytes.length >= 4 && bytes[0] === 0x50 && bytes[1] === 0x4b, 'INVALID_TEMPLATE', '模板不是有效的 ZIP/OOXML 归档。')
@@ -389,8 +419,21 @@ export function renderDocx(template: Uint8Array, input: RenderInput): Uint8Array
   const body = findFirst(root, 'w:body')
   ensure(body !== undefined, 'INVALID_TEMPLATE', '模板缺少正文内容。')
 
-  const hadSlot = replaceSlots(root, input)
-  if (!hadSlot) appendSectionsBeforeSectPr(body, input.sections)
+  const headings = headingOutline(body, zip.has('word/styles.xml') ? parseXml(requirePart(zip, 'word/styles.xml')) : undefined)
+  const info = inspectTemplate(template)
+  if (!info.hasSectionsSlot && !info.sectionSlots.length && headings.length && input.sections.some(s => s.key.startsWith('template_'))) {
+    for (let i = headings.length - 1; i >= 0; i--) {
+      const h = headings[i]!, next = headings[i + 1]?.index ?? body.children.findIndex(n => n.tag === 'w:sectPr')
+      const end = next < 0 ? body.children.length : next
+      const section = input.sections.find(s => s.key === h.key)
+      ensure(section, 'TEMPLATE_SECTION_MISSING', `缺少模板章节：${h.title}`)
+      body.children.splice(h.index + 1, end - h.index - 1, ...section.blocks.flatMap(blockToNodes))
+    }
+  } else {
+    const hadSlot = replaceSlots(root, input)
+    if (!hadSlot) appendSectionsBeforeSectPr(body, input.sections)
+    else if (!info.hasSectionsSlot) appendSectionsBeforeSectPr(body, input.sections.filter(s => !info.sectionSlots.includes(s.key)))
+  }
   substitutePlaceholders(root, input.values)
   const rendered = new Map<string, string>([['word/document.xml', serializeDocument(root)]])
 

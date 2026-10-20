@@ -1,8 +1,8 @@
 /** 成本与报价: deterministic BOM cost lines, settings/FX, cost result and three independent cost reviews. */
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { del, patch, post, pp, put } from '../api.ts'
 import { Icon } from '../icons.tsx'
-import { useStore } from '../store.tsx'
+import { errText, useStore } from '../store.tsx'
 import type { CostKind, CostLine, CostResultLine, CostSettings } from '../types.ts'
 import { Badge, Btn, Drawer, Empty, Field, Modal, PageHead, Panel, REVIEW, fmtTime } from '../ui.tsx'
 
@@ -16,9 +16,9 @@ const PRICE_STATE: Record<CostResultLine['priceState'], [string, 'teal' | 'warn'
   quoted: ['有来源', 'teal'], estimate: ['估算', 'warn'], test: ['测试价格', 'red'], missing: ['缺价格', 'gray'],
 }
 export const COST_KIND: Record<CostKind, [string, string]> = {
-  cost_draft: ['成本草稿审核', '确认 BOM 与数量、计算口径正确；路线需已确认。'],
-  supplier_verified: ['供应商报价已核验', '所有价格均来自有效的供应商报价或目录价，无估算、测试价或过期报价。'],
-  external_approved: ['对外报价已批准', '允许对外报价；需要可计算的合计（币种与汇率完整）。'],
+  cost_draft: ['① 成本草稿审核', '确认 BOM 与数量、计算口径正确；路线需已确认。'],
+  supplier_verified: ['② 供应商报价已核验', '所有价格均来自有效的供应商报价或目录价，无估算、测试价或过期报价。'],
+  external_approved: ['③ 对外报价已批准', '允许对外报价；需要可计算的合计（币种与汇率完整）。'],
 }
 const blankLine = {
   category: 'equipment', name: '', unit: '套', quantityMode: 'manual', quantity: '1', factor: '1', unitPrice: '', currency: 'CNY',
@@ -164,8 +164,8 @@ function ReviewCard({ kind }: { kind: CostKind }) {
         <Badge tone={tone === 'warn' ? 'warn' : tone === 'teal' ? 'teal' : tone === 'red' ? 'red' : 'gray'}>{status === 'stale' ? '已失效' : REVIEW[status]![0]}</Badge></div>
       {rec ? <div className="tiny-caption">{rec.review.reviewer} · {fmtTime(rec.review.reviewedAt)}{rec.review.reason ? ` · ${rec.review.reason}` : ''}
         {status === 'stale' ? '（输入已变化，需重新审核）' : ''}</div> : null}
-      {checks.length ? <div className="review-list">{checks.map(c => <div key={c} className="tiny-caption">· {c}</div>)}</div>
-        : <div className="tiny-caption">前置检查已通过。</div>}
+      {checks.length ? <div className="review-list">{checks.map(c => <div key={c} className="tiny-caption" style={{ color: '#b45309' }}>· {c}</div>)}</div>
+        : <div className="tiny-caption" style={{ color: '#0f766e' }}>✓ 前置检查已通过。</div>}
       <div className="actions" style={{ marginTop: 10 }}>
         <Btn small kind={status === 'valid' ? 'ghost' : 'primary'} showReason onClick={() => setOpen(true)}
           disabled={checks.length ? '前置检查未通过' : active ? '已有运行进行中' : ''}><Icon name="shield" />{status === 'valid' ? '重新审核' : '人工审核'}</Btn>
@@ -180,16 +180,45 @@ function ReviewCard({ kind }: { kind: CostKind }) {
     </div>
   )
 }
-const BAR_COLORS = ['#3064DF', '#11A5A4', '#E3A33B', '#7A68D8', '#D9644F', '#8194AA']
+const BAR_COLORS = ['#2563EB', '#0D9488', '#D97706', '#7C3AED', '#DC2626', '#64748B']
 
 export function CostPage() {
-  const { ov, pid, act } = useStore()
+  const { ov, pid, act, active } = useStore()
   const [edit, setEdit] = useState<CostLine | 'new'>()
   const [drop, setDrop] = useState<CostLine>()
   const [settings, setSettings] = useState(false)
+  const [syncBusy, setSyncBusy] = useState(false)
+  const syncing = useRef(false)
   if (!ov || !pid) return <Empty>正在加载项目…</Empty>
   const r = ov.cost.result
   const byId = new Map(ov.v4.costLines.map(l => [l.id, l]))
+  const activeConfigs = ov.v4.configItems.filter(c => c.status === 'active')
+  const linkedConfigIds = new Set(ov.v4.costLines.flatMap(l => l.configItemIds))
+  const unlinkedConfigs = activeConfigs.filter(c => !linkedConfigIds.has(c.id))
+
+  const syncFromConfig = async () => {
+    if (syncing.current || active || !unlinkedConfigs.length) return
+    syncing.current = true
+    setSyncBusy(true)
+    let created = 0
+    try {
+      await act(async () => {
+        try {
+          for (const c of unlinkedConfigs) {
+            await post(pp(pid, 'cost-lines'), {
+              category: 'equipment', name: c.name, configItemIds: [c.id], quantityMode: 'follow_config',
+              quantity: 0, factor: 1, unit: c.unit,
+              currency: ov.v4.costSettings?.baseCurrency ?? 'CNY', sourceType: 'none',
+            })
+            created++
+          }
+        } catch (error) {
+          throw new Error(`BOM 同步未完成：已创建 ${created}/${unlinkedConfigs.length} 行。刷新后可重试剩余配置。${errText(error)}`, { cause: error })
+        }
+      }, `已从设备配置同步生成 ${unlinkedConfigs.length} 行 BOM 草稿，请补充单价与来源`)
+    } finally { syncing.current = false; setSyncBusy(false) }
+  }
+
   const remove = async () => {
     if (!drop) return
     const out = await act(() => del(pp(pid, `cost-lines/${encodeURIComponent(drop.id)}`)), '成本行已删除；成本审核已失效')
@@ -197,12 +226,21 @@ export function CostPage() {
   }
   return (
     <>
-      <PageHead eyebrow="成本与报价" title="BOM 成本与报价"
+      <PageHead eyebrow="STAGE 6 · DETERMINISTIC BOM & COST REVIEW" title="BOM 成本与报价"
+        lede="金额由系统按 数量 × 系数 × 单价 确定性计算，不由 AI 生成。支持跟随方案设备配置数量联动、多币种汇率与三阶独立人工审核。"
         actions={<><Btn kind="ghost" onClick={() => setSettings(true)}><Icon name="coins" />口径与汇率</Btn>
           <Btn kind="primary" onClick={() => setEdit('new')}><Icon name="plus" />新增成本行</Btn></>} />
       {r.testData ? <div className="reconcile-note"><Icon name="shield" /> 当前包含 {r.testData} 行测试价格（非真实报价），仅用于演示计算，不能用于对外报价。</div> : null}
+      {unlinkedConfigs.length ? (
+        <div className="card" style={{ padding: '12px 16px', marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap', background: '#eff6ff', borderColor: '#bfdbfe' }}>
+          <div className="tiny-caption" style={{ color: '#1e3a8a', fontSize: 12 }}>
+            <strong>配置联动提示：</strong>当前有 <b>{unlinkedConfigs.length}</b> 项有效设备配置尚未建立关联 BOM 成本行（{unlinkedConfigs.map(c => c.name).join('、')}）。
+          </div>
+          <Btn small kind="teal" disabled={syncBusy ? '正在同步 BOM…' : active ? '已有运行进行中' : ''} onClick={syncFromConfig}><Icon name="refresh" />按配置一键生成 BOM 行（{unlinkedConfigs.length}）</Btn>
+        </div>
+      ) : null}
       <div className="dual-grid">
-        <Panel title={`成本明细（${r.lines.length}）`}>
+        <Panel title={`成本明细（${r.lines.length}）`} subtitle="支持一对多或多对一关联配置项；数量、单价或配置变化会自动使成本审核置为已失效。">
           {r.lines.length ? <div className="table-scroll"><table className="data-table">
             <thead><tr><th>成本项</th><th>类别</th><th>数量</th><th>单价</th><th>金额</th><th>价格状态</th><th /></tr></thead>
             <tbody>{r.lines.map(l => {
@@ -211,7 +249,7 @@ export function CostPage() {
                 <tr key={l.id}>
                   <td className="main-cell"><strong>{l.name}</strong>
                     <small>{src ? [SOURCE[src.sourceType] ?? src.sourceType, src.supplier, src.quantityMode === 'follow_config' ? '跟随配置' : ''].filter(Boolean).join(' · ') : ''}</small>
-                    {l.warnings.map(w => <div key={w} className="tiny-caption">⚠ {w}</div>)}</td>
+                    {l.warnings.map(w => <div key={w} className="tiny-caption" style={{ color: '#b45309' }}>⚠ {w}</div>)}</td>
                   <td>{CATEGORY[l.category] ?? l.category}</td>
                   <td>{l.quantity}{src ? ` ${src.unit}` : ''}{src && src.factor > 1 ? ` × ${src.factor}` : ''}</td>
                   <td className="money">{l.unitPrice ? `${l.unitPrice} ${l.currency}` : '—'}</td>
@@ -228,14 +266,14 @@ export function CostPage() {
         </Panel>
         <div className="right-panel-stack">
           <div className="price-strip">
-            <small>合计（{r.baseCurrency}）</small>
+            <small>合计（{r.baseCurrency}） · 指纹 {ov.cost.hash.slice(0, 10)}</small>
             <div className="amount">{r.totalDisplay ?? '无合计'}</div>
             {r.subtotals.map(s => <div key={s.currency} className="note">{s.currency} 小计 {s.display}{s.rate ? ` · 汇率 ${s.rate}` : ''}</div>)}
             {r.contingency ? <div className="note">不可预见费 {r.contingency}</div> : null}
             {r.tax ? <div className="note">税金 {r.tax}</div> : null}
             {[...r.blockers, ...r.missingFx.map(c => `缺少 ${c} → ${r.baseCurrency} 汇率`)].map(b => <div key={b} className="note">⚠ {b}</div>)}
           </div>
-          <Panel title="价格可信度">
+          <Panel title="价格可信度监控">
             <div className="dtl-row"><div><strong>缺价格</strong></div><Badge tone={r.missingPrices ? 'gray' : 'teal'}>{r.missingPrices}</Badge></div>
             <div className="dtl-row"><div><strong>估算价格</strong></div><Badge tone={r.estimates ? 'warn' : 'teal'}>{r.estimates}</Badge></div>
             <div className="dtl-row"><div><strong>测试价格（非真实）</strong></div><Badge tone={r.testData ? 'red' : 'teal'}>{r.testData}</Badge></div>
@@ -245,7 +283,7 @@ export function CostPage() {
       </div>
       <div className="section-spacer" />
       <Panel title="三项独立成本审核" extra={<span className="tiny-caption">任一成本输入、配置或路线变化都会使已有审核失效</span>}>
-        <div className="route-grid">{(Object.keys(COST_KIND) as CostKind[]).map(k => <ReviewCard key={k} kind={k} />)}</div>
+        <div className="summary-grid" style={{ marginBottom: 0 }}>{(Object.keys(COST_KIND) as CostKind[]).map(k => <ReviewCard key={k} kind={k} />)}</div>
       </Panel>
       <LineDrawer open={Boolean(edit)} line={edit === 'new' ? undefined : edit} onClose={() => setEdit(undefined)} />
       <SettingsModal open={settings} onClose={() => setSettings(false)} />

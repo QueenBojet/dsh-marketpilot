@@ -41,7 +41,8 @@ export class DocumentService extends RecordService<'documents'> {
     const patch = documentInput.partial().parse(input)
     const state = await this.ctx.repository.update(projectId, s => {
       ensure(!s.requirements.some(r => r.sourceDocumentId === id) && !s.evidence.some(e => e.sourceDocumentId === id)
-        && !s.tenderItems.some(t => t.sourceDocumentId === id),
+        && !s.tenderItems.some(t => t.sourceDocumentId === id) && !s.v4?.supportNotes?.some(n => n.documentId === id)
+        && !s.v4?.findings.some(f => f.source.documentId === id),
         'SOURCE_REFERENCED', '来源已被引用，请导入新版本以保留原文。')
       Object.assign(requiredRecord(s, 'documents', id), patch, { updatedAt: this.ctx.now() })
     })

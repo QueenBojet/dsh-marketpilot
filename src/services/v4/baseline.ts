@@ -6,6 +6,7 @@ import { computeCost } from '../../domain/cost.ts'
 import { hashOf } from '../../domain/v4-text.ts'
 import type { ProjectState } from '../../domain/state.ts'
 import { V4Base, costHash, docHash, reviewStatus, routeState, v4Of } from './base.ts'
+import { outdatedSections } from './docs.ts'
 
 export const publishInput = z.strictObject({
   type: z.enum(['technical', 'full']), label: text.max(200).optional(), note: z.string().trim().max(2000).optional(),
@@ -13,8 +14,8 @@ export const publishInput = z.strictObject({
 export type BaselineType = Baseline['type']
 
 /** A document counts for publishing only when its current text is reviewed and no proposal is pending. */
-function reviewedDoc(state: ProjectState, kind: DocDraft['kind']): DocDraft | undefined {
-  return v4Of(state).docs.filter(d => d.kind === kind && reviewStatus(d.review, docHash(d)) === 'valid' && !d.sections.some(s => s.proposal)).at(-1)
+function reviewedDoc(state: ProjectState, kind: DocDraft['kind'], today: string): DocDraft | undefined {
+  return v4Of(state).docs.filter(d => d.kind === kind && reviewStatus(d.review, docHash(d)) === 'valid' && !outdatedSections(state, d, today).length && !d.sections.some(s => s.proposal)).at(-1)
 }
 
 /** Publish blockers; an empty list means the baseline may be published. */
@@ -26,13 +27,13 @@ export function baselineChecks(state: ProjectState, type: BaselineType, today: s
   else if (!route.confirmed) out.push('草稿路线与已确认决策不一致，需重新确认路线。')
   if (!state.requirements.some(r => r.status === 'confirmed')) out.push('尚无已确认需求。')
   if (!v4.configItems.some(c => c.status === 'active')) out.push('结构化配置为空。')
-  if (!reviewedDoc(state, 'technical')) out.push('技术方案文档未通过人工审核（或审核后已修改、仍有待处理建议）。')
+  if (!reviewedDoc(state, 'technical', today)) out.push('技术方案文档未通过人工审核（或审核后已修改、依据已变化、仍有待处理建议）。')
   if (type === 'full') {
     if (reviewStatus(v4.costReviews.cost_draft, costHash(state)) !== 'valid') out.push('成本草稿未审核或审核后已变化。')
     const cost = computeCost(v4.costLines, v4.configItems.filter(c => c.status === 'active'), v4.costSettings, today)
     if (cost.missingFx.length) out.push(`缺少汇率：${cost.missingFx.join('、')}，无法形成总价。`)
     if (cost.total === undefined) out.push('无法计算总价。')
-    if (!reviewedDoc(state, 'cost')) out.push('成本报价文档未通过人工审核。')
+    if (!reviewedDoc(state, 'cost', today)) out.push('成本报价文档未通过人工审核或依据已变化。')
   }
   return out
 }
@@ -45,6 +46,8 @@ export function buildSnapshot(state: ProjectState, type: BaselineType, today: st
   const config = v4.configItems.filter(c => c.status === 'active')
   const docKinds: DocDraft['kind'][] = type === 'full' ? ['technical', 'cost'] : ['technical']
   const snap = {
+    ...v4.discovery ? { discovery: v4.discovery, supportNotes: v4.supportNotes ?? [], explorations: v4.explorations ?? [],
+      researchQuestions: v4.questions.map(q => ({ id: q.id, title: q.title, direction: q.direction ?? null, decisionUse: q.decisionUse ?? null, alternativeIds: q.alternativeIds ?? [], report: q.report ?? null, status: q.status })) } : {},
     type,
     requirements: state.requirements.filter(r => r.status === 'confirmed')
       .map(r => ({ id: r.id, text: r.normalizedText, priority: r.priority, type: r.type })),
@@ -64,7 +67,7 @@ export function buildSnapshot(state: ProjectState, type: BaselineType, today: st
           .map(k => [k, reviewStatus(v4.costReviews[k], costHash(state))])),
         lines: r.lines.map(l => ({ id: l.id, name: l.name, quantity: l.quantity, currency: l.currency, unitPrice: l.unitPrice ?? null, amount: l.amount ?? null, priceState: l.priceState })) }
     })() : null,
-    docs: docKinds.map(k => reviewedDoc(state, k)).filter((d): d is DocDraft => d !== undefined)
+    docs: docKinds.map(k => reviewedDoc(state, k, today)).filter((d): d is DocDraft => d !== undefined)
       .map(d => ({ id: d.id, kind: d.kind, title: d.title, revisionNo: d.revisionNo, hash: docHash(d), exportSha256: d.exports.at(-1)?.sha256 ?? null })),
   }
   return JSON.parse(JSON.stringify(snap)) as Record<string, z.core.util.JSONType>

@@ -1,6 +1,6 @@
 /** Global pages: 研究资料库 (sources/findings/evidence), 运行记录 (runs + executions) and 设置 (model precedence). */
-import { useEffect, useState } from 'react'
-import { cancelRun, get, pp } from '../api.ts'
+import { useState } from 'react'
+import { cancelRun } from '../api.ts'
 import { Icon } from '../icons.tsx'
 import { href } from '../shell.tsx'
 import { useStore } from '../store.tsx'
@@ -27,9 +27,10 @@ export function LibraryPage() {
     : f.source.type === 'document' ? ov.documents.find(d => d.id === f.source.documentId)?.name ?? '项目资料' : f.source.type === 'report' ? '研究报告' : '无来源'
   return (
     <>
-      <PageHead eyebrow="研究资料库" title={`${ov.project.name} · 研究资料`}
+      <PageHead eyebrow="KNOWLEDGE REPOSITORY · 研究资料库" title={`${ov.project.name} · 研究资料`}
+        lede="集中追溯本项目的联网抓取快照、经人工采纳/核实的研究结论与历史 V3 证据台账。"
         actions={<a className="btn primary" href={href('research', pid)}><Icon name="microscope" />去智能研究</a>} />
-      <Panel title="资料" extra={<>
+      <Panel title="知识与来源台账" extra={<>
         <div className="segment">{tabs.map(([k, t]) => <button key={k} type="button" className={cx(tab === k && 'active')} onClick={() => setTab(k)}>{t}</button>)}</div>
         <input className="text-field" style={{ width: 200 }} placeholder="搜索" aria-label="搜索资料" value={q} onChange={e => setQ(e.target.value)} />
       </>}>
@@ -39,7 +40,7 @@ export function LibraryPage() {
             <tr key={s.id}>
               <td className="main-cell"><strong>{s.title || s.url}</strong>
                 <small>{safeUrl(s.url) ? <a href={safeUrl(s.url)} target="_blank" rel="noopener noreferrer">{s.url}</a> : s.url}</small>
-                {s.error ? <div className="tiny-caption">失败原因：{s.error}</div> : null}</td>
+                {s.error ? <div className="tiny-caption" style={{ color: '#b91c1c' }}>失败原因：{s.error}</div> : null}</td>
               <td><Badge tone={s.status === 'fetched' ? 'teal' : 'red'}>{s.status === 'fetched' ? '正文已抓取' : '抓取失败（不计为来源）'}</Badge></td>
               <td>{fmtTime(s.fetchedAt)}</td>
               <td className="tiny-caption">{s.contentHash ? s.contentHash.slice(0, 12) : '—'}</td>
@@ -48,7 +49,7 @@ export function LibraryPage() {
           <div key={f.id} className="list-row">
             <div className="grow"><b>{f.statement}</b>
               <div className="tiny-caption">{f.origin === 'ai' ? 'AI 提出' : '人工录入'} · 来源：{srcName(f)}{f.source.locator ? ` · ${f.source.locator}` : ''}{f.conditions ? ` · 适用条件：${f.conditions}` : ''}</div>
-              {f.needsReview ? <div className="tiny-caption">⚠ 需重新复核{f.reviewReason ? `：${f.reviewReason}` : ''}</div> : null}</div>
+              {f.needsReview ? <div className="tiny-caption" style={{ color: '#b45309' }}>⚠ 需重新复核{f.reviewReason ? `：${f.reviewReason}` : ''}</div> : null}</div>
             <Badge tone={ADOPTION[f.adoption][1]}>{ADOPTION[f.adoption][0]}</Badge>
             <Badge tone={VERIFY[f.verification][1]}>{VERIFY[f.verification][0]}</Badge>
           </div>))}</div> : <Empty>暂无研究结论。在“智能研究”中保存结论后会出现在这里。</Empty>) : null}
@@ -62,7 +63,7 @@ export function LibraryPage() {
     </>
   )
 }
-const RUN_KIND: Record<Run['kind'], string> = { chat: 'AI 对话', research: '智能研究', deep_change: '深度变更分析', section_revision: '章节修订建议' }
+const RUN_KIND: Record<Run['kind'], string> = { chat: 'AI 对话', research: '智能研究', deep_change: '深度变更分析', section_revision: '章节修订建议', discovery: '需求访谈', brainstorm: '路线头脑风暴', document_draft: '按模板撰写' }
 const RUN_STATUS: Record<string, [string, 'blue' | 'teal' | 'red' | 'gray' | 'warn']> = {
   running: ['运行中', 'blue'], waiting_human: ['等待人工确认', 'warn'], completed: ['已完成', 'teal'], failed: ['失败', 'red'], cancelled: ['已取消', 'gray'],
 }
@@ -76,14 +77,15 @@ export function RunsPage() {
   const cancel = (callId: string) => act(() => cancelRun(callId), '已请求取消运行')
   return (
     <>
-      <PageHead eyebrow="运行记录" title={`${ov.project.name} · 运行记录`} />
+      <PageHead eyebrow="EXECUTION AUDIT LOG · 运行记录" title={`${ov.project.name} · 运行记录`}
+        lede="记录每一次 DSH 模型调用的实际路由来源（本次指定 / 项目偏好 / 全局默认）、研究 Skill 注入指纹、联网状态与工具执行轨迹。" />
       <Panel title={`AI 运行（${runs.length}）`}>
         {runs.length ? <div className="table-scroll"><table className="data-table">
           <thead><tr><th>运行</th><th>状态</th><th>实际模型</th><th>路由来源</th><th>联网</th><th>来源数</th><th>时间</th></tr></thead>
           <tbody>{runs.map(r => (
             <tr key={r.id}>
               <td className="main-cell"><strong>{RUN_KIND[r.kind]}{r.mode ? ` · ${r.mode}` : ''}</strong>
-                {r.note ? <small>{r.note}</small> : null}{r.error ? <div className="tiny-caption">错误：{r.error}</div> : null}</td>
+                {r.note ? <small>{r.note}</small> : null}{r.error ? <div className="tiny-caption" style={{ color: '#b91c1c' }}>错误：{r.error}</div> : null}</td>
               <td><Badge tone={RUN_STATUS[r.status]![1]}>{RUN_STATUS[r.status]![0]}</Badge></td>
               <td>{r.modelRoute.source === 'none' ? '—' : `${r.modelRoute.provider} / ${r.modelRoute.model}${r.modelRoute.reasoningEffort ? ` (${r.modelRoute.reasoningEffort})` : ''}`}</td>
               <td>{ROUTE_SRC[r.modelRoute.source] ?? r.modelRoute.source}</td>
@@ -109,7 +111,8 @@ export function SettingsPage() {
   const { ov, selection, catalog, catalogError, reloadModels } = useStore()
   const caps = ov?.capabilities
   return <>
-    <PageHead eyebrow="设置" title="设置" />
+    <PageHead eyebrow="HOST INTEGRATION · 设置" title="设置"
+      lede="模型供应商与搜索 Provider 分别由宿主 DSH 管理；MarketPilot 不自建外部模型客户端，不保存任何 API 密钥。" />
     <div className="dual-grid">
       <Panel title="模型供应商" extra={<Btn small kind="ghost" onClick={reloadModels}>刷新</Btn>}>
         <p className="settings-caption">与 DSH 配置同步。模型与思考强度在右上角切换。</p>

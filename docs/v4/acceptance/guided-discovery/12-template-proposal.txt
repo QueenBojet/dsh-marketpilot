@@ -1,0 +1,145 @@
+- complementary "主导航":
+  - generic: M
+  - generic: MarketPilot 智策
+  - generic: WORKSPACE
+  - link "工作台":
+    - /url: "#/home?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 工作台
+  - link "我的项目":
+    - /url: "#/projects?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 我的项目
+  - link "研究资料库":
+    - /url: "#/library?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 研究资料库
+  - link "运行记录":
+    - /url: "#/runs?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 运行记录
+  - generic: CURRENT PROJECT
+  - link "合成验收 冷链仓储温度监测 未填写客户 · 修订 69":
+    - /url: "#/overview?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - text: 合成验收 冷链仓储温度监测
+    - generic: 未填写客户 · 修订 69
+  - link "项目总览":
+    - /url: "#/overview?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 项目总览
+  - link "需求访谈":
+    - /url: "#/discovery?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 需求访谈
+  - link "资料与变更":
+    - /url: "#/change?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 资料与变更
+  - link "方案与决策":
+    - /url: "#/solution?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 方案与决策
+  - link "智能研究":
+    - /url: "#/research?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 智能研究
+  - link "成本与报价":
+    - /url: "#/cost?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 成本与报价
+  - link "文档与交付":
+    - /url: "#/deliver?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 文档与交付
+  - link "设置":
+    - /url: "#/settings?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 设置
+- banner:
+  - text: 合成验收 冷链仓储温度监测
+  - generic: /
+  - strong: 文档与交付
+  - button "选择模型与思考强度":
+    - generic: okai2 / qwen3.8-flash
+    - generic: ⌄
+  - link "设置":
+    - /url: "#/settings?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+- main:
+  - heading "文档、审核与正式版本" [level=1]
+  - button "新建文档":
+    - text: 新建文档
+  - button "发布正式版本":
+    - text: 发布正式版本
+  - generic: 项目文档（1）
+  - button "合成验收冷链温度监测技术方案 技术方案 · 修订 1 未审核":
+    - text: 合成验收冷链温度监测技术方案
+    - generic: 技术方案 · 修订 1
+    - generic: 未审核
+  - generic: 未审核
+  - generic: 未导出
+  - generic: 未对外发送
+  - button "按模板撰写"
+  - combobox "DOCX 模板":
+    - option "默认模板"
+    - option "合成技术方案三章节模板" [selected]
+  - button "人工审核" [disabled]:
+    - text: 人工审核
+  - button "导出 DOCX":
+    - text: 导出 DOCX
+  - button "记录对外发送" [disabled]:
+    - text: 记录对外发送
+  - generic: 合成验收 冷链仓储温度监测 · 技术方案
+  - heading "合成验收冷链温度监测技术方案" [level=1]
+  - generic "内容指纹：a0dc3c2ec66326d36258189a58bbbab05705aa91e16481000c81a383960433cb": 修订 1 · 合成技术方案三章节模板
+  - heading "项目目标与边界 编辑 有待处理建议" [level=3]:
+    - text: 项目目标与边界
+    - button "编辑" [active]
+    - generic: 有待处理建议
+  - generic: 按模板撰写待完成：项目目标与边界
+  - paragraph: 写作要求1：根据已确认项目事实撰写，明确未知项。
+  - heading "技术路线与研究依据 编辑 有待处理建议" [level=3]:
+    - text: 技术路线与研究依据
+    - button "编辑"
+    - generic: 有待处理建议
+  - generic: 按模板撰写待完成：技术路线与研究依据
+  - paragraph: 写作要求2：根据已确认项目事实撰写，明确未知项。
+  - heading "实施与验收计划 编辑 有待处理建议" [level=3]:
+    - text: 实施与验收计划
+    - button "编辑"
+    - generic: 有待处理建议
+  - generic: 按模板撰写待完成：实施与验收计划
+  - paragraph: 写作要求3：根据已确认项目事实撰写，明确未知项。
+  - complementary "项目目标与边界":
+    - generic: 系统生成内容
+    - heading "项目目标与边界" [level=2]
+    - button "关闭": ×
+    - generic: 格式：“## ”标题、“- ”列表、“> ”提示、“|a|b|”表格，其余为段落。
+    - textbox: "> 按模板撰写待完成：项目目标与边界 写作要求1：根据已确认项目事实撰写，明确未知项。"
+    - generic: 待处理建议（AI）
+    - generic: 当前
+    - generic: "> 按模板撰写待完成：项目目标与边界 写作要求1：根据已确认项目事实撰写，明确未知项。"
+    - generic: 建议
+    - generic: "## 1.1 项目目标 为四个 0~4℃ 冷藏库各建设 1 个温度测点，形成一套以「库外单点集中处理」为核心的温度监测与超限报警系统，实现 1 分钟采样、连续超限 5 分钟本地声光报警并经 HTTP webhook 通知值班系统、断网本地缓存不少于 24 小时并在恢复后补传、数据在库外本地主机保存 30 天。本项目为合成验收项目，所有数据仅用于产品验收，不构成对外选型、报价或承诺。 ## 1.2 已确认需求（人工确认需求简报，7 条均为必须） | 编号 | 需求 | 验收关注点 | |---|---|---| | R1 | 四个 0~4℃ 冷藏库各 1 个测点，整体测点误差满足 ±0.5℃ | 整体测点误差，无余量 | | R2 | 每分钟采样一次 | 采样周期配置能力 | | R3 | 连续超限 5 分钟后触发本地声光报警并经 HTTP webhook 通知值班系统 | 判据可配性 + 上联接口 | | R4 | 断网时本地缓存不少于 24 小时，网络恢复后补传数据 | 缓存深度与补传语义 | | R5 | 温度数据保存于库外本地主机，记录保留 30 天 | 存储容量与回卷策略 | | R6 | 不需要手机端查看 | 无移动端交付物 | | R7 | 验收方法：以经校准参考温度计做恒温对比测试（允差即 ±0.5℃，不另设余量）+ 断网缓存补传测试 | 验收用例 | ## 1.3 范围边界 - 含：四个库区各 1 个测温点的监测、采样、超限报警（本地声光 + HTTP webhook 通知值班系统）、断网缓存补传、库外本地主机 30 天记录保存。 - 不含：制冷改造、断电续航、手机端查看、GSP/GMP 认证承诺。 - 约束：全新部署；布线或无线均可；允许合规小孔穿墙；工期暂不限制；预算仅用于路线比较。 ## 1.4 外部前提（来自合成资料第 3–4 行，为本方案唯一可追溯的现场条件证据） - 值班系统支持 HTTP webhook 接收报警。 - 网关位于库外，有市电。 - 验收使用临时局域网。 ## 1.5 明确的未知项与未核实结论 | 项 | 状态 | |---|---| | 具体主机/探头型号与规格书 | 未知，无任何型号级协议文档 | | 主机固件的 5 分钟连续判据可配性、webhook 字段/鉴权/重试、24h 缓存深度与补传语义 | 待核实 | | ±0.5℃ 整体误差预算（探头+激励+变送+采集+安装）是否收敛 | 待核实，未实测 | | 穿墙孔对库体气密/保温影响及防冷凝施工做法 | 待核实，无规范依据 | | 导线阻与线缆长度对误差的贡献量级 | 待核实 | | 参考标准器量值溯源与校准证书配置 | 已列入后续调研，尚无报告 | | 价格与供货 | 未获取，不估算 | 本节不含任何价格、工业案例编号、国家/行业标准条款或外部引用；除上表所列的合成资料前提外，其余参数均属未知，不得在后续文件中被引用为已确认参数。"
+    - generic: 理由：按 Word 模板「合成技术方案三章节模板」撰写
+    - button "拒绝"
+    - button "接受建议"
+    - text: 请 AI 提出修改建议
+    - textbox "请 AI 提出修改建议 只生成建议，不会覆盖章节；需人工接受。":
+      - /placeholder: 例如：压缩为三段，突出接口要求
+    - text: 只生成建议，不会覆盖章节；需人工接受。
+    - button "生成建议" [disabled]:
+      - text: 生成建议
+    - generic: 请填写修改要求
+    - button "取消"
+    - button "保存章节" [disabled]
+  - heading "正式版本（0）" [level=2]
+  - button "发布正式版本":
+    - text: 发布正式版本
+  - generic: 尚未发布正式版本。工作草稿可持续修改；只有人工发布才会生成 V1、V2…
+  - heading "DOCX 模板（2）" [level=2]
+  - strong: 默认模板
+  - generic: 系统内置 A4 版式；未选择模板的文档使用此模板。
+  - generic: 内置
+  - strong: 合成技术方案三章节模板
+  - generic: synthetic-template.docx · 已识别章节 3
+  - generic: 项目目标与边界 → 技术路线与研究依据 → 实施与验收计划
+  - button "删除"
+  - generic: "上传公司 .docx 模板：用 Word“标题 1–3”定义章节，标题下可填写写作要求。系统按这些章节撰写并保留模板页眉页脚。也支持 {{sections}} 或 {{section:KEY}} 插槽。"
+  - text: 模板名称
+  - textbox "模板名称":
+    - /placeholder: 留空使用文件名
+  - text: 文件
+  - button "文件"
+  - button "上传模板" [disabled]:
+    - text: 上传模板
+  - heading "版本差异（业务级）" [level=2]
+  - generic: 至少发布两个正式版本后，才能比较业务差异。
+- alert

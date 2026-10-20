@@ -1,0 +1,86 @@
+- complementary "主导航":
+  - generic: M
+  - generic: MarketPilot 智策
+  - generic: WORKSPACE
+  - link "工作台":
+    - /url: "#/home?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 工作台
+  - link "我的项目":
+    - /url: "#/projects?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 我的项目
+  - link "研究资料库":
+    - /url: "#/library?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 研究资料库
+  - link "运行记录":
+    - /url: "#/runs?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 运行记录
+  - generic: CURRENT PROJECT
+  - link "合成验收 冷链仓储温度监测 未填写客户 · 修订 63":
+    - /url: "#/overview?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - text: 合成验收 冷链仓储温度监测
+    - generic: 未填写客户 · 修订 63
+  - link "项目总览":
+    - /url: "#/overview?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 项目总览
+  - link "需求访谈":
+    - /url: "#/discovery?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 需求访谈
+  - link "资料与变更":
+    - /url: "#/change?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 资料与变更
+  - link "方案与决策":
+    - /url: "#/solution?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 方案与决策
+  - link "智能研究":
+    - /url: "#/research?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 智能研究
+  - link "成本与报价":
+    - /url: "#/cost?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 成本与报价
+  - link "文档与交付":
+    - /url: "#/deliver?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 文档与交付
+  - link "设置":
+    - /url: "#/settings?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+    - generic: 设置
+- banner:
+  - text: 合成验收 冷链仓储温度监测
+  - generic: /
+  - strong: 文档与交付
+  - button "选择模型与思考强度":
+    - generic: okai2 / qwen3.8-flash
+    - generic: ⌄
+  - link "设置":
+    - /url: "#/settings?p=93fb506d-d37c-48e0-b3e4-d9b58be1145b"
+- main:
+  - heading "文档、审核与正式版本" [level=1]
+  - button "新建文档":
+    - text: 新建文档
+  - button "发布正式版本":
+    - text: 发布正式版本
+  - generic: 项目文档（0）
+  - generic: 暂无文档，点击“新建文档”。
+  - generic: 暂无文档。新建技术方案或成本文档后，可在此 A4 预览、审核并导出 DOCX。
+  - heading "正式版本（0）" [level=2]
+  - button "发布正式版本":
+    - text: 发布正式版本
+  - generic: 尚未发布正式版本。工作草稿可持续修改；只有人工发布才会生成 V1、V2…
+  - heading "DOCX 模板（2）" [level=2]
+  - strong: 默认模板
+  - generic: 系统内置 A4 版式；未选择模板的文档使用此模板。
+  - generic: 内置
+  - strong: 合成技术方案三章节模板
+  - generic: synthetic-template.docx · 已识别章节 3
+  - generic: 项目目标与边界 → 技术路线与研究依据 → 实施与验收计划
+  - button "删除"
+  - generic: "上传公司 .docx 模板：用 Word“标题 1–3”定义章节，标题下可填写写作要求。系统按这些章节撰写并保留模板页眉页脚。也支持 {{sections}} 或 {{section:KEY}} 插槽。"
+  - text: 模板名称
+  - textbox "模板名称":
+    - /placeholder: 留空使用文件名
+  - text: 文件
+  - button "文件"
+  - button "上传模板" [disabled]:
+    - text: 上传模板
+  - heading "版本差异（业务级）" [level=2]
+  - generic: 至少发布两个正式版本后，才能比较业务差异。
+- alert
