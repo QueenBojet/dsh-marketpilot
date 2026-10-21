@@ -5,7 +5,8 @@ type Context = { confirmedRequirements: { id: string; normalizedText: string }[]
   verifiedFacts: { id: string; statement: string }[]; openUnknowns: { statement: string }[];
   selectedDecision: { id: string }; route: { components: string[]; summary: string } }
 function input<T>(prompt: string, tag: string): T {
-  const value = prompt.match(new RegExp(`<${tag}>\\n([\\s\\S]*?)\\n</${tag}>`))?.[1]
+  // Tolerate CRLF: an already-checked-out CRLF worktree otherwise never matches the tags.
+  const value = prompt.match(new RegExp(`<${tag}>\\r?\\n([\\s\\S]*?)\\r?\\n</${tag}>`))?.[1]
   if (!value) throw new Error(`Offline fixture missing ${tag}`)
   return JSON.parse(value) as T
 }

@@ -18,7 +18,9 @@ function visit(directory) {
 }
 for (const project of ['packages/storage/storage-domain', 'packages/storage/storage-json',
   'packages/storage/storage-sqlite', 'packages/core/tools', 'packages/interaction/user-questions', 'packages/fs/fs-local',
-  'packages/subagent/subagent', 'packages/web/web']) {
+  'packages/subagent/subagent', 'packages/web/web',
+  // tsconfig.json maps these two to lib/types, so typechecking src/client needs them built here.
+  'packages/client/store', 'packages/client/ui-primitives']) {
   visit(resolve(repository, project))
 }
 
@@ -27,7 +29,7 @@ for (const project of projects) {
   const config = ts.readConfigFile(configPath, ts.sys.readFile)
   const parsed = ts.parseJsonConfigFileContent(config.config, ts.sys, project, undefined, configPath)
   const builder = ts.createIncrementalProgram({ rootNames: parsed.fileNames, projectReferences: parsed.projectReferences,
-    options: { ...parsed.options, typeRoots: [typeRoots], noEmitOnError: true,
+    options: { ...parsed.options, typeRoots: [...(parsed.options.typeRoots ?? []), typeRoots], noEmitOnError: true,
       paths: { ...parsed.options.paths, 'js-yaml': [join(typeRoots, 'js-yaml/index.d.ts')],
         semver: [join(typeRoots, 'semver/index.d.ts')],
         commander: [resolve(typeRoots, '../commander/typings/index.d.ts')],
