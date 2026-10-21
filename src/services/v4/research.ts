@@ -33,7 +33,8 @@ export const findingReviewInput = z.strictObject({
   value: z.enum(['adopted', 'rejected', 'verified', 'disputed']), note: optText(1000),
 })
 
-const planOutput = z.strictObject({ steps: z.array(text.max(400)).min(1).max(8), queries: z.array(text.max(200)).max(4) })
+const planOutput = z.strictObject({ steps: z.array(text.max(400)).min(1).max(8), queries: z.array(text.max(200)).max(4),
+  mode: z.enum(['local', 'web', 'both']).optional() })
 const reportOutput = z.strictObject({
   report: text.max(60_000),
   findings: z.array(z.strictObject({
@@ -117,7 +118,9 @@ export class ResearchV4Service extends V4RunBase {
     const q = this.question(projectId, questionId)
     const state = this.ctx.state(projectId)
     const skill = await researchSkill()
-    const prompt = [skill.text, '为以下工程技术问题拟定简明研究计划（3-6 步）和至多 4 条联网检索关键词。仅输出 JSON。',
+    const prompt = [skill.text,
+      '为以下工程技术问题自动拟定研究提示词：3-6 个研究步骤（每步一句、可直接执行）和至多 4 条联网检索关键词，并推荐研究模式 mode（local=仅本地资料 / web=仅联网 / both=本地+联网）。',
+      `联网能力：${deps.web ? '可用，可推荐 web 或 both' : '不可用，只能推荐 local'}。检索词用面向搜索引擎的关键词组合，尽量包含设备类别、技术原理、标准编号、工况参数等专有名词。仅输出 JSON。`,
       `问题：${q.title}`, q.description ?? '', `具体方向：${q.direction ?? q.title}；决策用途：${q.decisionUse ?? '技术比较'}`,
       `候选路线：${state.alternatives.filter(a => q.alternativeIds?.includes(a.id)).map(a => `${a.name}：${a.summary}`).join('\n')}`,
       supportContext(state), '相关需求：', ...state.requirements.filter(r => q.requirementIds.includes(r.id)).map(r => `- ${r.normalizedText}`)].join('\n')

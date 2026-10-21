@@ -20,7 +20,11 @@ import { registerResearchSkill, type ResearchSkillRegistry } from '../services/v
 export interface Config { maxDocumentBytes: number; structuredProvider: string; modelTimeoutMs: number }
 export const Config: Schema<Config> = Schema.object({
   maxDocumentBytes: Schema.number().step(1).min(1).default(2 * 1024 * 1024),
-  structuredProvider: Schema.string().default('spawn'), modelTimeoutMs: Schema.number().step(1).min(1).default(120000),
+  structuredProvider: Schema.string().default('spawn'),
+  // Reasoning-heavy routes (e.g. GLM at max effort) legitimately think for many minutes:
+  // discovery rounds ran 157–283s and multi-route brainstorm exceeded 300s while still
+  // mid-reasoning. 15min is only a ceiling — fast models finish sooner and runs stay cancelable.
+  modelTimeoutMs: Schema.number().step(1).min(1).default(900000),
 })
 
 declare module '@deepseek-ai/cordis' {

@@ -243,7 +243,7 @@ export function mountWorkbenchRoutes(ctx: Context, workbench: WorkbenchManager):
         const bytes = Buffer.from(workbenchPage, 'utf8')
         response.writeHead(200, {
           'content-type': 'text/html; charset=utf-8',
-          'content-security-policy': "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+          'content-security-policy': "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'self'",
           'x-content-type-options': 'nosniff',
           'referrer-policy': 'no-referrer',
           'cache-control': 'no-store',

@@ -42,4 +42,20 @@ describe('DSH research skill injection', () => {
     for (const prompt of prompts) expect(prompt).toContain('# MarketPilot 工程深度研究')
     expect(repository.get(project.id)!.v4!.runs.find(r => r.id === result.runId)?.note).toMatch(/skill:marketpilot-deep-research@[a-f0-9]{12}/)
   })
+  it('auto-drafts the research prompts with a mode recommendation matched to web availability', async () => {
+    const { services, project } = await setup()
+    const q = await services.v4.research.addQuestion(project.id, { title: '自动提示词研究' })
+    const prompts: string[] = []
+    const answer = { steps: ['核对固定支撑摘要', '对比两条路线工况参数'], queries: ['激光 甲烷 检测下限'], mode: 'both' as const }
+    const deps = (web?: RunDeps['web']): RunDeps => ({ route: { provider: 'test', model: 'test', source: 'override' }, signal: new AbortController().signal,
+      ...web ? { web } : {},
+      model: { async generate({ prompt, schema }) { prompts.push(prompt); return schema.parse(answer) } } })
+    const withWeb = await services.v4.research.draftPlan(project.id, q.id,
+      deps({ async search() { return { sources: [] } }, async fetch() { throw new Error('unused') } }))
+    expect(withWeb).toMatchObject({ steps: answer.steps, queries: answer.queries, mode: 'both' })
+    expect(prompts[0]).toContain('自动拟定研究提示词')
+    expect(prompts[0]).toContain('联网能力：可用')
+    await services.v4.research.draftPlan(project.id, q.id, deps())
+    expect(prompts[1]).toContain('联网能力：不可用')
+  })
 })

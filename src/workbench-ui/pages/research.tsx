@@ -1,5 +1,5 @@
 /** 智能研究 (2B): question rail | report-centred research | collapsible AI assistant. */
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { get, patch, post, pp, put } from '../api.ts'
 import { Icon } from '../icons.tsx'
 import { href } from '../shell.tsx'
@@ -26,17 +26,38 @@ function QuestionModal({ q, open, onClose }: { q: Question | undefined; open: bo
   const [direction, setDirection] = useState('')
   const [decisionUse, setDecisionUse] = useState('')
   const [key, setKey] = useState<string>()
+  const [guard, setGuard] = useState(false)
   const k = open ? q?.id ?? 'new' : undefined
-  if (k !== key) { setKey(k); setTitle(q?.title ?? ''); setDesc(q?.description ?? ''); setReqs(q?.requirementIds ?? []); setDocs(q?.documentIds ?? []); setAlts(q?.alternativeIds ?? []); setDirection(q?.direction ?? ''); setDecisionUse(q?.decisionUse ?? '') }
+  if (k !== key) { setKey(k); setTitle(q?.title ?? ''); setDesc(q?.description ?? ''); setReqs(q?.requirementIds ?? []); setDocs(q?.documentIds ?? []); setAlts(q?.alternativeIds ?? []); setDirection(q?.direction ?? ''); setDecisionUse(q?.decisionUse ?? ''); setGuard(false) }
   const toggle = (list: string[], set: (v: string[]) => void, id: string) => set(list.includes(id) ? list.filter(x => x !== id) : [...list, id])
-  const save = async () => {
-    const body = { title: title.trim(), description: desc.trim(), requirementIds: reqs, documentIds: docs, alternativeIds: alts, direction: direction.trim(), decisionUse: decisionUse.trim() }
-    const out = await act(() => q ? patch(pp(pid!, `questions/${encodeURIComponent(q.id)}`), body) : post(pp(pid!, 'questions'), body), q ? '问题已更新' : '已新增研究问题')
+  const body = () => ({ title: title.trim(), description: desc.trim(), requirementIds: reqs, documentIds: docs, alternativeIds: alts, direction: direction.trim(), decisionUse: decisionUse.trim() })
+  /** Same fields the server treats as scope: editing them on an answered question resets its research. */
+  const scopeChanged = () => { if (!q) return false; const b = body()
+    return b.title !== q.title || b.description !== (q.description ?? '') || b.direction !== (q.direction ?? '') || b.decisionUse !== (q.decisionUse ?? '')
+      || JSON.stringify(b.requirementIds) !== JSON.stringify(q.requirementIds ?? [])
+      || JSON.stringify(b.documentIds) !== JSON.stringify(q.documentIds ?? [])
+      || JSON.stringify(b.alternativeIds) !== JSON.stringify(q.alternativeIds ?? []) }
+  const save = async (asNew = false) => {
+    const data = body()
+    if (!asNew && q?.report && scopeChanged() && !guard) { setGuard(true); return }
+    const out = await act(() => (q && !asNew) ? patch(pp(pid!, `questions/${encodeURIComponent(q.id)}`), data) : post(pp(pid!, 'questions'), data),
+      q && !asNew ? '问题已更新' : asNew ? '已另建独立研究问题，原问题保持不变' : '已新增研究问题')
     if (out !== undefined) onClose()
   }
   return (
     <Modal open={open} wide title={q ? '编辑研究问题' : '新增研究问题'} onClose={onClose} subtitle="每项研究聚焦一个具体方向，并说明它将支持哪项路线选择。新流程只使用已固化的本地支撑摘要。"
-      actions={<><Btn kind="ghost" onClick={onClose}>取消</Btn><Btn kind="primary" disabled={!title.trim() && '请填写问题'} onClick={save}>保存</Btn></>}>
+      actions={<><Btn kind="ghost" onClick={onClose}>取消</Btn><Btn kind="primary" disabled={!title.trim() && '请填写问题'} onClick={() => void save()}>{guard ? '仍修改此问题' : '保存'}</Btn></>}>
+      {guard ? (
+        <div className="boxnote" style={{ borderColor: '#f59e0b', background: '#fffbeb', marginBottom: 12 }}>
+          <b>该问题已有研究报告。</b>修改研究范围会使原研究计划失效、报告转为“需复核”，需要重新执行研究。若要研究另一个方向或路线，建议另建独立问题——各路线的研究互不影响。
+          <div className="actions" style={{ marginTop: 8 }}>
+            <Btn small kind="primary" showReason
+              disabled={q && body().direction === (q.direction ?? '').trim() ? '另建问题需要不同的具体研究方向' : ''}
+              onClick={() => void save(true)}>另建独立研究问题（推荐）</Btn>
+            <Btn small kind="ghost" onClick={() => setGuard(false)}>返回修改</Btn>
+          </div>
+        </div>
+      ) : null}
       <Field label="问题 *"><input className="text-field" value={title} onChange={e => setTitle(e.target.value)} maxLength={200} /></Field>
       <Field label="说明"><textarea className="text-field" rows={3} value={desc} onChange={e => setDesc(e.target.value)} /></Field>
       <Field label="具体研究方向"><input className="text-field" value={direction} onChange={e => setDirection(e.target.value)} placeholder="例如：高湿工况下的检测可靠性" /></Field>
@@ -52,30 +73,58 @@ function QuestionModal({ q, open, onClose }: { q: Question | undefined; open: bo
   )
 }
 
-function PlanDrawer({ q, open, onClose }: { q: Question; open: boolean; onClose: () => void }) {
+/**
+ * The plan stays a human-confirmed artefact, but its prompts (steps & search queries) are
+ * drafted by the model automatically: opening the drawer without a saved plan triggers one
+ * AI draft, so nobody has to write prompts by hand. With `autoStart`, confirming the plan
+ * chains straight into the research run.
+ */
+function PlanDrawer({ q, open, onClose, autoStart, initialMode }: {
+  q: Question; open: boolean; onClose: () => void; autoStart?: boolean; initialMode?: 'local' | 'web' | 'both' | ''
+}) {
   const { pid, ov, act, run, active } = useStore()
   const [steps, setSteps] = useState('')
   const [queries, setQueries] = useState('')
   const [mode, setMode] = useState<'local' | 'web' | 'both'>('local')
   const [key, setKey] = useState<string>()
+  const [autoTried, setAutoTried] = useState(false)
   const k = open ? q.id : undefined
-  if (k !== key) { setKey(k); setSteps(q.plan?.steps.join('\n') ?? ''); setQueries(q.plan?.queries.join('\n') ?? ''); setMode(q.plan?.mode ?? 'local') }
-  const model = ov!.capabilities.model
-  const draft = async () => {
-    const ex = await run('marketpilot_v4_research_draft_plan', { questionId: q.id }, { ok: 'AI 已拟定计划草稿，请审阅后保存' })
-    const v = ex?.status === 'completed' ? ex.value as { steps?: string[]; queries?: string[] } | undefined : undefined
-    if (v?.steps) { setSteps(v.steps.join('\n')); setQueries((v.queries ?? []).join('\n')) }
+  if (k !== key) {
+    setKey(k); setSteps(q.plan?.steps.join('\n') ?? ''); setQueries(q.plan?.queries.join('\n') ?? '')
+    setMode(initialMode || q.plan?.mode || 'local'); setAutoTried(false)
   }
+  const model = ov!.capabilities.model
+  const drafting = active?.tool === 'marketpilot_v4_research_draft_plan'
+  const draft = async (auto = false) => {
+    const ex = await run('marketpilot_v4_research_draft_plan', { questionId: q.id },
+      { ok: auto ? '已自动生成研究提示词，可修改后确认' : 'AI 已拟定计划草稿，请审阅后保存' })
+    const v = planDraftOf(ex?.status === 'completed' ? ex.value : undefined)
+    if (v?.steps?.length) {
+      setSteps(v.steps.join('\n')); setQueries((v.queries ?? []).join('\n'))
+      if (v.mode && !q.plan && !initialMode) setMode(v.mode)
+    }
+  }
+  useEffect(() => {
+    if (open && !autoTried && !q.plan?.confirmedAt && model.available && !active) { setAutoTried(true); void draft(true) }
+  }, [open, autoTried, q.id, q.plan?.confirmedAt, model.available, active])
   const save = async () => {
-    const out = await act(() => put(pp(pid!, `questions/${encodeURIComponent(q.id)}/plan`), { steps: lines(steps), mode, queries: lines(queries) }), '研究计划已确认保存')
-    if (out !== undefined) onClose()
+    const out = await act(() => put(pp(pid!, `questions/${encodeURIComponent(q.id)}/plan`), { steps: lines(steps), mode, queries: lines(queries) }),
+      autoStart ? '研究计划已确认，开始研究' : '研究计划已确认保存')
+    if (out !== undefined) {
+      onClose()
+      if (autoStart) await run('marketpilot_v4_research_run', { questionId: q.id }, { ok: '研究完成：报告与候选发现已生成，均需人工审核' }).then(() => {})
+    }
   }
   const reason = !lines(steps).length ? '至少一个步骤' : lines(steps).length > 12 ? '最多 12 个步骤' : lines(queries).length > 6 ? '最多 6 条检索词' : ''
   return (
     <Drawer open={open} title="研究计划" cap={q.title} onClose={onClose}
-      footer={<><Btn kind="ghost" onClick={draft} disabled={!model.available ? `模型不可用：${model.reason}` : active ? '已有运行进行中' : ''}><Icon name="spark" />AI 拟定草稿</Btn>
-        <Btn kind="primary" disabled={reason} onClick={save}>确认计划</Btn></>}>
+      footer={<><Btn kind="ghost" onClick={() => void draft()} disabled={!model.available ? `模型不可用：${model.reason}` : active ? '已有运行进行中' : ''}><Icon name="spark" />{lines(steps).length ? '重新 AI 拟定' : 'AI 拟定草稿'}</Btn>
+        <Btn kind="primary" disabled={reason} onClick={save}>{autoStart ? '确认计划并开始研究' : '确认计划'}</Btn></>}>
       <div className="tiny-caption">AI 只生成草稿，保存即视为人工确认。{q.plan?.confirmedAt ? `上次确认：${q.plan.confirmedBy ?? ''} ${fmtTime(q.plan.confirmedAt)}` : ''}</div>
+      {!lines(steps).length && !q.plan?.confirmedAt ? (
+        <div className="boxnote">{drafting ? '正在自动生成研究提示词（研究步骤与检索词），完成后可直接确认或修改…'
+          : model.available ? '尚未生成研究提示词：点击“AI 拟定草稿”自动生成，或手动填写。' : `模型不可用：${model.reason}；可手动填写研究步骤后确认。`}</div>
+      ) : null}
       <Field label="研究步骤（每行一步）"><textarea className="text-field" rows={6} value={steps} onChange={e => setSteps(e.target.value)} /></Field>
       <Field label="研究模式"><select className="text-field" value={mode} onChange={e => setMode(e.target.value as typeof mode)}>
         {Object.entries(MODE).map(([m, v]) => <option key={m} value={m}>{v}</option>)}</select></Field>
@@ -84,6 +133,12 @@ function PlanDrawer({ q, open, onClose }: { q: Question; open: boolean; onClose:
   )
 }
 type Preset = { type: 'document' | 'web' | 'report' | 'none'; documentId?: string; sourceId?: string; quote?: string }
+/** Tool executions carry a {summary, data} envelope around the service result; unwrap either shape. */
+const planDraftOf = (value: unknown): { steps?: string[]; queries?: string[]; mode?: 'local' | 'web' | 'both' } | undefined => {
+  const v = value as { data?: unknown } | undefined
+  const plan = v?.data ?? value
+  return plan && typeof plan === 'object' ? plan as { steps?: string[]; queries?: string[]; mode?: 'local' | 'web' | 'both' } : undefined
+}
 const selected = () => (window.getSelection()?.toString() ?? '').trim()
 
 /** Manual finding: the quote must exist verbatim in the chosen source (checked server-side, QUOTE_NOT_FOUND). */
@@ -203,6 +258,7 @@ function FindingCard({ f }: { f: Finding }) {
 function ReportPanel({ q, onEdit, onSave }: { q: Question; onEdit: () => void; onSave: (p: Preset) => void }) {
   const { pid, ov, act, run, active } = useStore()
   const [plan, setPlan] = useState(false)
+  const [autoStart, setAutoStart] = useState(false)
   const [mode, setMode] = useState<'local' | 'web' | 'both' | ''>('')
   const [src, setSrc] = useState<string>()
   const cap = ov!.capabilities
@@ -210,9 +266,13 @@ function ReportPanel({ q, onEdit, onSave }: { q: Question; onEdit: () => void; o
   const sources = ov!.v4.sources.filter(s => s.questionId === q.id)
   const eff = mode || q.plan?.mode || 'local'
   const reason = !cap.model.available ? `模型不可用：${cap.model.reason}` : q.status === 'researching' ? '研究进行中' : q.status === 'closed' ? '问题已关闭'
-    : ov!.v4.discovery && !q.plan?.confirmedAt ? '请先制定并确认本方向研究计划'
     : !ov!.documents.length && eff === 'local' ? '项目没有资料，请先上传' : active ? '已有运行进行中' : ''
-  const go = () => run('marketpilot_v4_research_run', { questionId: q.id, ...mode ? { mode } : {} }, { ok: '研究完成：报告与候选发现已生成，均需人工审核' }).then(() => {})
+  const go = () => {
+    // No confirmed plan yet: auto-draft the prompts (steps & queries) and let the human
+    // confirm once — nobody has to write the research prompts by hand.
+    if (ov!.v4.discovery && !q.plan?.confirmedAt) { setAutoStart(true); setPlan(true); return }
+    run('marketpilot_v4_research_run', { questionId: q.id, ...mode ? { mode } : {} }, { ok: '研究完成：报告与候选发现已生成，均需人工审核' }).then(() => {})
+  }
   const findings = ov!.v4.findings.filter(f => f.questionId === q.id)
   const linkedAlts = (q.alternativeIds ?? []).map(id => ov!.alternatives.find(a => a.id === id)?.name).filter(Boolean)
 
@@ -233,14 +293,20 @@ function ReportPanel({ q, onEdit, onSave }: { q: Question; onEdit: () => void; o
         </div>
         <div className="actions">
           <Btn small kind="text" onClick={onEdit}>编辑</Btn>
-          <Btn small kind="ghost" disabled={q.status === 'closed' && '已关闭'} onClick={() => act(() => patch(pp(pid!, `questions/${encodeURIComponent(q.id)}`), { status: 'closed' }), '问题已关闭').then(() => {})}>关闭问题</Btn>
+          {q.status === 'closed' ? (q.report ? (
+            <Btn small kind="teal" onClick={() => act(() => patch(pp(pid!, `questions/${encodeURIComponent(q.id)}`), { status: 'answered' }), '已恢复为已有报告（沿用原运行报告）').then(() => {})}>恢复为已有报告</Btn>
+          ) : (
+            <Btn small kind="ghost" onClick={() => act(() => patch(pp(pid!, `questions/${encodeURIComponent(q.id)}`), { status: 'open' }), '已重开为待研究').then(() => {})}>重开问题</Btn>
+          )) : (
+            <Btn small kind="ghost" onClick={() => act(() => patch(pp(pid!, `questions/${encodeURIComponent(q.id)}`), { status: 'closed' }), '问题已关闭').then(() => {})}>关闭问题</Btn>
+          )}
         </div>
       </div>
       <div className="research-toolbar">
         <span className="tiny-caption" style={{ flex: 1 }}>
-          <b>研究计划：</b>{q.plan ? `${q.plan.steps.length} 步 · ${MODE[q.plan.mode]} · ${q.plan.confirmedBy ?? ''} 确认` : ov!.v4.discovery ? '未制定，请先确认本方向计划' : '未制定（将直接按问题研究本地资料）'}
+          <b>研究计划：</b>{q.plan ? `${q.plan.steps.length} 步 · ${MODE[q.plan.mode]} · ${q.plan.confirmedBy ?? ''} 确认` : ov!.v4.discovery ? '未制定；点击“开始研究”将自动生成计划草稿' : '未制定（将直接按问题研究本地资料）'}
         </span>
-        <Btn small kind="ghost" onClick={() => setPlan(true)}>{q.plan ? '修改计划' : '制定计划'}</Btn>
+        <Btn small kind="ghost" onClick={() => { setAutoStart(false); setPlan(true) }}>{q.plan ? '修改计划' : '制定计划'}</Btn>
         <select className="text-field" style={{ width: 155 }} value={mode} onChange={e => setMode(e.target.value as typeof mode)} aria-label="本次研究模式">
           <option value="">按计划（{MODE[q.plan?.mode ?? 'local']}）</option>{Object.entries(MODE).map(([m, v]) => <option key={m} value={m}>{v}</option>)}</select>
         <Btn small kind="primary" disabled={reason} showReason onClick={go}><Icon name="spark" />开始研究</Btn>
@@ -254,7 +320,7 @@ function ReportPanel({ q, onEdit, onSave }: { q: Question; onEdit: () => void; o
           <Btn small kind="teal" onClick={() => onSave({ type: 'report', ...selected() ? { quote: selected() } : {} })}>选中文字保存为发现</Btn>
         </div>
         <Blocks content={q.report} />
-      </> : <Empty>尚无报告。{ov!.v4.discovery ? '请先制定并确认本方向研究计划，再点击“开始研究”。' : '制定计划（可选）后点击“开始研究”。'}</Empty>}
+      </> : <Empty>尚无报告。{ov!.v4.discovery ? '点击“开始研究”，AI 将自动生成本方向研究提示词（计划与检索词），确认后执行。' : '制定计划（可选）后点击“开始研究”。'}</Empty>}
       {sources.length ? (
         <div style={{ marginTop: 20 }}>
           <div className="micro-title">网页来源与正文快照（{sources.filter(s => s.status === 'fetched').length}/{sources.length} 已获取正文）</div>
@@ -273,7 +339,7 @@ function ReportPanel({ q, onEdit, onSave }: { q: Question; onEdit: () => void; o
         <Btn small kind="ghost" onClick={() => onSave({ type: 'document' })}><Icon name="plus" />从资料摘录</Btn>
       </div>
       {findings.length ? <div className="finding-list">{findings.map(f => <FindingCard key={f.id} f={f} />)}</div> : <Empty>暂无发现。研究运行会提出候选发现，也可以手工从资料中摘录。</Empty>}
-      <PlanDrawer q={q} open={plan} onClose={() => setPlan(false)} />
+      <PlanDrawer q={q} open={plan} autoStart={autoStart} initialMode={mode} onClose={() => setPlan(false)} />
       <SourceDrawer s={sources.find(s => s.id === src)} onClose={() => setSrc(undefined)} onSave={p => { setSrc(undefined); onSave(p) }} />
     </div>
   )
@@ -332,6 +398,26 @@ export function ResearchPage() {
   const q = qs.find(x => x.id === sel) ?? qs[0]
   const adopted = ov.v4.findings.filter(f => f.adoption === 'adopted').length
   const directions = currentResearchDirections(ov)
+  // Group the rail by the candidate route each question belongs to, so every route's
+  // research thread unfolds independently instead of one flat list.
+  const initialRoutes = (ov.v4.explorations ?? []).filter(e => e.phase === 'initial').at(-1)?.routes ?? []
+  const railGroups = initialRoutes.map(r => {
+    const list = qs.filter(x => (x.alternativeIds ?? []).includes(r.alternativeId))
+    return { id: r.alternativeId, name: ov.alternatives.find(a => a.id === r.alternativeId)?.name ?? '（路线已删除）', list,
+      answered: list.filter(x => x.status === 'answered').length }
+  }).filter(g => g.list.length)
+  const groupedIds = new Set(railGroups.flatMap(g => g.list.map(x => x.id)))
+  const ungrouped = qs.filter(x => !groupedIds.has(x.id))
+  const railItem = (x: Question) => (
+    <button key={x.id} className={cx('topic', x.id === q?.id && 'active')} onClick={() => setSel(x.id)}>
+      <span className="topic-dot" />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div>{x.title}</div>
+        {x.direction ? <div className="tiny-caption" style={{ fontSize: 10 }}>方向：{x.direction}</div> : null}
+      </div>
+      <Badge tone={Q_STATUS[x.status][1]}>{Q_STATUS[x.status][0]}</Badge>
+    </button>
+  )
   return (
     <>
       <PageHead eyebrow="STAGE 4 · DIRECTED TECHNICAL RESEARCH" title="智能研究空间"
@@ -348,17 +434,22 @@ export function ResearchPage() {
       </div>
       <div className={cx('research-grid', !chat && 'chat-collapsed')}>
         <aside className="card research-left">
-          <div className="micro-title">研究问题（{qs.length}）</div>
-          {qs.map(x => (
-            <button key={x.id} className={cx('topic', x.id === q?.id && 'active')} onClick={() => setSel(x.id)}>
-              <span className="topic-dot" />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div>{x.title}</div>
-                {x.direction ? <div className="tiny-caption" style={{ fontSize: 10 }}>方向：{x.direction}</div> : null}
+          <div className="micro-title">研究问题（{qs.length}）· 按路线独立展开</div>
+          {railGroups.map(g => (
+            <div key={g.id} className="rail-group">
+              <div className="rail-group-head">
+                <span title={g.name}>{g.name.length > 18 ? `${g.name.slice(0, 18)}…` : g.name}</span>
+                <Badge tone={g.answered ? 'teal' : 'gray'}>{g.answered}/{g.list.length} 已有报告</Badge>
               </div>
-              <Badge tone={Q_STATUS[x.status][1]}>{Q_STATUS[x.status][0]}</Badge>
-            </button>
+              {g.list.map(railItem)}
+            </div>
           ))}
+          {ungrouped.length ? (
+            <div className="rail-group">
+              <div className="rail-group-head"><span>未关联当前初筛路线</span><Badge tone="gray">{ungrouped.length}</Badge></div>
+              {ungrouped.map(railItem)}
+            </div>
+          ) : null}
           <button className="topic" onClick={() => setQModal('new')}><Icon name="plus" />新增问题</button>
           <div className="thin-rule" />
           <div className="micro-title">知识沉淀</div>

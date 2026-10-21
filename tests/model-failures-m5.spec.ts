@@ -51,4 +51,45 @@ describe('M5 official structured-model failure boundary (no network)', () => {
     await expect(model.generate(request(controller.signal))).rejects.toThrow('M5 user cancelled')
     expect(dispose).toHaveBeenCalledOnce()
   })
+
+  it('rescues plain-text JSON a provider emitted without calling structured_output', async () => {
+    const ctx = new Context(), dispose = vi.fn()
+    // Observed live: glm-5.3-flash finished its turn with the whole answer as a text
+    // block; the spawn driver settles that as stopReason 'error' with empty `structured`.
+    ctx.provide('subagents', { start: async () => ({ result: Promise.resolve({
+      stopReason: 'error', output: [
+        { type: 'reasoning', text: '内部思考…' },
+        { type: 'text', text: '{"answer":"本轮先问三个问题"}' },
+      ] }), dispose }) })
+    const model = new HarnessStructuredModel(ctx, parent, 'spawn', 1000)
+    await expect(model.generate(request())).resolves.toEqual({ answer: '本轮先问三个问题' })
+    expect(dispose).toHaveBeenCalledOnce()
+  })
+
+  it('rescues JSON embedded in prose or code fences', async () => {
+    const ctx = new Context(), dispose = vi.fn()
+    ctx.provide('subagents', { start: async () => ({ result: Promise.resolve({
+      stopReason: 'error', output: [{ type: 'text', text: '以下是简报建议：\n```json\n{"answer":"wrapped {brace} in string"}\n```' }] }), dispose }) })
+    const model = new HarnessStructuredModel(ctx, parent, 'spawn', 1000)
+    await expect(model.generate(request())).resolves.toEqual({ answer: 'wrapped {brace} in string' })
+  })
+
+  it('keeps the provider failure when the text answer does not satisfy the schema', async () => {
+    const ctx = new Context(), dispose = vi.fn()
+    ctx.provide('subagents', { start: async () => ({ result: Promise.resolve({
+      stopReason: 'error', diagnostic: 'M5 upstream unavailable',
+      output: [{ type: 'text', text: '抱歉，我无法完成该任务。' }] }), dispose }) })
+    const model = new HarnessStructuredModel(ctx, parent, 'spawn', 1000)
+    await expect(model.generate(request())).rejects.toMatchObject({ code: 'MODEL_STEP_FAILED', message: 'M5 upstream unavailable' })
+    expect(dispose).toHaveBeenCalledOnce()
+  })
+
+  it('prefers a valid structured tool call over any text output', async () => {
+    const ctx = new Context(), dispose = vi.fn()
+    ctx.provide('subagents', { start: async () => ({ result: Promise.resolve({
+      stopReason: 'completed', structured: { answer: 'from tool' },
+      output: [{ type: 'text', text: '{"answer":"from text"}' }] }), dispose }) })
+    const model = new HarnessStructuredModel(ctx, parent, 'spawn', 1000)
+    await expect(model.generate(request())).resolves.toEqual({ answer: 'from tool' })
+  })
 })

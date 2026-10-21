@@ -43,6 +43,14 @@ const PANEL_CSS = `
 @media(max-width:1200px){.mp-workflowGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.mp-stageAction{padding:12px}.mp-stageFacts{gap:8px}}
 @media(max-width:640px){.mp-flowSummary{grid-template-columns:1fr}.mp-stageFacts{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .mp-root{display:flex;flex-direction:column;height:100%;min-height:0;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font-family:var(--dsw-font-family);font-size:14px;line-height:1.5}
+.mp-launchRoot{display:flex;align-items:center;justify-content:center;width:100%;height:100%;min-height:0;background:var(--dsw-alias-bg-base)}
+.mp-launchCard{display:flex;flex-direction:column;align-items:center;gap:12px;max-width:420px;padding:32px 24px;text-align:center}
+.mp-launchTitle{margin:0;font-size:18px;font-weight:600;color:var(--dsw-alias-label-primary)}
+.mp-launchText{margin:0;font-size:13px;line-height:1.7;color:var(--dsw-alias-label-secondary)}
+.mp-launchOpen{display:inline-block;background:var(--dsw-alias-state-business-primary);color:var(--dsw-alias-bg-base);border-radius:8px;padding:9px 16px;font-weight:600;line-height:1.5;text-decoration:none}
+.mp-launchOpen:hover{background:color-mix(in srgb,var(--dsw-alias-state-business-primary) 88%,var(--dsw-alias-label-primary));color:var(--dsw-alias-bg-base)}
+.mp-launchClassic{border:1px solid var(--dsw-alias-border-l2);border-radius:var(--dsw-radius-sm);background:transparent;color:var(--dsw-alias-label-secondary);padding:6px 12px;font-size:12px;font-family:var(--dsw-font-family);line-height:1.4;cursor:pointer}
+.mp-launchClassic:hover{color:var(--dsw-alias-label-primary);border-color:var(--dsw-alias-state-business-primary)}
 .mp-header{display:flex;align-items:center;gap:12px;height:64px;padding:0 24px;border-bottom:1px solid var(--dsw-alias-border-l2);flex:0 0 auto}
 .mp-brand{display:flex;align-items:center;gap:10px;min-width:0}
 .mp-brandMark{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:var(--dsw-radius-sm);background:var(--dsw-alias-state-business-tertiary);color:var(--dsw-alias-state-business-primary);flex:0 0 auto}

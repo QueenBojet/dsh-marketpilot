@@ -786,6 +786,16 @@ a { color: inherit; }
 .topic .topic-dot { width: 7px; height: 7px; border-radius: 50%; background: #94a3b8; flex: none; margin-top: 5px; }
 .topic.active .topic-dot { background: var(--blue); }
 .topic .badge { margin-left: auto; flex: none; }
+.rail-group { margin-bottom: 4px; }
+.rail-group-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 6px;
+  padding: 8px 9px 4px; border-top: 1px solid var(--line-soft);
+}
+.rail-group:first-of-type .rail-group-head { border-top: 0; }
+.rail-group-head span {
+  font-size: 11px; font-weight: 700; color: var(--ink-secondary);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 .thin-rule { height: 1px; background: var(--line-soft); margin: 14px 0; }
 .source-mini {
   display: flex;

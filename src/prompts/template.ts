@@ -1,4 +1,6 @@
 import { readFile } from 'node:fs/promises'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { ensure } from '../domain/common.ts'
 
 /** Template substitution is single-pass so document content cannot introduce new variables. */
@@ -11,6 +13,10 @@ export function renderPrompt(template: string, variables: Record<string, string>
 
 export type PromptName = 'requirement-extract' | 'alternative-generate' | 'solution-outline' | 'solution-section' | 'tender-extract' | 'tender-review'
   | 'competitor-extract' | 'policy-extract' | 'discovery' | 'brainstorm'
+
+/** Resolve through plain fs paths (not `new URL`): a replaced global URL (e.g. under jsdom)
+ *  must never change which file is read. */
+const promptDir = dirname(fileURLToPath(import.meta.url))
 export async function loadPrompt(name: PromptName): Promise<string> {
-  return readFile(new URL(`./${name}.md`, import.meta.url), 'utf8')
+  return readFile(join(promptDir, `${name}.md`), 'utf8')
 }

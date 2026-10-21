@@ -63,6 +63,9 @@ beforeEach(() => {
   ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
   fetchMock = vi.fn()
   ;(globalThis as { fetch: unknown }).fetch = fetchMock
+  // The launch effect calls window.open on mount; jsdom's real implementation
+  // is not implemented, so stub it (per-test spies override this).
+  vi.spyOn(window, 'open').mockImplementation(() => null)
 })
 
 afterEach(() => {
@@ -103,7 +106,54 @@ function makePanelProps(): { useStore: Parameters<typeof MarketPilotPanel>[0]['u
   }
 }
 
+/** The panel launches the V4 workbench window by default; classic tests opt into the native branch. */
+function renderClassicPanel(props: { useStore: Parameters<typeof MarketPilotPanel>[0]['useStore']; actions: MarketPilotActions } = makePanelProps()): HTMLElement {
+  const el = render(<MarketPilotPanel t={t} {...props} />)
+  act(() => { container!.querySelector<HTMLButtonElement>('.mp-launchClassic')!.click() })
+  return el
+}
+
 describe('MarketPilot main panel', () => {
+  it('pops the V4 workbench into its named window on activation — focus reuse, no reload', () => {
+    const fake = {
+      closed: false,
+      location: { href: 'about:blank', pathname: 'about:blank', assign: vi.fn() },
+      focus: vi.fn(),
+    }
+    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => fake as unknown as Window)
+    render(<MarketPilotPanel t={t} {...makePanelProps()} />)
+    expect(openSpy).toHaveBeenCalledWith('', 'marketpilot-v4-workbench')
+    expect(fake.location.assign).toHaveBeenCalledWith('/marketpilot/workbench')
+    expect(fake.focus).toHaveBeenCalled()
+    expect(text()).toContain(marketpilotLocales.zh.workbenchOpened)
+    // The native shell is not rendered until the escape hatch is used.
+    expect(container!.querySelector('.mp-root')).toBeNull()
+    const classic = container!.querySelector<HTMLButtonElement>('.mp-launchClassic')
+    expect(classic?.textContent).toBe(marketpilotLocales.zh.classicPanel)
+    expect(classic?.title).toBe(marketpilotLocales.zh.classicPanelHint)
+  })
+
+  it('re-focuses an already-open workbench window without navigating it again', () => {
+    const fake = {
+      closed: false,
+      location: { href: 'http://127.0.0.1:43129/marketpilot/workbench#/research', pathname: '/marketpilot/workbench', assign: vi.fn() },
+      focus: vi.fn(),
+    }
+    vi.spyOn(window, 'open').mockImplementation(() => fake as unknown as Window)
+    render(<MarketPilotPanel t={t} {...makePanelProps()} />)
+    expect(fake.location.assign).not.toHaveBeenCalled()
+    expect(fake.focus).toHaveBeenCalled()
+  })
+
+  it('falls back to a manual launch link when the popup is blocked', () => {
+    vi.spyOn(window, 'open').mockImplementation(() => null)
+    render(<MarketPilotPanel t={t} {...makePanelProps()} />)
+    expect(text()).toContain(marketpilotLocales.zh.workbenchOpenBlocked)
+    const link = container!.querySelector<HTMLAnchorElement>('a[target="marketpilot-v4-workbench"]')
+    expect(link?.getAttribute('href')).toBe('/marketpilot/workbench')
+    expect(link?.textContent).toBe(marketpilotLocales.zh.openWorkbench)
+  })
+
   it('renders the home page with real project rows and real stats — no permanent placeholders', async () => {
     fetchMock.mockImplementation(async (input: unknown) => {
       const url = String(input)
@@ -117,7 +167,7 @@ describe('MarketPilot main panel', () => {
       if (url === '/marketpilot/api/projects/p2/runs?active=1') return jsonResponse({ runs: [] })
       throw new Error(`unexpected fetch: ${url}`)
     })
-    render(<MarketPilotPanel t={t} {...makePanelProps()} />)
+    renderClassicPanel()
     await flush()
     expect(text()).toContain('CALM 单点系泊监测')
     expect(text()).toContain('GLM 结构化验证')
@@ -144,7 +194,7 @@ describe('MarketPilot main panel', () => {
       if (url.includes('/runs?active=1')) throw new Error('network down')
       throw new Error(`unexpected fetch: ${url}`)
     })
-    render(<MarketPilotPanel t={t} {...makePanelProps()} />)
+    renderClassicPanel()
     await flush()
     const cards = [...container!.querySelectorAll('.mp-cards .mp-card')].map(card => card.textContent ?? '')
     expect(cards[1]).toContain(marketpilotLocales.zh.statUnavailable)
@@ -153,7 +203,7 @@ describe('MarketPilot main panel', () => {
 
   it('renders the empty state when no projects exist', async () => {
     fetchMock.mockResolvedValue(jsonResponse({ projects: [] }))
-    render(<MarketPilotPanel t={t} {...makePanelProps()} />)
+    renderClassicPanel()
     await flush()
     expect(text()).toContain(marketpilotLocales.zh.emptyTitle)
     expect(text()).toContain(marketpilotLocales.zh.emptyBody)
@@ -161,7 +211,7 @@ describe('MarketPilot main panel', () => {
 
   it('renders the error state with a retry action when loading fails', async () => {
     fetchMock.mockRejectedValue(new Error('网络中断'))
-    render(<MarketPilotPanel t={t} {...makePanelProps()} />)
+    renderClassicPanel()
     await flush()
     expect(text()).toContain(marketpilotLocales.zh.loadError)
     expect(text()).toContain('网络中断')
@@ -182,7 +232,7 @@ describe('MarketPilot main panel', () => {
       throw new Error(`unexpected fetch: ${url}`)
     })
     const props = makePanelProps()
-    render(<MarketPilotPanel t={t} {...props} />)
+    renderClassicPanel(props)
     await flush()
     act(() => {
       const nav = [...container!.querySelectorAll('button')].find(b => b.textContent === marketpilotLocales.zh.navProjects)

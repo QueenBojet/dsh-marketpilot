@@ -2,7 +2,7 @@ import { useStore } from '../store.tsx'
 import { post, pp } from '../api.ts'
 import { Icon } from '../icons.tsx'
 import { href } from '../shell.tsx'
-import { Badge, Blocks, Btn, Panel } from '../ui.tsx'
+import { Badge, Blocks, Btn, Panel, ROUTE_SRC, fmtTime } from '../ui.tsx'
 import { currentResearchDirections } from '../research-progress.ts'
 
 const Q_BADGE: Record<string, [string, 'gray' | 'blue' | 'teal' | 'warn']> = {
@@ -26,6 +26,7 @@ export function ExplorationPanel() {
   const initial = items.filter(e => e.phase === 'initial').at(-1)
   const final = items.filter(e => e.phase === 'synthesis').at(-1)
   const distinctDirs = currentResearchDirections(ov!)
+  const lastRun = [...(ov!.v4.runs ?? [])].filter(r => r.kind === 'brainstorm').sort((a, b) => b.startedAt.localeCompare(a.startedAt))[0]
 
   const reason = active
     ? '已有运行进行中'
@@ -72,6 +73,15 @@ export function ExplorationPanel() {
         </Btn>
       </div>
 
+      {lastRun ? (
+        <div className="tiny-caption" style={{ marginBottom: 12, ...(lastRun.status === 'failed' ? { color: '#b91c1c' } : {}) }}>
+          最近头脑风暴运行：{fmtTime(lastRun.startedAt)} · {lastRun.status === 'completed' ? '已完成' : lastRun.status === 'running' ? '运行中' : lastRun.status === 'cancelled' ? '已取消' : '失败'}
+          · 模型 {lastRun.modelRoute.provider}/{lastRun.modelRoute.model}（{ROUTE_SRC[lastRun.modelRoute.source] ?? lastRun.modelRoute.source}）
+          {lastRun.note ? ` · ${lastRun.note}` : ''}{lastRun.error ? ` · 错误：${lastRun.error}` : ''}
+          {lastRun.status === 'failed' && /timeout|aborted/i.test(lastRun.error ?? '') ? '（模型推理时间过长被中止，可重试、换用更快模型或降低思考强度）' : ''}
+        </div>
+      ) : null}
+
       {orderedExplorations.map(e => {
         const isCurrent = e.phase === 'initial' ? ov!.discoveryStatus?.initialCurrent : ov!.discoveryStatus?.synthesisCurrent
         const isCollapsedInitial = e.phase === 'initial' && Boolean(final)
@@ -89,6 +99,9 @@ export function ExplorationPanel() {
               {e.routes.map(r => {
                 const altName = ov!.alternatives.find(a => a.id === r.alternativeId)?.name ?? r.alternativeId
                 const isConfirmedRoute = ov!.route.confirmedAlternativeId === r.alternativeId
+                // Per-route research progress: each route's questions unfold independently.
+                const linkedQs = ov!.v4.questions.filter(x => x.status !== 'closed' && (x.alternativeIds ?? []).includes(r.alternativeId))
+                const answeredQs = linkedQs.filter(x => x.status === 'answered').length
                 return (
                   <div className="route-card" key={r.alternativeId} style={isConfirmedRoute ? { borderColor: 'rgba(13, 148, 136, 0.45)', background: 'linear-gradient(180deg, rgba(240, 253, 250, 0.55), #ffffff 42%)' } : undefined}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -115,6 +128,12 @@ export function ExplorationPanel() {
                     </div>
                     {e.phase === 'initial' ? (
                       <div style={{ marginTop: 10, borderTop: '1px solid var(--line-soft)', paddingTop: 8 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                          <span className="tiny-caption">本路线独立研究：已建 {linkedQs.length} / 建议 {r.researchDirections.length} 个方向</span>
+                          <Badge tone={answeredQs ? 'teal' : linkedQs.length ? 'warn' : 'gray'}>
+                            {answeredQs ? `${answeredQs} 个已有报告` : linkedQs.length ? '待完成' : '尚未建立'}
+                          </Badge>
+                        </div>
                         <div className="tiny-caption" style={{ fontWeight: 700, marginBottom: 4 }}>建议定向研究方向（点击建立独立研究问题）：</div>
                         {r.researchDirections.map(direction => {
                           const existingQ = ov!.v4.questions.find(q => q.direction === direction && q.status !== 'closed')
